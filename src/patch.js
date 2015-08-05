@@ -22,7 +22,8 @@ function applyProps(node, props, values){
 }
 
 function createAddChildren(parentNode, vchildren, values){
-  for(let i=0; i<vchildren.length; ++i){
+  const length = vchildren.length;
+  for(let i=0; i<length; ++i){
     parentNode.appendChild(createNode(vchildren[i], values, parentNode));
   }
 }
@@ -34,31 +35,48 @@ function createElement({el, props, children}, values){
   return node;
 }
 
-function rerenderValue(parentNode, node, prevValue, value){
-  if(typeof prevValue === 'string'){
-    if(typeof value === 'string' && prevValue !== value){
-      node.textContent = value;
-      return rerenderValue.bind(null, parentNode, node, value);
-    }
+function rerenderTextNodeValue(parentNode, node, prevValue, value){
+  if(typeof value === 'string'){
+    if(prevValue !== value) node.textContent = value;
+    return rerenderTextNodeValue.bind(null, parentNode, node, value);
   }
-  else{
-    const newNode = createNodeFromValue(value);
-    parentNode.replaceChild(newNode, node);
-    return rerenderValue.bind(null, parentNode, newNode, value);
-  }
+  return rerenderValue(parentNode, node, prevValue, value);
 }
 
-function createNodeFromValue(value, parentNode, values){
-  return (
-      typeof value === 'string' ? document.createTextNode(value)
-    // : value instanceof Array    ?
-    : createNodeFromSpec(value, values, parentNode)
-  );
+function rerenderValue(parentNode, node, prevValue, value){
+  const newNode = createNodeFromValue(value);
+  parentNode.replaceChild(newNode, node);
+  return getRerenderFuncForValue(value).bind(null, parentNode, newNode, value);
+}
+
+function getRerenderFuncForValue(value){
+  return typeof value === 'string' ? rerenderTextNodeValue : rerenderValue;
+}
+
+function createNodeFromValue(value){
+    return typeof value === 'string' ? document.createTextNode(value)
+  : createNode(value.template, value.values);
+}
+
+function createAndRegisterFromArrayValue(arrayValue, values){
+  const frag = document.createDocumentFragment();
+  const length = arrayValue.length;
+  for(let i=0; i<length; ++i){
+    frag.appendChild(createNodeFromValue(arrayValue[i]));
+  }
+  return frag;
 }
 
 function createAndRegisterNodeFromValue(value, parentNode, values){
-  const node = createNodeFromValue(value);
-  values.push(rerenderValue.bind(null, parentNode, node, value));
+  let node, rerenderFunc;
+  if(value instanceof Array){
+    return createAndRegisterFromArrayValue(value, values);
+  }
+  else{
+    node         = createNodeFromValue(value);
+    rerenderFunc = typeof value === 'string' ? rerenderTextNodeValue : rerenderValue;
+    values.push(rerenderFunc.bind(null, parentNode, node, value));
+  }
   return node;
 }
 
@@ -77,12 +95,8 @@ function createNode(vnode, values, parentNode){
   }
 }
 
-function createNodeFromSpec({template, values}){
-  return createNode(template, values);
-}
-
 function initialPatch(node, spec){
-  node.appendChild(createNodeFromSpec(spec));
+  node.appendChild(createNode(spec.template, spec.values));
   node.xvdom = {spec};
 }
 

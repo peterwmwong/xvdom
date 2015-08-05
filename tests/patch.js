@@ -111,20 +111,22 @@ describe('patch', ()=>{
             children: [0]
           },
           values:[
-            {
-              template: {
-                el: 'span',
-                props: {$className:0},
-                children:[1]
+            [
+              {
+                template:{
+                  el:'span', props:{className:'foo bar baz'}
+                }
               },
-              values: [
-                'foo bar baz',
-                'hello world'
-              ]
-            }
+              'hello world',
+              {
+                template:{
+                  el:'b', props:{className:'qux'}
+                }
+              }
+            ]
           ]
         });
-        assert.equal(getTargetHTML(), '<div><span class="foo bar baz">hello world</span></div>');
+        assert.equal(getTargetHTML(), '<div><span class="foo bar baz"></span>hello world<b class="qux"></b></div>');
       });
     });
 
@@ -191,9 +193,13 @@ describe('patch', ()=>{
     let createElement = document.createElement;
     let createTextNode = document.createTextNode;
 
-    beforeEach(()=>{
+    function resetCounts(){
       createElementCount = 0;
       createTextNodeCount = 0;
+    }
+
+    beforeEach(()=>{
+      resetCounts();
 
       document.createElement = (...args)=>{
         ++createElementCount;
@@ -229,17 +235,132 @@ describe('patch', ()=>{
         template: TMPL,
         values:['foo']
       });
+      resetCounts();
+
       patch(target, {
         template: TMPL,
         values:['bar']
       });
       assert.equal(getTargetHTML(), '<div class="bar"></div>');
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
+
+
       patch(target, {
         template: TMPL,
         values:['baz']
       });
       assert.equal(getTargetHTML(), '<div class="baz"></div>');
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
+    });
+
+    it('Text Nodes', ()=>{
+      const TMPL = {el: 'div', children:[0]};
+      patch(target, {
+        template: TMPL,
+        values:[
+          'Hello'
+        ]
+      });
+      assert.equal(getTargetHTML(), '<div>Hello</div>');
+      resetCounts();
+
+      patch(target, {
+        template: TMPL,
+        values:[
+          'World'
+        ]
+      });
+      assert.equal(getTargetHTML(), '<div>World</div>');
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+    });
+
+
+    it('Text to Element', ()=>{
+      const TMPL = {el: 'div', children:[0]};
+      patch(target, {
+        template: TMPL,
+        values:[
+          'Hello'
+        ]
+      });
+      assert.equal(getTargetHTML(), '<div>Hello</div>');
+      resetCounts();
+
+      patch(target, {
+        template: TMPL,
+        values:[
+          {
+            template:{el:'span'}
+          }
+        ]
+      });
+      assert.equal(getTargetHTML(), '<div><span></span></div>');
       assert.equal(createElementCount, 1);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+
+      patch(target, {
+        template: TMPL,
+        values:[
+          {
+            template:{el:'b'}
+          }
+        ]
+      });
+      assert.equal(getTargetHTML(), '<div><b></b></div>');
+      assert.equal(createElementCount, 1);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+    });
+
+    it('Element to Text', ()=>{
+      const TMPL = {el: 'div', children:[0]};
+      patch(target, {
+        template: TMPL,
+        values:[
+          {template:{el:'span'}}
+        ]
+      });
+      assert.equal(getTargetHTML(), '<div><span></span></div>');
+      resetCounts();
+
+
+      patch(target, {
+        template: TMPL,
+        values:[
+          'Meow'
+        ]
+      });
+      assert.equal(getTargetHTML(), '<div>Meow</div>');
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 1);
+      resetCounts();
+
+      patch(target, {
+        template: TMPL,
+        values:[
+          'Bark'
+        ]
+      });
+      assert.equal(getTargetHTML(), '<div>Bark</div>');
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+
+      patch(target, {
+        template: TMPL,
+        values:[
+          'Chirp'
+        ]
+      });
+      assert.equal(getTargetHTML(), '<div>Chirp</div>');
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
     });
 
     it('Nested Nodes', ()=>{
@@ -255,8 +376,7 @@ describe('patch', ()=>{
         ]
       });
       assert.equal(getTargetHTML(), '<div><span></span></div>');
-      assert.equal(createElementCount, 2);
-      assert.equal(createTextNodeCount, 0);
+      resetCounts();
 
       patch(target, {
         template: PARENT_TMPL,
@@ -265,8 +385,9 @@ describe('patch', ()=>{
         ]
       });
       assert.equal(getTargetHTML(), '<div><b></b></div>');
-      assert.equal(createElementCount, 3);
+      assert.equal(createElementCount, 1);
       assert.equal(createTextNodeCount, 0);
+      resetCounts();
 
       patch(target, {
         template: PARENT_TMPL,
@@ -275,8 +396,9 @@ describe('patch', ()=>{
         ]
       });
       assert.equal(getTargetHTML(), '<div><a></a></div>');
-      assert.equal(createElementCount, 4);
+      assert.equal(createElementCount, 1);
       assert.equal(createTextNodeCount, 0);
+      resetCounts();
 
       patch(target, {
         template: PARENT_TMPL,
@@ -285,8 +407,9 @@ describe('patch', ()=>{
         ]
       });
       assert.equal(getTargetHTML(), '<div>Hello World</div>');
-      assert.equal(createElementCount, 4);
+      assert.equal(createElementCount, 0);
       assert.equal(createTextNodeCount, 1);
+      resetCounts();
 
       patch(target, {
         template: PARENT_TMPL,
@@ -295,8 +418,8 @@ describe('patch', ()=>{
         ]
       });
       assert.equal(getTargetHTML(), '<div>Hello World2</div>');
-      assert.equal(createElementCount, 4);
-      assert.equal(createTextNodeCount, 1);
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
     });
   });
 });
