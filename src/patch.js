@@ -7,9 +7,6 @@ function applyProp(node, prop, propValue, values){
   if(prop[0] === '$'){
     const actualProp = prop.slice(1);
     applyPropValue(node, actualProp, values[propValue]);
-
-    // Since there's a one-to-one mapping to value to node,
-    // we store the function to apply a new value upon rerender
     values.push(applyPropValue.bind(null, node, actualProp));
   }
   else{
@@ -18,13 +15,15 @@ function applyProp(node, prop, propValue, values){
 }
 
 function applyProps(node, props, values){
-  for(let key in props) applyProp(node, key, props[key], values);
+  for(let key in props){
+    applyProp(node, key, props[key], values);
+  }
 }
 
 function createAddChildren(parentNode, vchildren, values){
   const length = vchildren.length;
   for(let i=0; i<length; ++i){
-    parentNode.appendChild(createNode(vchildren[i], values, parentNode));
+    parentNode.appendChild(createNodeFromValueOrReference(vchildren[i], values, parentNode));
   }
 }
 
@@ -54,8 +53,8 @@ function getRerenderFuncForValue(value){
 }
 
 function createNodeFromValue(value){
-    return typeof value === 'string' ? document.createTextNode(value)
-  : createNode(value.template, value.values);
+  return typeof value === 'string' ? document.createTextNode(value)
+          : createElement(value.template, value.values);
 }
 
 function createAndRegisterFromArrayValue(arrayValue, values){
@@ -68,56 +67,49 @@ function createAndRegisterFromArrayValue(arrayValue, values){
 }
 
 function createAndRegisterNodeFromValue(value, parentNode, values){
-  let node, rerenderFunc;
-  if(value instanceof Array){
-    return createAndRegisterFromArrayValue(value, values);
-  }
-  else{
-    node         = createNodeFromValue(value);
-    rerenderFunc = typeof value === 'string' ? rerenderTextNodeValue : rerenderValue;
-    values.push(rerenderFunc.bind(null, parentNode, node, value));
-  }
+  if(value instanceof Array) return createAndRegisterFromArrayValue(value, values);
+
+  let node = createNodeFromValue(value);
+  values.push(getRerenderFuncForValue(value).bind(null, parentNode, node, value));
   return node;
 }
 
 /*
-  vnode  : valueRef(number) | vnode({el, props, children})
-  values : Array<any>
+  vnode     : number valueRef | {el, props, children} vnode
+  values    : Array<any>
+  paretNode : Node
 */
-function createNode(vnode, values, parentNode){
+function createNodeFromValueOrReference(vnode, values, parentNode){
   switch(typeof vnode){
-  case 'number':
-    return createAndRegisterNodeFromValue(values[vnode], parentNode, values);
-  case 'string':
-    return document.createTextNode(vnode);
-  default:
-    return createElement(vnode, values);
+    case 'object': return createElement(vnode, values);
+    case 'string': return document.createTextNode(vnode);
+    default:       return createAndRegisterNodeFromValue(values[vnode], parentNode, values);
   }
 }
 
 function initialPatch(node, spec){
-  node.appendChild(createNode(spec.template, spec.values));
+  node.appendChild(createNodeFromValueOrReference(spec.template, spec.values));
   node.xvdom = {spec};
 }
 
 function rerender(node, {values:newValues}){
   const values = node.xvdom.spec.values;
+  const length = values.length>>1;
   let newValue;
 
-  // Only rerender if there are dynamic values
-  if(values){
-    const length = values.length>>1;
-    for(let i=0; i<length; ++i){
-      newValue = newValues[i];
-      if(values[i] !== newValue){
-        newValues.push(values[i+length](newValue));
-      }
+  for(let i=0, j=length; i<length; ++i){
+    newValue = newValues[i];
+    if(values[i] !== newValue){
+      newValues.push(values[j++](newValue));
     }
-    node.xvdom.spec.values = newValues;
   }
+  node.xvdom.spec.values = newValues;
 }
 
 export default function(node, spec){
-  if(node.xvdom) rerender(node, spec);
+  if(node.xvdom){
+    // Only rerender if there are dynamic values
+    if(spec.values) rerender(node, spec);
+  }
   else initialPatch(node, spec);
 }
