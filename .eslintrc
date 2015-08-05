@@ -33,6 +33,7 @@
     "no-var"                 : 2,
     "object-shorthand"       : [2, "always"],
     "quotes"                 : [2, "single", "avoid-escape"],
+    "semi"                   : [2, "always"],
     "space-before-blocks"    : [2, "never"],
     "strict"                 : 0
   }
