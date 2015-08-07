@@ -11,6 +11,26 @@ describe('patch rerender', ()=>{
   let createElement       = document.createElement;
   let createTextNode      = document.createTextNode;
 
+  function spyOnInsertBefore(target){
+    if(target.insertBefore === HTMLElement.prototype.insertBefore){
+      const insertBefore = target.insertBefore;
+      target.insertBefore = (...args)=>{
+        ++insertBeforeCount;
+        return insertBefore.apply(target, args);
+      };
+    }
+  }
+
+  function spyOnRemoveChild(target){
+    if(target.removeChild === HTMLElement.prototype.removeChild){
+      const removeChild = target.removeChild;
+      target.removeChild = (...args)=>{
+        ++removeChildCount;
+        return removeChild.apply(target, args);
+      };
+    }
+  }
+
   function getTargetHTML(){
     return HTML.stringify(HTML.parse(target.innerHTML));
   }
@@ -21,7 +41,6 @@ describe('patch rerender', ()=>{
 
   beforeEach(()=>{
     target = document.createElement('div');
-
     resetCounts();
 
     document.createElement = (...args)=>{
@@ -100,7 +119,6 @@ describe('patch rerender', ()=>{
     assert.equal(createTextNodeCount, 0);
     resetCounts();
   });
-
 
   it('Text to Element', ()=>{
     const TMPL = {el: 'div', children:[0]};
@@ -262,7 +280,13 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(), '<div><span></span><b></b><a></a></div>');
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span></span>'+
+          '<b></b>'+
+          '<a></a>'+
+        '</div>'
+      );
       assert.equal(createElementCount, 4);
       assert.equal(createTextNodeCount, 0);
       resetCounts();
@@ -270,6 +294,9 @@ describe('patch rerender', ()=>{
       const childEl1 = target.firstChild.childNodes[0];
       const childEl2 = target.firstChild.childNodes[1];
       const childEl3 = target.firstChild.childNodes[2];
+
+      spyOnInsertBefore(target.firstChild);
+      spyOnRemoveChild(target.firstChild);
 
       patch(target, {
         template: PARENT_TMPL,
@@ -281,9 +308,17 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(), '<div><a></a><b></b><span></span></div>');
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<a></a>'+
+          '<b></b>'+
+          '<span></span>'+
+        '</div>'
+      );
       assert.equal(createElementCount, 0);
       assert.equal(createTextNodeCount, 0);
+      assert.equal(insertBeforeCount, 2);
+      assert.equal(removeChildCount, 0);
       assert.equal(childEl1, target.firstChild.childNodes[2]);
       assert.equal(childEl2, target.firstChild.childNodes[1]);
       assert.equal(childEl3, target.firstChild.childNodes[0]);
@@ -299,9 +334,17 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(), '<div><span></span><a></a><b></b></div>');
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span></span>'+
+          '<a></a>'+
+          '<b></b>'+
+        '</div>'
+      );
       assert.equal(createElementCount, 0);
       assert.equal(createTextNodeCount, 0);
+      assert.equal(insertBeforeCount, 2);
+      assert.equal(removeChildCount, 0);
       assert.equal(childEl1, target.firstChild.childNodes[0]);
       assert.equal(childEl2, target.firstChild.childNodes[2]);
       assert.equal(childEl3, target.firstChild.childNodes[1]);
@@ -328,17 +371,8 @@ describe('patch rerender', ()=>{
       resetCounts();
 
       const childEl1 = target.firstChild.childNodes[0];
-      const insertBefore = target.firstChild.insertBefore;
-      target.firstChild.insertBefore = (...args)=>{
-        ++insertBeforeCount;
-        return insertBefore.apply(target.firstChild, args);
-      };
-
-      const removeChild = target.firstChild.removeChild;
-      target.firstChild.removeChild = (...args)=>{
-        ++removeChildCount;
-        return removeChild.apply(target.firstChild, args);
-      };
+      spyOnInsertBefore(target.firstChild);
+      spyOnRemoveChild(target.firstChild);
 
       patch(target, {
         template: PARENT_TMPL,
@@ -349,10 +383,15 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(), '<div><b></b><span></span></div>');
-      assert.equal(createElementCount, 1);
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<b></b>'+
+          '<span></span>'+
+        '</div>'
+      );
+      assert.equal(createElementCount , 1);
       assert.equal(createTextNodeCount, 0);
-      assert.equal(insertBeforeCount, 1); //TODO(pwong): 1
+      assert.equal(insertBeforeCount, 1);
       assert.equal(removeChildCount, 0);
       assert.equal(childEl1, target.firstChild.childNodes[1]);
       resetCounts();
@@ -369,9 +408,17 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(), '<div><a></a><b></b><span></span></div>');
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<a></a>'+
+          '<b></b>'+
+          '<span></span>'+
+        '</div>'
+      );
       assert.equal(createElementCount, 1);
       assert.equal(createTextNodeCount, 0);
+      assert.equal(insertBeforeCount, 1);
+      assert.equal(removeChildCount, 0);
       assert.equal(childEl1, target.firstChild.childNodes[2]);
       assert.equal(childEl2, target.firstChild.childNodes[1]);
       resetCounts();
@@ -416,6 +463,8 @@ describe('patch rerender', ()=>{
       const childEl1 = target.querySelector('span');
       const childEl2 = target.querySelector('b');
       const childEl3 = target.querySelector('a');
+      spyOnInsertBefore(target.firstChild);
+      spyOnRemoveChild(target.firstChild);
 
       patch(target, {
         template: PARENT_TMPL,
@@ -438,6 +487,8 @@ describe('patch rerender', ()=>{
       );
       assert.equal(createElementCount, 0);
       assert.equal(createTextNodeCount, 0);
+      assert.equal(insertBeforeCount, 2);
+      assert.equal(removeChildCount, 0);
       assert.equal(childEl1, target.querySelector('span'));
       assert.equal(childEl2, target.querySelector('b'));
       assert.equal(childEl3, target.querySelector('a'));
