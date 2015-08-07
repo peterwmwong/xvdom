@@ -69,12 +69,19 @@ function rerenderArrayValue(parentNode, keyMap, beforeFirstNode, prevArrayValue,
 
     if(node){
       // Skip over the previous elements that don't match the current element we're trying to insert.
+      // TODO(pwong): Check if cursorValue.key is in arrayValue before removing AND advancing
       while(cursorValue && cursorValue.key !== key){
         keysToRemove[cursorValue.key] = true;
         cursorValue                   = prevArrayValue[++cursorIndex];
       }
       if(cursorValue && cursorValue.key !== key){
         parentNode.insertBefore(node, cursorNode);
+      }
+
+      // TODO(pwong): remove this extra condition, maybe conditionally attach node.xvdom only if it
+      //              needs it.
+      if(node.xvdom && node.xvdom.spec && node.xvdom.spec.values){
+        rerender(node, {values:value.values});
       }
       ++cursorIndex;
     }
@@ -118,8 +125,11 @@ function getRerenderFuncForValue(value){
 }
 
 function createNodeFromValue(value){
-  return typeof value === 'string' ? document.createTextNode(value)
-          : createElement(value.template, value.values);
+  if(typeof value === 'string') return document.createTextNode(value);
+
+  const node = createElement(value.template, value.values);
+  node.xvdom = {spec:value};
+  return node;
 }
 
 function createAndRegisterFromArrayValue(parentNode, arrayValue, values){

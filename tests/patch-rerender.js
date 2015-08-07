@@ -494,5 +494,117 @@ describe('patch rerender', ()=>{
       assert.equal(childEl3, target.querySelector('a'));
       resetCounts();
     });
+
+
+    it('Simple Array of Arrays', ()=>{
+      const PARENT_TMPL = {el: 'div', children:[0]};
+      const CHILD_EL1 = {
+        el: 'div', props:{$className:0, $id:1},
+        children:[2]
+      };
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [0].map(index=>(
+            {key:index, template:CHILD_EL1, values:[
+              ''+index,
+              'id'+index,
+              index+' Value'
+            ]}
+          ))
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div class="0" id="id0">'+
+            '0 Value'+
+          '</div>'+
+          // '<div class="1" id="id1">'+
+          //   '1 Value'+
+          // '</div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 2);
+      assert.equal(createTextNodeCount, 1);
+      resetCounts();
+
+      debugger; //eslint-disable-line
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [0].map(index=>(
+            {key:index, template:CHILD_EL1, values:[
+              ''+index+'2',
+              'id'+index+'2',
+              index+' Value2'
+            ]}
+          ))
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div class="02" id="id02">'+
+            '0 Value2'+
+          '</div>'+
+          // '<div class="12" id="id12">'+
+          //   '1 Value2'+
+          // '</div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+    });
+
+    it('Array of Arrays', ()=>{
+      const PARENT_TMPL = {el: 'div', children:[0]};
+      const CHILD_EL1 = {
+        el: 'div', props:{$className:0, $id:1},
+        children:[2]
+      };
+      const CHILD_EL1_1 = {
+        el: 'div', props:{$className:0, $id:1},
+        children:[2]
+      };
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [0, 1].map(index=>(
+            {key:index, template:CHILD_EL1, values:[
+              ''+index,
+              'id'+index,
+              {template:CHILD_EL1_1, values:[
+                index+'-1',
+                'id'+index+'1',
+                index+'-1 Value'
+              ]}
+            ]}
+          ))
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div class="0" id="id0">'+
+            '<div class="0-1" id="id01">'+
+              '0-1 Value'+
+            '</div>'+
+          '</div>'+
+          '<div class="1" id="id1">'+
+            '<div class="1-1" id="id11">'+
+              '1-1 Value'+
+            '</div>'+
+          '</div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 5);
+      assert.equal(createTextNodeCount, 2);
+      resetCounts();
+    });
   });
 });

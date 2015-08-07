@@ -12,6 +12,61 @@ describe('patch dynamics', ()=>{
     target = document.createElement('div');
   });
 
+  it('Text nodes', ()=>{
+    patch(target, {
+      template: {
+        el: 'div',
+        children: [0]
+      },
+      values: ['yolo']
+    });
+    assert.equal(getTargetHTML(), '<div>yolo</div>');
+  });
+
+  it('Properties', ()=>{
+    patch(target, {
+      template: {
+        el: 'div',
+        props: {$className:0}
+      },
+      values:[
+        'baz qux'
+      ]
+    });
+    assert.equal(getTargetHTML(), '<div class="baz qux"></div>');
+  });
+
+  it('Mixed with statics', ()=>{
+    patch(target, {
+      template: {
+        el: 'div',
+        children: [
+          {
+            el: 'span',
+            props: {className:'one'}
+          },
+          0,
+          {
+            el: 'span',
+            props: {className:'two'}
+          },
+          1
+        ]
+      },
+      values:[
+        'bubbles',
+        {
+          template: {
+            el: 'span',
+            props: {className:'three'}
+          }
+        }
+      ]
+    });
+    assert.equal(getTargetHTML(),
+      '<div><span class="one"></span>bubbles<span class="two"></span><span class="three"></span></div>'
+    );
+  });
 
   describe('Children', ()=>{
     it('Deeply nested', ()=>{
@@ -159,61 +214,42 @@ describe('patch dynamics', ()=>{
         '</div>'
       );
     });
-  });
 
-  it('Text nodes', ()=>{
-    patch(target, {
-      template: {
-        el: 'div',
-        children: [0]
-      },
-      values: ['yolo']
-    });
-    assert.equal(getTargetHTML(), '<div>yolo</div>');
-  });
+    it('Array of Arrays', ()=>{
+      const PARENT_TMPL = {el: 'div', children:[0]};
+      const CHILD_EL1 = {
+        el: 'div', props:{className:'1', $id:0},
+        children:[1]
+      };
+      const CHILD_EL1_1 = {
+        el: 'div', props:{className:'1-1', $id:0},
+        children:[1]
+      };
 
-  it('Properties', ()=>{
-    patch(target, {
-      template: {
-        el: 'div',
-        props: {$className:0}
-      },
-      values:[
-        'baz qux'
-      ]
-    });
-    assert.equal(getTargetHTML(), '<div class="baz qux"></div>');
-  });
-
-  it('Mixed with statics', ()=>{
-    patch(target, {
-      template: {
-        el: 'div',
-        children: [
-          {
-            el: 'span',
-            props: {className:'one'}
-          },
-          0,
-          {
-            el: 'span',
-            props: {className:'two'}
-          },
-          1
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 1, template:CHILD_EL1, values:[
+              'id1',
+              {template:CHILD_EL1_1, values:[
+                'id11',
+                '1-1 Value'
+              ]}
+            ]}
+          ]
         ]
-      },
-      values:[
-        'bubbles',
-        {
-          template: {
-            el: 'span',
-            props: {className:'three'}
-          }
-        }
-      ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div class="1" id="id1">'+
+            '<div class="1-1" id="id11">'+
+              '1-1 Value'+
+            '</div>'+
+          '</div>'+
+        '</div>'
+      );
     });
-    assert.equal(getTargetHTML(),
-      '<div><span class="one"></span>bubbles<span class="two"></span><span class="three"></span></div>'
-    );
   });
 });

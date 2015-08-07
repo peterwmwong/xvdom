@@ -125,8 +125,6 @@
 	  return getRerenderFuncForValue(value).bind(null, parentNode, newNode, value);
 	}
 
-	//TODO(pwong): maybe prevArrayValue could just be previous list of keys
-
 	// O( MAX(prevArrayValue.length, arrayValue.length) + NumOfRemovals )
 	function rerenderArrayValue(parentNode, keyMap, beforeFirstNode, prevArrayValue, arrayValue) {
 	  var length = arrayValue.length;
@@ -147,15 +145,21 @@
 	    key = value.key;
 	    node = keyMap[key];
 
-	    debugger; //eslint-disable-line
 	    if (node) {
 	      // Skip over the previous elements that don't match the current element we're trying to insert.
+	      // TODO(pwong): Check if cursorValue.key is in arrayValue before removing AND advancing
 	      while (cursorValue && cursorValue.key !== key) {
 	        keysToRemove[cursorValue.key] = true;
 	        cursorValue = prevArrayValue[++cursorIndex];
 	      }
 	      if (cursorValue && cursorValue.key !== key) {
 	        parentNode.insertBefore(node, cursorNode);
+	      }
+
+	      // TODO(pwong): remove this extra condition, maybe conditionally attach node.xvdom only if it
+	      //              needs it.
+	      if (node.xvdom && node.xvdom.spec && node.xvdom.spec.values) {
+	        rerender(node, { values: value.values });
 	      }
 	      ++cursorIndex;
 	    } else {
@@ -186,8 +190,7 @@
 	  }
 
 	  // Remove all elements that were skipped over and never reattached
-	  prevArrayValue = Object.keys(keysToRemove); // Reuse prevArrayValue
-	  for (key in prevArrayValue) {
+	  for (key in keysToRemove) {
 	    parentNode.removeChild(keyMap[key]);
 	  }
 
@@ -199,7 +202,11 @@
 	}
 
 	function createNodeFromValue(value) {
-	  return typeof value === 'string' ? document.createTextNode(value) : createElement(value.template, value.values);
+	  if (typeof value === 'string') return document.createTextNode(value);
+
+	  var node = createElement(value.template, value.values);
+	  node.xvdom = { spec: value };
+	  return node;
 	}
 
 	function createAndRegisterFromArrayValue(parentNode, arrayValue, values) {
@@ -208,13 +215,12 @@
 	  var keyMap = {};
 	  var beforeFirstNode = parentNode.lastChild;
 	  var node = undefined,
-	      value = undefined;
-	  for (var i = 0; i < length; ++i) {
-	    value = arrayValue[i];
+	      value = undefined,
+	      i = 0;
+	  while (i < length) {
+	    value = arrayValue[i++];
 	    node = createNodeFromValue(value);
-	    node.__index = i;
-	    keyMap[value.key] = node;
-	    frag.appendChild(node);
+	    frag.appendChild(keyMap[value.key] = node);
 	  }
 	  values.push(rerenderArrayValue.bind(null, parentNode, keyMap, beforeFirstNode, arrayValue));
 	  return frag;
