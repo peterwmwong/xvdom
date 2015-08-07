@@ -48,9 +48,6 @@ function rerenderValue(parentNode, node, prevValue, value){
   return getRerenderFuncForValue(value).bind(null, parentNode, newNode, value);
 }
 
-
-//TODO(pwong): maybe prevArrayValue could just be previous list of keys
-
 // O( MAX(prevArrayValue.length, arrayValue.length) + NumOfRemovals )
 function rerenderArrayValue(parentNode, keyMap, beforeFirstNode, prevArrayValue, arrayValue){
   const length = arrayValue.length;
