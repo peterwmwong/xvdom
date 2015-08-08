@@ -55,14 +55,11 @@ function rerenderArrayValue(parentNode, keyMap, beforeFirstNode, prevArrayValue,
 
   const newKeyMap    = {};
   const keysToRemove = {};
-  let i=0, value, cursorIndex, cursorValue, node, key;
-
+  let value, cursorValue, node, key;
+  let i=0, cursorIndex=0;
   let cursorNode = beforeFirstNode ? beforeFirstNode.nextSibling : parentNode.firstChild;
-  for(
-    i=0,         cursorIndex=0;
-    i<length && (cursorValue=prevArrayValue[cursorIndex]);
-    ++i
-  ){
+
+  for(; i<length && (cursorValue=prevArrayValue[cursorIndex]); ++i){
     value = arrayValue[i];
     key   = value.key;
     node  = keyMap[key];
@@ -70,19 +67,14 @@ function rerenderArrayValue(parentNode, keyMap, beforeFirstNode, prevArrayValue,
     if(node){
       // Skip over the previous elements that don't match the current element we're trying to insert.
       // TODO(pwong): Check if cursorValue.key is in arrayValue before removing AND advancing
+      //              Usecase: adding one to the beginning, should only be 1 insertBefore
       while(cursorValue && cursorValue.key !== key){
         keysToRemove[cursorValue.key] = true;
         cursorValue                   = prevArrayValue[++cursorIndex];
       }
-      if(cursorValue && cursorValue.key !== key){
-        parentNode.insertBefore(node, cursorNode);
-      }
 
-      // TODO(pwong): remove this extra condition, maybe conditionally attach node.xvdom only if it
-      //              needs it.
-      if(node.xvdom && node.xvdom.spec && node.xvdom.spec.values){
-        rerender(node, {values:value.values});
-      }
+      if(cursorValue && cursorValue.key !== key) parentNode.insertBefore(node, cursorNode);
+      if(node.xvdom__spec) rerender(node, value.values);
       ++cursorIndex;
     }
     else{
@@ -128,7 +120,9 @@ function createNodeFromValue(value){
   if(typeof value === 'string') return document.createTextNode(value);
 
   const node = createElement(value.template, value.values);
-  node.xvdom = {spec:value};
+  if(value.values){
+    node.xvdom__spec = value;
+  }
   return node;
 }
 
@@ -170,27 +164,31 @@ function createNodeFromValueOrReference(vnode, values, parentNode){
 
 function initialPatch(node, spec){
   node.appendChild(createNodeFromValueOrReference(spec.template, spec.values));
-  node.xvdom = {spec};
+  node.xvdom__spec = spec;
 }
 
-function rerender(node, {values:newValues}){
-  const values = node.xvdom.spec.values;
-  const length = values.length>>1;
-  let newValue;
+function rerender(node, values){
+  const oldValues = node.xvdom__spec.values;
+  const length = oldValues.length>>1;
+  let newValue, rerenderer;
 
-  for(let i=0, j=length; i<length; ++i){
-    newValue = newValues[i];
-    if(values[i] !== newValue){
-      newValues.push(values[j++](newValue));
+  for(let i=0, j=length; i<length; ++i, ++j){
+    newValue   = values[i];
+    rerenderer = oldValues[j];
+    if(newValue !== oldValues[i]){
+      values.push(rerenderer(newValue));
+    }
+    else{
+      values.push(rerenderer);
     }
   }
-  node.xvdom.spec.values = newValues;
+  node.xvdom__spec.values = values;
 }
 
 export default function(node, spec){
-  if(node.xvdom){
+  if(node.xvdom__spec){
     // Only rerender if there are dynamic values
-    if(spec.values) rerender(node, spec);
+    if(spec.values) rerender(node, spec.values);
   }
   else initialPatch(node, spec);
 }

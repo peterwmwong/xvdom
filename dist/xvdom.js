@@ -132,15 +132,15 @@
 
 	  var newKeyMap = {};
 	  var keysToRemove = {};
-	  var i = 0,
-	      value = undefined,
-	      cursorIndex = undefined,
+	  var value = undefined,
 	      cursorValue = undefined,
 	      node = undefined,
 	      key = undefined;
-
+	  var i = 0,
+	      cursorIndex = 0;
 	  var cursorNode = beforeFirstNode ? beforeFirstNode.nextSibling : parentNode.firstChild;
-	  for (i = 0, cursorIndex = 0; i < length && (cursorValue = prevArrayValue[cursorIndex]); ++i) {
+
+	  for (; i < length && (cursorValue = prevArrayValue[cursorIndex]); ++i) {
 	    value = arrayValue[i];
 	    key = value.key;
 	    node = keyMap[key];
@@ -148,19 +148,14 @@
 	    if (node) {
 	      // Skip over the previous elements that don't match the current element we're trying to insert.
 	      // TODO(pwong): Check if cursorValue.key is in arrayValue before removing AND advancing
+	      //              Usecase: adding one to the beginning, should only be 1 insertBefore
 	      while (cursorValue && cursorValue.key !== key) {
 	        keysToRemove[cursorValue.key] = true;
 	        cursorValue = prevArrayValue[++cursorIndex];
 	      }
-	      if (cursorValue && cursorValue.key !== key) {
-	        parentNode.insertBefore(node, cursorNode);
-	      }
 
-	      // TODO(pwong): remove this extra condition, maybe conditionally attach node.xvdom only if it
-	      //              needs it.
-	      if (node.xvdom && node.xvdom.spec && node.xvdom.spec.values) {
-	        rerender(node, { values: value.values });
-	      }
+	      if (cursorValue && cursorValue.key !== key) parentNode.insertBefore(node, cursorNode);
+	      if (node.xvdom__spec) rerender(node, value.values);
 	      ++cursorIndex;
 	    } else {
 	      node = createNodeFromValue(value);
@@ -205,7 +200,9 @@
 	  if (typeof value === 'string') return document.createTextNode(value);
 
 	  var node = createElement(value.template, value.values);
-	  node.xvdom = { spec: value };
+	  if (value.values) {
+	    node.xvdom__spec = value;
+	  }
 	  return node;
 	}
 
@@ -252,29 +249,31 @@
 
 	function initialPatch(node, spec) {
 	  node.appendChild(createNodeFromValueOrReference(spec.template, spec.values));
-	  node.xvdom = { spec: spec };
+	  node.xvdom__spec = spec;
 	}
 
-	function rerender(node, _ref2) {
-	  var newValues = _ref2.values;
+	function rerender(node, values) {
+	  var oldValues = node.xvdom__spec.values;
+	  var length = oldValues.length >> 1;
+	  var newValue = undefined,
+	      rerenderer = undefined;
 
-	  var values = node.xvdom.spec.values;
-	  var length = values.length >> 1;
-	  var newValue = undefined;
-
-	  for (var i = 0, j = length; i < length; ++i) {
-	    newValue = newValues[i];
-	    if (values[i] !== newValue) {
-	      newValues.push(values[j++](newValue));
+	  for (var i = 0, j = length; i < length; ++i, ++j) {
+	    newValue = values[i];
+	    rerenderer = oldValues[j];
+	    if (newValue !== oldValues[i]) {
+	      values.push(rerenderer(newValue));
+	    } else {
+	      values.push(rerenderer);
 	    }
 	  }
-	  node.xvdom.spec.values = newValues;
+	  node.xvdom__spec.values = values;
 	}
 
 	exports['default'] = function (node, spec) {
-	  if (node.xvdom) {
+	  if (node.xvdom__spec) {
 	    // Only rerender if there are dynamic values
-	    if (spec.values) rerender(node, spec);
+	    if (spec.values) rerender(node, spec.values);
 	  } else initialPatch(node, spec);
 	};
 

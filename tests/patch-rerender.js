@@ -530,8 +530,6 @@ describe('patch rerender', ()=>{
       assert.equal(createTextNodeCount, 1);
       resetCounts();
 
-      debugger; //eslint-disable-line
-
       patch(target, {
         template: PARENT_TMPL,
         values:[
@@ -566,10 +564,6 @@ describe('patch rerender', ()=>{
         el: 'div', props:{$className:0, $id:1},
         children:[2]
       };
-      const CHILD_EL1_1 = {
-        el: 'div', props:{$className:0, $id:1},
-        children:[2]
-      };
 
       patch(target, {
         template: PARENT_TMPL,
@@ -578,11 +572,7 @@ describe('patch rerender', ()=>{
             {key:index, template:CHILD_EL1, values:[
               ''+index,
               'id'+index,
-              {template:CHILD_EL1_1, values:[
-                index+'-1',
-                'id'+index+'1',
-                index+'-1 Value'
-              ]}
+              index+' Value'
             ]}
           ))
         ]
@@ -591,19 +581,142 @@ describe('patch rerender', ()=>{
       assert.equal(getTargetHTML(),
         '<div>'+
           '<div class="0" id="id0">'+
-            '<div class="0-1" id="id01">'+
-              '0-1 Value'+
-            '</div>'+
+            '0 Value'+
           '</div>'+
           '<div class="1" id="id1">'+
-            '<div class="1-1" id="id11">'+
-              '1-1 Value'+
-            '</div>'+
+            '1 Value'+
           '</div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 5);
+      assert.equal(createElementCount, 3);
       assert.equal(createTextNodeCount, 2);
+      resetCounts();
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [0, 1].map(index=>(
+            {key:index, template:CHILD_EL1, values:[
+              ''+index+'2',
+              'id'+index+'2',
+              index+' Value2'
+            ]}
+          ))
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div class="02" id="id02">'+
+            '0 Value2'+
+          '</div>'+
+          '<div class="12" id="id12">'+
+            '1 Value2'+
+          '</div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+    });
+
+    it('Array of Arrays of Arrays', ()=>{
+      const PARENT_TMPL = {el: 'div', children:[0]};
+      const CHILD_TMPL = {
+        el: 'div', props:{$className:0},
+        children:[1]
+      };
+
+      const GRAND_CHILD_TMPL = {
+        el: 'span', props:{$className:0},
+        children:[1]
+      };
+
+      function render(num){
+        return {
+          template: PARENT_TMPL,
+          values:[
+            [
+              {
+                key:0,
+                template:CHILD_TMPL,
+                values:[
+                  ''+num,
+                  [
+                    {
+                      key:0,
+                      template:GRAND_CHILD_TMPL,
+                      values:[
+                        num+'-1',
+                        num+'-1 Text'
+                      ]
+                    }
+                  ]
+                ]
+              }
+            ]
+          ]
+        };
+      }
+
+      patch(target, render(1));
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div class="1">'+
+            '<span class="1-1">'+
+              '1-1 Text'+
+            '</span>'+
+          '</div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 3);
+      assert.equal(createTextNodeCount, 1);
+      resetCounts();
+
+      patch(target, render(2));
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div class="2">'+
+            '<span class="2-1">'+
+              '2-1 Text'+
+            '</span>'+
+          '</div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+
+      patch(target, render(3));
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div class="3">'+
+            '<span class="3-1">'+
+              '3-1 Text'+
+            '</span>'+
+          '</div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+
+      patch(target, render(4));
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div class="4">'+
+            '<span class="4-1">'+
+              '4-1 Text'+
+            '</span>'+
+          '</div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
       resetCounts();
     });
   });
