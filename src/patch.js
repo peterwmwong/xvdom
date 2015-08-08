@@ -1,16 +1,20 @@
-function applyPropValue(node, prop, value){
-  node[prop] = value;
-  return applyPropValue.bind(null, node, prop);
+let rendererFunc;
+let rendererFirstArg;
+
+function applyPropValue(nodeProp, value){
+  nodeProp[0][nodeProp[1]] = value;
+  rendererFunc             = applyPropValue;
+  rendererFirstArg         = nodeProp;
 }
 
 function applyProp(node, prop, propValue, values){
   if(prop[0] === '$'){
     const actualProp = prop.slice(1);
-    applyPropValue(node, actualProp, values[propValue]);
-    values.push(applyPropValue.bind(null, node, actualProp));
+    node[actualProp] = values[propValue];
+    values.push(applyPropValue, [node, actualProp]);
   }
   else{
-    applyPropValue(node, prop, propValue);
+    node[prop] = propValue;
   }
 }
 
@@ -34,27 +38,33 @@ function createElement({el, props, children}, values){
   return node;
 }
 
-function rerenderTextNodeValue(parentNode, node, prevValue, value){
+function rerenderTextNodeValue(rArg /* [parentNode, node, prevValue] */, value){
   if(typeof value === 'string'){
-    if(prevValue !== value) node.textContent = value;
-    return rerenderTextNodeValue.bind(null, parentNode, node, value);
+    if(rArg[2] !== value){
+      rArg[1].textContent = value;
+      rArg[2] = value;
+    }
+    setRerenderFuncForValue(rArg);
   }
-  return rerenderValue(parentNode, node, prevValue, value);
+  else{
+    rerenderValue(rArg, value);
+  }
 }
 
-function rerenderValue(parentNode, node, prevValue, value){
+function rerenderValue(rArg /* [parentNode, node, prevValue] */, value){
   const newNode = createNodeFromValue(value);
-  parentNode.replaceChild(newNode, node);
-  return getRerenderFuncForValue(value).bind(null, parentNode, newNode, value);
+  rArg[0].replaceChild(newNode, rArg[1]);
+  rArg[1] = newNode;
+  rArg[2] = value;
+  setRerenderFuncForValue(rArg);
 }
 
 // O( MAX(prevArrayValue.length, arrayValue.length) + NumOfRemovals )
-function rerenderArrayValue(parentNode, keyMap, beforeFirstNode, prevArrayValue, arrayValue){
-  const length = arrayValue.length;
-  if(length === 0) return;
-
+function rerenderArrayValue(rArg, arrayValue){
+  const length       = arrayValue.length;
   const newKeyMap    = {};
   const keysToRemove = {};
+  let [parentNode, keyMap, beforeFirstNode, prevArrayValue] = rArg;
   let value, cursorValue, node, key;
   let i=0, cursorIndex=0;
   let cursorNode = beforeFirstNode ? beforeFirstNode.nextSibling : parentNode.firstChild;
@@ -109,20 +119,22 @@ function rerenderArrayValue(parentNode, keyMap, beforeFirstNode, prevArrayValue,
     parentNode.removeChild(keyMap[key]);
   }
 
-  return rerenderArrayValue.bind(null, parentNode, newKeyMap, beforeFirstNode, arrayValue);
+  rendererFunc = rerenderArrayValue;
+  rArg[1] = newKeyMap;
+  rArg[3] = arrayValue;
+  rendererFirstArg = rArg;
 }
 
-function getRerenderFuncForValue(value){
-  return typeof value === 'string' ? rerenderTextNodeValue : rerenderValue;
+function setRerenderFuncForValue(rArg /*[parentNode, node, value]*/){
+  rendererFunc = typeof rArg[2] === 'string' ? rerenderTextNodeValue : rerenderValue;
+  rendererFirstArg = rArg;
 }
 
 function createNodeFromValue(value){
   if(typeof value === 'string') return document.createTextNode(value);
 
   const node = createElement(value.template, value.values);
-  if(value.values){
-    node.xvdom__spec = value;
-  }
+  if(value.values) node.xvdom__spec = value;
   return node;
 }
 
@@ -132,12 +144,16 @@ function createAndRegisterFromArrayValue(parentNode, arrayValue, values){
   const keyMap          = {};
   const beforeFirstNode = parentNode.lastChild;
   let node, value, i=0;
+
   while(i<length){
     value = arrayValue[i++];
     node  = createNodeFromValue(value);
     frag.appendChild(keyMap[value.key] = node);
   }
-  values.push(rerenderArrayValue.bind(null, parentNode, keyMap, beforeFirstNode, arrayValue));
+
+  rendererFunc     = rerenderArrayValue;
+  rendererFirstArg = [parentNode, keyMap, beforeFirstNode, arrayValue];
+  values.push(rendererFunc, rendererFirstArg);
   return frag;
 }
 
@@ -145,7 +161,8 @@ function createAndRegisterNodeFromValue(value, parentNode, values){
   if(value instanceof Array) return createAndRegisterFromArrayValue(parentNode, value, values);
 
   let node = createNodeFromValue(value);
-  values.push(getRerenderFuncForValue(value).bind(null, parentNode, node, value));
+  setRerenderFuncForValue([parentNode, node, value]);
+  values.push(rendererFunc, rendererFirstArg);
   return node;
 }
 
@@ -169,17 +186,20 @@ function initialPatch(node, spec){
 
 function rerender(node, values){
   const oldValues = node.xvdom__spec.values;
-  const length = oldValues.length>>1;
-  let newValue, rerenderer;
+  const length    = oldValues.length/3;
+  let newValue, rerenderer, rerendererFirstArg;
 
   for(let i=0, j=length; i<length; ++i, ++j){
-    newValue   = values[i];
-    rerenderer = oldValues[j];
+    newValue           = values[i];
+    rerenderer         = oldValues[j];
+    rerendererFirstArg = oldValues[++j];
+
     if(newValue !== oldValues[i]){
-      values.push(rerenderer(newValue));
+      rerenderer(rerendererFirstArg, newValue);
+      values.push(rendererFunc, rendererFirstArg);
     }
     else{
-      values.push(rerenderer);
+      values.push(rerenderer, rerendererFirstArg);
     }
   }
   node.xvdom__spec.values = values;

@@ -72,18 +72,22 @@
 	'use strict';
 
 	exports.__esModule = true;
-	function applyPropValue(node, prop, value) {
-	  node[prop] = value;
-	  return applyPropValue.bind(null, node, prop);
+	var rendererFunc = undefined;
+	var rendererFirstArg = undefined;
+
+	function applyPropValue(nodeProp, value) {
+	  nodeProp[0][nodeProp[1]] = value;
+	  rendererFunc = applyPropValue;
+	  rendererFirstArg = nodeProp;
 	}
 
 	function applyProp(node, prop, propValue, values) {
 	  if (prop[0] === '$') {
 	    var actualProp = prop.slice(1);
-	    applyPropValue(node, actualProp, values[propValue]);
-	    values.push(applyPropValue.bind(null, node, actualProp));
+	    node[actualProp] = values[propValue];
+	    values.push(applyPropValue, [node, actualProp]);
 	  } else {
-	    applyPropValue(node, prop, propValue);
+	    node[prop] = propValue;
 	  }
 	}
 
@@ -111,27 +115,36 @@
 	  return node;
 	}
 
-	function rerenderTextNodeValue(parentNode, node, prevValue, value) {
+	function rerenderTextNodeValue(rArg, /* [parentNode, node, prevValue] */value) {
 	  if (typeof value === 'string') {
-	    if (prevValue !== value) node.textContent = value;
-	    return rerenderTextNodeValue.bind(null, parentNode, node, value);
+	    if (rArg[2] !== value) {
+	      rArg[1].textContent = value;
+	      rArg[2] = value;
+	    }
+	    setRerenderFuncForValue(rArg);
+	  } else {
+	    rerenderValue(rArg, value);
 	  }
-	  return rerenderValue(parentNode, node, prevValue, value);
 	}
 
-	function rerenderValue(parentNode, node, prevValue, value) {
+	function rerenderValue(rArg, /* [parentNode, node, prevValue] */value) {
 	  var newNode = createNodeFromValue(value);
-	  parentNode.replaceChild(newNode, node);
-	  return getRerenderFuncForValue(value).bind(null, parentNode, newNode, value);
+	  rArg[0].replaceChild(newNode, rArg[1]);
+	  rArg[1] = newNode;
+	  rArg[2] = value;
+	  setRerenderFuncForValue(rArg);
 	}
 
 	// O( MAX(prevArrayValue.length, arrayValue.length) + NumOfRemovals )
-	function rerenderArrayValue(parentNode, keyMap, beforeFirstNode, prevArrayValue, arrayValue) {
+	function rerenderArrayValue(rArg, arrayValue) {
 	  var length = arrayValue.length;
-	  if (length === 0) return;
-
 	  var newKeyMap = {};
 	  var keysToRemove = {};
+	  var parentNode = rArg[0];
+	  var keyMap = rArg[1];
+	  var beforeFirstNode = rArg[2];
+	  var prevArrayValue = rArg[3];
+
 	  var value = undefined,
 	      cursorValue = undefined,
 	      node = undefined,
@@ -189,20 +202,22 @@
 	    parentNode.removeChild(keyMap[key]);
 	  }
 
-	  return rerenderArrayValue.bind(null, parentNode, newKeyMap, beforeFirstNode, arrayValue);
+	  rendererFunc = rerenderArrayValue;
+	  rArg[1] = newKeyMap;
+	  rArg[3] = arrayValue;
+	  rendererFirstArg = rArg;
 	}
 
-	function getRerenderFuncForValue(value) {
-	  return typeof value === 'string' ? rerenderTextNodeValue : rerenderValue;
+	function setRerenderFuncForValue(rArg /*[parentNode, node, value]*/) {
+	  rendererFunc = typeof rArg[2] === 'string' ? rerenderTextNodeValue : rerenderValue;
+	  rendererFirstArg = rArg;
 	}
 
 	function createNodeFromValue(value) {
 	  if (typeof value === 'string') return document.createTextNode(value);
 
 	  var node = createElement(value.template, value.values);
-	  if (value.values) {
-	    node.xvdom__spec = value;
-	  }
+	  if (value.values) node.xvdom__spec = value;
 	  return node;
 	}
 
@@ -214,12 +229,16 @@
 	  var node = undefined,
 	      value = undefined,
 	      i = 0;
+
 	  while (i < length) {
 	    value = arrayValue[i++];
 	    node = createNodeFromValue(value);
 	    frag.appendChild(keyMap[value.key] = node);
 	  }
-	  values.push(rerenderArrayValue.bind(null, parentNode, keyMap, beforeFirstNode, arrayValue));
+
+	  rendererFunc = rerenderArrayValue;
+	  rendererFirstArg = [parentNode, keyMap, beforeFirstNode, arrayValue];
+	  values.push(rendererFunc, rendererFirstArg);
 	  return frag;
 	}
 
@@ -227,7 +246,8 @@
 	  if (value instanceof Array) return createAndRegisterFromArrayValue(parentNode, value, values);
 
 	  var node = createNodeFromValue(value);
-	  values.push(getRerenderFuncForValue(value).bind(null, parentNode, node, value));
+	  setRerenderFuncForValue([parentNode, node, value]);
+	  values.push(rendererFunc, rendererFirstArg);
 	  return node;
 	}
 
@@ -254,17 +274,21 @@
 
 	function rerender(node, values) {
 	  var oldValues = node.xvdom__spec.values;
-	  var length = oldValues.length >> 1;
+	  var length = oldValues.length / 3;
 	  var newValue = undefined,
-	      rerenderer = undefined;
+	      rerenderer = undefined,
+	      rerendererFirstArg = undefined;
 
 	  for (var i = 0, j = length; i < length; ++i, ++j) {
 	    newValue = values[i];
 	    rerenderer = oldValues[j];
+	    rerendererFirstArg = oldValues[++j];
+
 	    if (newValue !== oldValues[i]) {
-	      values.push(rerenderer(newValue));
+	      rerenderer(rerendererFirstArg, newValue);
+	      values.push(rendererFunc, rendererFirstArg);
 	    } else {
-	      values.push(rerenderer);
+	      values.push(rerenderer, rerendererFirstArg);
 	    }
 	  }
 	  node.xvdom__spec.values = values;
