@@ -39,7 +39,7 @@ function createElement({el, props, children}, values){
 function rerenderTextNodeValue(rArg/* [parentNode, node, prevValue] */, value){
   if(typeof value === 'string'){
     if(rArg[2] !== value){
-      rArg[1].textContent = value;
+      rArg[1].nodeValue = value;
       rArg[2] = value;
     }
   }
@@ -55,6 +55,26 @@ function rerenderValue(rArg/* [parentNode, node, prevValue] */, value){
   rArg[2] = value;
   setRerenderFuncForValue(rArg);
 }
+
+
+// TODO(pwong): Provide a way for the user to choose/customize rerendering an Array
+// This function is an example of a fast array rerendering that assumes no additions or removals
+// function rerenderArrayValue(rArg, arrayValue){
+//   const keyMap = rArg[1];
+//   let i = arrayValue.length;
+//   let value, key, node;
+//
+//   while(i--){
+//     value = arrayValue[i];
+//     key   = value.key;
+//     node  = keyMap[key];
+//     if(node.xvdom__spec) rerender(node, value.values);
+//   }
+//
+//   rArg[3] = arrayValue;
+//   rendererFunc = rerenderArrayValue;
+//   rendererFirstArg = rArg;
+// }
 
 // O( MAX(prevArrayValue.length, arrayValue.length) + NumOfRemovals )
 function rerenderArrayValue(rArg, arrayValue){
@@ -197,10 +217,12 @@ function rerender(node, values){
       else if(rendererFunc === rerenderArrayValue)    rerenderArrayValue(rendererFirstArg, newValue);
       else if(rendererFunc === rerenderProp)          rerenderProp(rendererFirstArg, newValue);
       else                                            rerenderValue(rendererFirstArg, newValue);
+
+      oldValues[i]   = newValue;
+      oldValues[j-1] = rendererFunc;
+      oldValues[j]   = rendererFirstArg;
     }
-    values.push(rendererFunc, rendererFirstArg);
   }
-  node.xvdom__spec.values = values;
 }
 
 export default function(node, spec){
