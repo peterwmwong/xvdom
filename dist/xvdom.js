@@ -75,17 +75,15 @@
 	var rendererFunc = undefined;
 	var rendererFirstArg = undefined;
 
-	function applyPropValue(nodeProp, value) {
-	  nodeProp[0][nodeProp[1]] = value;
-	  rendererFunc = applyPropValue;
-	  rendererFirstArg = nodeProp;
+	function rerenderProp(rArg, /* [parentNode, node, prevValue] */value) {
+	  rArg[0][rArg[1]] = value;
 	}
 
 	function applyProp(node, prop, propValue, values) {
 	  if (prop[0] === '$') {
 	    var actualProp = prop.slice(1);
 	    node[actualProp] = values[propValue];
-	    values.push(applyPropValue, [node, actualProp]);
+	    values.push(rerenderProp, [node, actualProp]);
 	  } else {
 	    node[prop] = propValue;
 	  }
@@ -121,7 +119,6 @@
 	      rArg[1].textContent = value;
 	      rArg[2] = value;
 	    }
-	    setRerenderFuncForValue(rArg);
 	  } else {
 	    rerenderValue(rArg, value);
 	  }
@@ -284,7 +281,7 @@
 
 	    if (newValue !== oldValues[i]) {
 	      // http://jsperf.com/variable-function
-	      if (rendererFunc === rerenderTextNodeValue) rerenderTextNodeValue(rendererFirstArg, newValue);else if (rendererFunc === rerenderArrayValue) rerenderArrayValue(rendererFirstArg, newValue);else if (rendererFunc === applyPropValue) applyPropValue(rendererFirstArg, newValue);else rerenderValue(rendererFirstArg, newValue);
+	      if (rendererFunc === rerenderTextNodeValue) rerenderTextNodeValue(rendererFirstArg, newValue);else if (rendererFunc === rerenderArrayValue) rerenderArrayValue(rendererFirstArg, newValue);else if (rendererFunc === rerenderProp) rerenderProp(rendererFirstArg, newValue);else rerenderValue(rendererFirstArg, newValue);
 	    }
 	    values.push(rendererFunc, rendererFirstArg);
 	  }

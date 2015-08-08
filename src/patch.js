@@ -1,17 +1,15 @@
 let rendererFunc;
 let rendererFirstArg;
 
-function applyPropValue(nodeProp, value){
-  nodeProp[0][nodeProp[1]] = value;
-  rendererFunc             = applyPropValue;
-  rendererFirstArg         = nodeProp;
+function rerenderProp(rArg/* [parentNode, node, prevValue] */, value){
+  rArg[0][rArg[1]] = value;
 }
 
 function applyProp(node, prop, propValue, values){
   if(prop[0] === '$'){
     const actualProp = prop.slice(1);
     node[actualProp] = values[propValue];
-    values.push(applyPropValue, [node, actualProp]);
+    values.push(rerenderProp, [node, actualProp]);
   }
   else{
     node[prop] = propValue;
@@ -38,20 +36,19 @@ function createElement({el, props, children}, values){
   return node;
 }
 
-function rerenderTextNodeValue(rArg /* [parentNode, node, prevValue] */, value){
+function rerenderTextNodeValue(rArg/* [parentNode, node, prevValue] */, value){
   if(typeof value === 'string'){
     if(rArg[2] !== value){
       rArg[1].textContent = value;
       rArg[2] = value;
     }
-    setRerenderFuncForValue(rArg);
   }
   else{
     rerenderValue(rArg, value);
   }
 }
 
-function rerenderValue(rArg /* [parentNode, node, prevValue] */, value){
+function rerenderValue(rArg/* [parentNode, node, prevValue] */, value){
   const newNode = createNodeFromValue(value);
   rArg[0].replaceChild(newNode, rArg[1]);
   rArg[1] = newNode;
@@ -198,7 +195,7 @@ function rerender(node, values){
       // http://jsperf.com/variable-function
       if(     rendererFunc === rerenderTextNodeValue) rerenderTextNodeValue(rendererFirstArg, newValue);
       else if(rendererFunc === rerenderArrayValue)    rerenderArrayValue(rendererFirstArg, newValue);
-      else if(rendererFunc === applyPropValue)        applyPropValue(rendererFirstArg, newValue);
+      else if(rendererFunc === rerenderProp)          rerenderProp(rendererFirstArg, newValue);
       else                                            rerenderValue(rendererFirstArg, newValue);
     }
     values.push(rendererFunc, rendererFirstArg);
