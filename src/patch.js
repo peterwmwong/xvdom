@@ -187,20 +187,21 @@ function initialPatch(node, spec){
 function rerender(node, values){
   const oldValues = node.xvdom__spec.values;
   const length    = oldValues.length/3;
-  let newValue, rerenderer, rerendererFirstArg;
+  let newValue;
 
   for(let i=0, j=length; i<length; ++i, ++j){
-    newValue           = values[i];
-    rerenderer         = oldValues[j];
-    rerendererFirstArg = oldValues[++j];
+    newValue         = values[i];
+    rendererFunc     = oldValues[j];
+    rendererFirstArg = oldValues[++j];
 
     if(newValue !== oldValues[i]){
-      rerenderer(rerendererFirstArg, newValue);
-      values.push(rendererFunc, rendererFirstArg);
+      // http://jsperf.com/variable-function
+      if(     rendererFunc === rerenderTextNodeValue) rerenderTextNodeValue(rendererFirstArg, newValue);
+      else if(rendererFunc === rerenderArrayValue)    rerenderArrayValue(rendererFirstArg, newValue);
+      else if(rendererFunc === applyPropValue)        applyPropValue(rendererFirstArg, newValue);
+      else                                            rerenderValue(rendererFirstArg, newValue);
     }
-    else{
-      values.push(rerenderer, rerendererFirstArg);
-    }
+    values.push(rendererFunc, rendererFirstArg);
   }
   node.xvdom__spec.values = values;
 }

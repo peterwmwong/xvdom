@@ -275,21 +275,18 @@
 	function rerender(node, values) {
 	  var oldValues = node.xvdom__spec.values;
 	  var length = oldValues.length / 3;
-	  var newValue = undefined,
-	      rerenderer = undefined,
-	      rerendererFirstArg = undefined;
+	  var newValue = undefined;
 
 	  for (var i = 0, j = length; i < length; ++i, ++j) {
 	    newValue = values[i];
-	    rerenderer = oldValues[j];
-	    rerendererFirstArg = oldValues[++j];
+	    rendererFunc = oldValues[j];
+	    rendererFirstArg = oldValues[++j];
 
 	    if (newValue !== oldValues[i]) {
-	      rerenderer(rerendererFirstArg, newValue);
-	      values.push(rendererFunc, rendererFirstArg);
-	    } else {
-	      values.push(rerenderer, rerendererFirstArg);
+	      // http://jsperf.com/variable-function
+	      if (rendererFunc === rerenderTextNodeValue) rerenderTextNodeValue(rendererFirstArg, newValue);else if (rendererFunc === rerenderArrayValue) rerenderArrayValue(rendererFirstArg, newValue);else if (rendererFunc === applyPropValue) applyPropValue(rendererFirstArg, newValue);else rerenderValue(rendererFirstArg, newValue);
 	    }
+	    values.push(rendererFunc, rendererFirstArg);
 	  }
 	  node.xvdom__spec.values = values;
 	}
