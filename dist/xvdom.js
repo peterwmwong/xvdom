@@ -137,12 +137,11 @@
 	// function rerenderArrayValue(rArg, arrayValue){
 	//   const keyMap = rArg[1];
 	//   let i = arrayValue.length;
-	//   let value, key, node;
+	//   let value, node;
 	//
 	//   while(i--){
 	//     value = arrayValue[i];
-	//     key   = value.key;
-	//     node  = keyMap[key];
+	//     node  = keyMap[value.key];
 	//     if(node.xvdom__spec) rerender(node, value.values);
 	//   }
 	//
@@ -299,9 +298,7 @@
 	    rendererFirstArg = oldValues[++j];
 
 	    if (newValue !== oldValues[i]) {
-	      // http://jsperf.com/variable-function
-	      if (rendererFunc === rerenderTextNodeValue) rerenderTextNodeValue(rendererFirstArg, newValue);else if (rendererFunc === rerenderArrayValue) rerenderArrayValue(rendererFirstArg, newValue);else if (rendererFunc === rerenderProp) rerenderProp(rendererFirstArg, newValue);else rerenderValue(rendererFirstArg, newValue);
-
+	      rendererFunc(rendererFirstArg, newValue);
 	      oldValues[i] = newValue;
 	      oldValues[j - 1] = rendererFunc;
 	      oldValues[j] = rendererFirstArg;
