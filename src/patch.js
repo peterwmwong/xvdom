@@ -64,7 +64,7 @@ function rerenderArrayValue(rArg, arrayValue){
   const length       = arrayValue.length;
   const newKeyMap    = {};
   const keysToRemove = {};
-  let [parentNode, keyMap, beforeFirstNode, prevArrayValue] = rArg;
+  const [parentNode, keyMap, beforeFirstNode, prevArrayValue] = rArg;
   let value, cursorValue, node, key;
   let i=0, cursorIndex=0;
   let cursorNode = beforeFirstNode ? beforeFirstNode.nextSibling : parentNode.firstChild;
