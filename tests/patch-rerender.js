@@ -263,6 +263,49 @@ describe('patch rerender', ()=>{
   });
 
   describe('Arrays', ()=>{
+    it('Update array elements', ()=>{
+      const PARENT_TMPL = {el: 'div', children:[0]};
+      const CHILD_EL    = {el: 'div', props:{$className:0}};
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 1, template:CHILD_EL, values:['1']},
+            {key: 2, template:CHILD_EL, values:['2']},
+            {key: 3, template:CHILD_EL, values:['3']}
+          ]
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div class="1"></div>'+
+          '<div class="2"></div>'+
+          '<div class="3"></div>'+
+        '</div>'
+      );
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 1, template:CHILD_EL, values:['4']},
+            {key: 2, template:CHILD_EL, values:['5']},
+            {key: 3, template:CHILD_EL, values:['6']}
+          ]
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div class="4"></div>'+
+          '<div class="5"></div>'+
+          '<div class="6"></div>'+
+        '</div>'
+      );
+    });
+
     it('Reordering', ()=>{
       const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_EL1   = {el: 'span'};
@@ -343,11 +386,63 @@ describe('patch rerender', ()=>{
       );
       assert.equal(createElementCount, 0);
       assert.equal(createTextNodeCount, 0);
-      assert.equal(insertBeforeCount, 2);
+      assert.equal(insertBeforeCount, 1);
       assert.equal(removeChildCount, 0);
       assert.equal(childEl1, target.firstChild.childNodes[0]);
       assert.equal(childEl2, target.firstChild.childNodes[2]);
       assert.equal(childEl3, target.firstChild.childNodes[1]);
+      resetCounts();
+    });
+
+    it('Reordering 2', ()=>{
+      const PARENT_TMPL = {el: 'div', children:[0]};
+      const CHILD_EL1   = {el: 'span', props:{className:'0'}};
+      const CHILD_EL2   = {el: 'span', props:{className:'1'}};
+      const CHILD_EL3   = {el: 'span', props:{className:'2'}};
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 0, template:CHILD_EL1},
+            {key: 1, template:CHILD_EL2},
+            {key: 2, template:CHILD_EL3}
+          ]
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span class="0"></span>'+
+          '<span class="1"></span>'+
+          '<span class="2"></span>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 4);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 1, template:CHILD_EL2},
+            {key: 0, template:CHILD_EL1},
+            {key: 2, template:CHILD_EL3}
+          ]
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span class="1"></span>'+
+          '<span class="0"></span>'+
+          '<span class="2"></span>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
       resetCounts();
     });
 

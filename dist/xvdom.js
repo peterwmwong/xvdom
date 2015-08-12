@@ -150,76 +150,165 @@
 	//   rendererFirstArg = rArg;
 	// }
 
-	// O( MAX(prevArrayValue.length, arrayValue.length) + NumOfRemovals )
-	function rerenderArrayValue(rArg, arrayValue) {
-	  var length = arrayValue.length;
-	  var newKeyMap = {};
-	  var keysToRemove = {};
-	  var parentNode = rArg[0];
-	  var keyMap = rArg[1];
-	  var beforeFirstNode = rArg[2];
-	  var prevArrayValue = rArg[3];
-
-	  var value = undefined,
-	      cursorValue = undefined,
-	      node = undefined,
-	      key = undefined;
-	  var i = 0,
-	      cursorIndex = 0;
-	  var cursorNode = beforeFirstNode ? beforeFirstNode.nextSibling : parentNode.firstChild;
-
-	  for (; i < length && (cursorValue = prevArrayValue[cursorIndex]); ++i) {
-	    value = arrayValue[i];
-	    key = value.key;
-	    node = keyMap[key];
-
-	    if (node) {
-	      // Skip over the previous elements that don't match the current element we're trying to insert.
-	      // TODO(pwong): Check if cursorValue.key is in arrayValue before removing AND advancing
-	      //              Usecase: adding one to the beginning, should only be 1 insertBefore
-	      while (cursorValue && cursorValue.key !== key) {
-	        keysToRemove[cursorValue.key] = true;
-	        cursorValue = prevArrayValue[++cursorIndex];
-	      }
-
-	      if (cursorValue && cursorValue.key !== key) parentNode.insertBefore(node, cursorNode);
-	      if (node.xvdom__spec) rerender(node, value.values);
-	      ++cursorIndex;
-	    } else {
-	      node = createNodeFromValue(value);
-	      parentNode.insertBefore(node, cursorNode);
-	    }
-
-	    newKeyMap[key] = node;
-	    cursorNode = node.nextSibling;
-	  }
-
-	  // If there are more NEW elements than OLD elements, add the rest of the NEW elements
-	  while (i < length) {
-	    value = arrayValue[i++];
-	    key = value.key;
-	    node = keyMap[key] || createNodeFromValue(value);
-
-	    parentNode.insertBefore(node, cursorNode);
-
-	    delete keysToRemove[key];
-	    newKeyMap[key] = node;
-	    cursorNode = node.nextSibling;
-	  }
-
-	  // If there are more OLD elements than NEW elements, remove the rest of the OLD elements
-	  while (cursorIndex < prevArrayValue.length) {
-	    parentNode.removeChild(keyMap[prevArrayValue[cursorIndex++].key]);
-	  }
-
-	  // Remove all elements that were skipped over and never reattached
-	  for (key in keysToRemove) {
+	function removeArrayElements(parentNode, keyMap) {
+	  for (var key in keyMap) {
 	    parentNode.removeChild(keyMap[key]);
 	  }
+	}
+
+	// O( MAX(prevArrayValue.length, arrayValue.length) + NumOfRemovals )
+	function rerenderArrayValue(rArg, list) {
+	  var parentDom = rArg[0];
+	  var keyMap = rArg[1];
+	  var /*beforeFirstNode*/oldList = rArg[3];
+
+	  var oldListLength = oldList.length;
+	  var listLength = list.length;
+
+	  if (listLength === 0) {
+	    removeArrayElements(parentDom, keyMap);
+	    return;
+	  } else if (oldListLength === 0) {
+	    createAndRegisterFromArrayValue(parentDom, list, []);
+	    return;
+	  }
+
+	  var newKeyMap = {};
+	  var afterLastNode = oldListLength ? keyMap[oldList[oldListLength - 1].key].nextSibling : null;
+	  var oldEndIndex = oldListLength - 1;
+	  var endIndex = listLength - 1;
+	  var oldStartIndex = 0;
+	  var startIndex = 0;
+	  var successful = true;
+	  var node = undefined,
+	      nextItem = undefined,
+	      oldItem = undefined,
+	      item = undefined;
+
+	  outer: while (successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex) {
+	    successful = false;
+	    var oldStartItem = undefined,
+	        oldEndItem = undefined,
+	        startItem = undefined,
+	        endItem = undefined;
+
+	    oldStartItem = oldList[oldStartIndex];
+	    startItem = list[startIndex];
+	    while (oldStartItem.key === startItem.key) {
+	      node = keyMap[startItem.key];
+	      if (node.xvdom__spec) rerender(node, startItem.values);
+
+	      newKeyMap[startItem.key] = node;
+	      oldStartIndex++;startIndex++;
+	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
+	        break outer;
+	      }
+	      oldStartItem = oldList[oldStartIndex];
+	      startItem = list[startIndex];
+	      successful = true;
+	    }
+
+	    oldEndItem = oldList[oldEndIndex];
+	    endItem = list[endIndex];
+	    while (oldEndItem.key === endItem.key) {
+	      node = keyMap[endItem.key];
+	      if (node.xvdom__spec) rerender(node, endItem.values);
+
+	      newKeyMap[endItem.key] = node;
+	      oldEndIndex--;endIndex--;
+	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
+	        break outer;
+	      }
+	      oldEndItem = oldList[oldEndIndex];
+	      endItem = list[endIndex];
+	      successful = true;
+	    }
+
+	    while (oldStartItem.key === endItem.key) {
+	      nextItem = endIndex + 1 < listLength ? list[endIndex + 1] : afterLastNode;
+	      node = keyMap[endItem.key];
+	      if (node.xvdom__spec) rerender(node, endItem.values);
+	      if (oldEndItem.key !== endItem.key) {
+	        parentDom.insertBefore(node, keyMap[oldEndItem.key].nextSibling);
+	      }
+	      newKeyMap[endItem.key] = node;
+	      oldStartIndex++;endIndex--;
+	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
+	        break outer;
+	      }
+	      oldStartItem = oldList[oldStartIndex];
+	      endItem = list[endIndex];
+	      successful = true;
+	    }
+
+	    while (oldEndItem.key === startItem.key) {
+	      nextItem = oldStartIndex < oldListLength ? oldList[oldStartIndex] : afterLastNode;
+	      node = keyMap[startItem.key];
+	      if (node.xvdom__spec) rerender(node, startItem.values);
+	      if (oldStartItem.key !== startItem.key) {
+	        parentDom.insertBefore(node, keyMap[oldStartItem.key]);
+	      }
+	      oldEndIndex--;startIndex++;
+	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
+	        break outer;
+	      }
+	      oldEndItem = oldList[oldEndIndex];
+	      startItem = list[startIndex];
+	      successful = true;
+	    }
+	  }
+	  if (oldStartIndex > oldEndIndex) {
+	    while (startIndex <= endIndex) {
+	      node = createNodeFromValue(list[startIndex]);
+	      newKeyMap[list[startIndex].key] = node;
+	      parentDom.insertBefore(node, newKeyMap[list[endIndex + 1].key]);
+	      startIndex++;
+	    }
+	    // nextItem = (endIndex + 1 < listLength) ? list[endIndex + 1] : afterLastNode;
+	    // for (i = startIndex; i <= endIndex; i++){
+	    //   item = list[i];
+	    //   attachFragment(context, item, parentDom, component, nextItem);
+	    // }
+	  } else if (startIndex > endIndex) {
+	      // removeFragments(context, parentDom, oldList, oldStartIndex, oldEndIndex + 1);
+	    } else {
+	        var i = undefined,
+	            oldNextItem = oldEndIndex + 1 >= oldListLength ? null : oldList[oldEndIndex + 1];
+	        var oldListMap = {};
+	        for (i = oldEndIndex; i >= oldStartIndex; i--) {
+	          oldItem = oldList[i];
+	          oldItem.next = oldNextItem;
+	          oldListMap[oldItem.key] = oldItem;
+	          oldNextItem = oldItem;
+	        }
+	        nextItem = endIndex + 1 < listLength ? list[endIndex + 1] : afterLastNode;
+	        for (i = endIndex; i >= startIndex; i--) {
+	          item = list[i];
+	          var key = item.key;
+	          oldItem = oldListMap[key];
+	          if (oldItem) {
+	            oldListMap[key] = null;
+	            oldNextItem = oldItem.next;
+	            updateFragment(context, oldItem, item, parentDom, component);
+	            if (parentDom.nextSibling != (nextItem && nextItem.dom)) {
+	              moveFragment(parentDom, item, nextItem);
+	            }
+	          } else {
+	            attachFragment(context, item, parentDom, component, nextItem);
+	          }
+	          nextItem = item;
+	        }
+	        for (i = oldStartIndex; i <= oldEndIndex; i++) {
+	          oldItem = oldList[i];
+	          if (oldListMap[oldItem.key] !== null) {
+	            removeFragment(context, parentDom, oldItem);
+	          }
+	        }
+	      }
 
 	  rendererFunc = rerenderArrayValue;
 	  rArg[1] = newKeyMap;
-	  rArg[3] = arrayValue;
+	  rArg[3] = list;
 	  rendererFirstArg = rArg;
 	}
 
