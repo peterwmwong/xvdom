@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "test": "webpack-dev-server --config webpack-server.config.js"
+    "test": "webpack-dev-server --config webpack-server.config.js",
+    "cpbench": "npm run build; cp dist/xvdom.js /p/js-repaint-perfs/lib/",
+    "vbench": "npm run build; cp dist/xvdom.js /p/vdom-benchmark-xvdom/web/"
   },
   "author": "",
   "license": "ISC",

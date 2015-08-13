@@ -1,4 +1,3 @@
-import patch from './patch.js';
-
-export {patch};
-window.xvdom = {patch};
+import {patch, unmount} from './patch.js';
+export {patch, unmount};
+window.xvdom = {patch, unmount};

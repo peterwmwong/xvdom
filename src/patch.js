@@ -25,7 +25,7 @@ function applyProps(node, props, values){
 function createAddChildren(parentNode, vchildren, values){
   const length = vchildren.length;
   for(let i=0; i<length; ++i){
-    parentNode.appendChild(createNodeFromValueOrReference(vchildren[i], values, parentNode));
+    attachNodeFromValueOrReference(vchildren[i], values, parentNode);
   }
 }
 
@@ -241,7 +241,6 @@ function createNodeFromValue(value){
 
 function createAndRegisterFromArrayValue(parentNode, arrayValue, values){
   const length          = arrayValue.length;
-  const frag            = document.createDocumentFragment();
   const keyMap          = {};
   const beforeFirstNode = parentNode.lastChild;
   let node, value, i=0;
@@ -249,22 +248,21 @@ function createAndRegisterFromArrayValue(parentNode, arrayValue, values){
   while(i<length){
     value = arrayValue[i++];
     node  = createNodeFromValue(value);
-    frag.appendChild(keyMap[value.key] = node);
+    parentNode.appendChild(keyMap[value.key] = node);
   }
 
   rendererFunc     = rerenderArrayValue;
   rendererFirstArg = [parentNode, keyMap, beforeFirstNode, arrayValue];
   values.push(rendererFunc, rendererFirstArg);
-  return frag;
 }
 
-function createAndRegisterNodeFromValue(value, parentNode, values){
+function attachAndRegisterNodeFromValue(value, parentNode, values){
   if(value instanceof Array) return createAndRegisterFromArrayValue(parentNode, value, values);
 
   let node = createNodeFromValue(value);
   setRerenderFuncForValue([parentNode, node, value]);
   values.push(rendererFunc, rendererFirstArg);
-  return node;
+  parentNode.appendChild(node);
 }
 
 /*
@@ -272,16 +270,21 @@ function createAndRegisterNodeFromValue(value, parentNode, values){
   values    : Array<any>
   paretNode : Node
 */
-function createNodeFromValueOrReference(vnode, values, parentNode){
+function attachNodeFromValueOrReference(vnode, values, parentNode){
   switch(typeof vnode){
-    case 'object': return createElement(vnode, values);
-    case 'string': return document.createTextNode(vnode);
-    default:       return createAndRegisterNodeFromValue(values[vnode], parentNode, values);
+    case 'object':
+      parentNode.appendChild(createElement(vnode, values));
+      break;
+    case 'string':
+      parentNode.appendChild(document.createTextNode(vnode));
+      break;
+    default:
+      attachAndRegisterNodeFromValue(values[vnode], parentNode, values);
   }
 }
 
 function initialPatch(node, spec){
-  node.appendChild(createNodeFromValueOrReference(spec.template, spec.values));
+  attachNodeFromValueOrReference(spec.template, spec.values, node);
   node.xvdom__spec = spec;
 }
 
@@ -304,10 +307,58 @@ function rerender(node, values){
   }
 }
 
-export default function(node, spec){
+const recycledSpecs = {};
+
+export function patch(node, spec){
   if(node.xvdom__spec){
     // Only rerender if there are dynamic values
     if(spec.values) rerender(node, spec.values);
+    return;
   }
-  else initialPatch(node, spec);
+
+  if(spec.recycleKey){
+    const recycledStack = recycledSpecs[spec.recycleKey];
+    if(recycledStack){
+      const recycled = recycledStack.pop();
+      if(recycled){
+        const oldSpec = recycled.spec;
+        const rootNodes = recycled.rootNodes;
+        const length = rootNodes.length;
+        let i=0;
+
+        while(i<length){
+          node.appendChild(rootNodes[i++]);
+        }
+
+        node.xvdom__spec = oldSpec;
+        rerender(node, spec.values);
+        return;
+      }
+    }
+  }
+
+  initialPatch(node, spec);
+}
+
+export function unmount(node){
+  const spec = node.xvdom__spec;
+  if(spec && spec.recycleKey){
+    const rootNodes = [];
+    let curNode = node.firstChild;
+    while(curNode){
+      node.removeChild(curNode);
+      rootNodes.push(curNode);
+      curNode = curNode.nextSibling;
+    }
+
+    let recycledStack = recycledSpecs[spec.recycleKey];
+    if(!recycledStack){
+      recycledStack = recycledSpecs[spec.recycleKey] = [];
+    }
+    recycledStack.push({spec, rootNodes});
+    node.xvdom__spec = null;
+  }
+  else{
+    node.innerHTML = '';
+  }
 }

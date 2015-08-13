@@ -55,15 +55,12 @@
 
 	exports.__esModule = true;
 
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
 	var _patchJs = __webpack_require__(2);
 
-	var _patchJs2 = _interopRequireDefault(_patchJs);
+	exports.patch = _patchJs.patch;
+	exports.unmount = _patchJs.unmount;
 
-	exports.patch = _patchJs2['default'];
-
-	window.xvdom = { patch: _patchJs2['default'] };
+	window.xvdom = { patch: _patchJs.patch, unmount: _patchJs.unmount };
 
 /***/ },
 /* 2 */
@@ -72,6 +69,8 @@
 	'use strict';
 
 	exports.__esModule = true;
+	exports.patch = patch;
+	exports.unmount = unmount;
 	var rendererFunc = undefined;
 	var rendererFirstArg = undefined;
 
@@ -98,7 +97,7 @@
 	function createAddChildren(parentNode, vchildren, values) {
 	  var length = vchildren.length;
 	  for (var i = 0; i < length; ++i) {
-	    parentNode.appendChild(createNodeFromValueOrReference(vchildren[i], values, parentNode));
+	    attachNodeFromValueOrReference(vchildren[i], values, parentNode);
 	  }
 	}
 
@@ -322,7 +321,6 @@
 
 	function createAndRegisterFromArrayValue(parentNode, arrayValue, values) {
 	  var length = arrayValue.length;
-	  var frag = document.createDocumentFragment();
 	  var keyMap = {};
 	  var beforeFirstNode = parentNode.lastChild;
 	  var node = undefined,
@@ -332,22 +330,21 @@
 	  while (i < length) {
 	    value = arrayValue[i++];
 	    node = createNodeFromValue(value);
-	    frag.appendChild(keyMap[value.key] = node);
+	    parentNode.appendChild(keyMap[value.key] = node);
 	  }
 
 	  rendererFunc = rerenderArrayValue;
 	  rendererFirstArg = [parentNode, keyMap, beforeFirstNode, arrayValue];
 	  values.push(rendererFunc, rendererFirstArg);
-	  return frag;
 	}
 
-	function createAndRegisterNodeFromValue(value, parentNode, values) {
+	function attachAndRegisterNodeFromValue(value, parentNode, values) {
 	  if (value instanceof Array) return createAndRegisterFromArrayValue(parentNode, value, values);
 
 	  var node = createNodeFromValue(value);
 	  setRerenderFuncForValue([parentNode, node, value]);
 	  values.push(rendererFunc, rendererFirstArg);
-	  return node;
+	  parentNode.appendChild(node);
 	}
 
 	/*
@@ -355,19 +352,21 @@
 	  values    : Array<any>
 	  paretNode : Node
 	*/
-	function createNodeFromValueOrReference(vnode, values, parentNode) {
+	function attachNodeFromValueOrReference(vnode, values, parentNode) {
 	  switch (typeof vnode) {
 	    case 'object':
-	      return createElement(vnode, values);
+	      parentNode.appendChild(createElement(vnode, values));
+	      break;
 	    case 'string':
-	      return document.createTextNode(vnode);
+	      parentNode.appendChild(document.createTextNode(vnode));
+	      break;
 	    default:
-	      return createAndRegisterNodeFromValue(values[vnode], parentNode, values);
+	      attachAndRegisterNodeFromValue(values[vnode], parentNode, values);
 	  }
 	}
 
 	function initialPatch(node, spec) {
-	  node.appendChild(createNodeFromValueOrReference(spec.template, spec.values));
+	  attachNodeFromValueOrReference(spec.template, spec.values, node);
 	  node.xvdom__spec = spec;
 	}
 
@@ -390,14 +389,60 @@
 	  }
 	}
 
-	exports['default'] = function (node, spec) {
+	var recycledSpecs = {};
+
+	function patch(node, spec) {
 	  if (node.xvdom__spec) {
 	    // Only rerender if there are dynamic values
 	    if (spec.values) rerender(node, spec.values);
-	  } else initialPatch(node, spec);
-	};
+	    return;
+	  }
 
-	module.exports = exports['default'];
+	  if (spec.recycleKey) {
+	    var recycledStack = recycledSpecs[spec.recycleKey];
+	    if (recycledStack) {
+	      var recycled = recycledStack.pop();
+	      if (recycled) {
+	        var oldSpec = recycled.spec;
+	        var rootNodes = recycled.rootNodes;
+	        var _length = rootNodes.length;
+	        var i = 0;
+
+	        while (i < _length) {
+	          node.appendChild(rootNodes[i++]);
+	        }
+
+	        node.xvdom__spec = oldSpec;
+	        rerender(node, spec.values);
+	        return;
+	      }
+	    }
+	  }
+
+	  initialPatch(node, spec);
+	}
+
+	function unmount(node) {
+	  var spec = node.xvdom__spec;
+	  if (spec && spec.recycleKey) {
+	    var rootNodes = [];
+	    var curNode = node.firstChild;
+	    while (curNode) {
+	      node.removeChild(curNode);
+	      rootNodes.push(curNode);
+	      curNode = curNode.nextSibling;
+	    }
+
+	    var recycledStack = recycledSpecs[spec.recycleKey];
+	    if (!recycledStack) {
+	      recycledStack = recycledSpecs[spec.recycleKey] = [];
+	    }
+	    recycledStack.push({ spec: spec, rootNodes: rootNodes });
+	    node.xvdom__spec = null;
+	  } else {
+	    node.innerHTML = '';
+	  }
+	}
 
 /***/ }
 /******/ ]);

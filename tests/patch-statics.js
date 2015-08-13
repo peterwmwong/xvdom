@@ -1,6 +1,6 @@
 import assert from 'assert';
 import HTML from 'html-parse-stringify';
-import patch from '../src/patch.js';
+import {patch} from '../src/patch.js';
 
 describe('patch statics', ()=>{
   let target;
