@@ -102,8 +102,7 @@ function rerenderArrayValue(rArg, list){
   let oldStartIndex = 0;
   let startIndex    = 0;
   let successful    = true;
-  let node, nextItem, oldItem, item;
-  let oldStartItem, oldEndItem, startItem, endItem;
+  let node, insertBeforNode, item, oldStartItem, oldEndItem, startItem, endItem;
 
   outer: while(successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex){
     successful = false;
@@ -111,8 +110,7 @@ function rerenderArrayValue(rArg, list){
     oldStartItem = oldList[oldStartIndex];
     startItem = list[startIndex];
     while (oldStartItem.key === startItem.key){
-      node = keyMap[startItem.key];
-      if(node.xvdom__spec) rerender(node, startItem.values);
+      rerenderIfSpec(keyMap[startItem.key], startItem.values);
 
       oldStartIndex++; startIndex++;
       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
@@ -126,8 +124,7 @@ function rerenderArrayValue(rArg, list){
     oldEndItem = oldList[oldEndIndex];
     endItem = list[endIndex];
     while (oldEndItem.key === endItem.key){
-      node = keyMap[endItem.key];
-      if(node.xvdom__spec) rerender(node, endItem.values);
+      rerenderIfSpec(keyMap[endItem.key], endItem.values);
 
       oldEndIndex--; endIndex--;
       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
@@ -140,7 +137,7 @@ function rerenderArrayValue(rArg, list){
 
     while (oldStartItem.key === endItem.key){
       node = keyMap[endItem.key];
-      if(node.xvdom__spec) rerender(node, endItem.values);
+      rerenderIfSpec(node, endItem.values);
 
       if(oldEndItem.key !== endItem.key){
         parentNode.insertBefore(node, keyMap[oldEndItem.key].nextSibling);
@@ -156,7 +153,7 @@ function rerenderArrayValue(rArg, list){
 
     while (oldEndItem.key === startItem.key){
       node = keyMap[startItem.key];
-      if(node.xvdom__spec) rerender(node, startItem.values);
+      rerenderIfSpec(node, startItem.values);
 
       if(oldStartItem.key !== startItem.key){
         parentNode.insertBefore(node, keyMap[oldStartItem.key]);
@@ -171,54 +168,65 @@ function rerenderArrayValue(rArg, list){
     }
   }
   if(oldStartIndex > oldEndIndex){
-    while(startIndex <= endIndex){
-      node = createNodeFromValue(list[startIndex]);
-      keyMap[list[startIndex].key] = node;
-      parentNode.insertBefore(node, keyMap[list[endIndex+1].key]);
-      startIndex++;
+    insertBeforNode = (++endIndex < listLength ? keyMap[list[endIndex].key] : afterLastNode);
+    while(startIndex < endIndex){
+      startItem = list[startIndex];
+      parentNode.insertBefore(keyMap[startItem.key] = createNodeFromValue(startItem), insertBeforNode);
+      ++startIndex;
     }
-    // nextItem = (endIndex + 1 < listLength) ? list[endIndex + 1] : afterLastNode;
-    // for (i = startIndex; i <= endIndex; i++){
-    //   item = list[i];
-    //   attachFragment(context, item, parentNode, component, nextItem);
-    // }
   }
   else if(startIndex > endIndex){
     // removeFragments(context, parentNode, oldList, oldStartIndex, oldEndIndex + 1);
   }
   else{
-    let i, oldNextItem = (oldEndIndex + 1 >= oldListLength ? null : oldList[oldEndIndex + 1]);
-    let oldListMap = {};
-    for(i = oldEndIndex; i >= oldStartIndex; i--){
-      oldItem = oldList[i];
-      oldItem.next = oldNextItem;
-      oldListMap[oldItem.key] = oldItem;
-      oldNextItem = oldItem;
-    }
-    nextItem = (endIndex + 1 < listLength) ? list[endIndex + 1] : afterLastNode;
-    for(i = endIndex; i >= startIndex; i--){
-      item = list[i];
-      let key = item.key;
-      oldItem = oldListMap[key];
-      if(oldItem){
-        oldListMap[key] = null;
-        oldNextItem = oldItem.next;
-        updateFragment(context, oldItem, item, parentNode, component);
-        if(parentNode.nextSibling != (nextItem && nextItem.dom)){
-          moveFragment(parentNode, item, nextItem);
-        }
+    while(startIndex <= endIndex){
+      item = list[startIndex++];
+      node = keyMap[item.key];
+      if(node){
+        rerenderIfSpec(node, item.values);
+        parentNode.insertBefore(node, afterLastNode);
       }
       else{
-        attachFragment(context, item, parentNode, component, nextItem);
-      }
-      nextItem = item;
-    }
-    for(i = oldStartIndex; i <= oldEndIndex; i++){
-      oldItem = oldList[i];
-      if(oldListMap[oldItem.key] !== null){
-        removeFragment(context, parentNode, oldItem);
+        // node = createNodeFromValueOrReference(item.template, item.values);
+        // parentNode.insertBefore(node, afterLastNode);
       }
     }
+
+    // let i;
+    // let oldNextItem = (oldEndIndex + 1 >= oldListLength ? null : oldList[oldEndIndex + 1]);
+    //
+    // for(i = oldEndIndex; i >= oldStartIndex; i--){
+    //   oldItem = oldList[i];
+    //   oldItem.next = oldNextItem;
+    //   oldListMap[oldItem.key] = oldItem;
+    //   oldNextItem = oldItem;
+    // }
+    //
+    // nextItem = (endIndex + 1 < listLength) ? list[endIndex + 1] : afterLastNode;
+    //
+    // for(i = endIndex; i >= startIndex; i--){
+    //   item = list[i];
+    //   let key = item.key;
+    //   oldItem = oldListMap[key];
+    //   if(oldItem){
+    //     oldListMap[key] = null;
+    //     oldNextItem = oldItem.next;
+    //     updateFragment(context, oldItem, item, parentNode, component);
+    //     if(parentNode.nextSibling != (nextItem && nextItem.dom)){
+    //       moveFragment(parentNode, item, nextItem);
+    //     }
+    //   }
+    //   else{
+    //     attachFragment(context, item, parentNode, component, nextItem);
+    //   }
+    //   nextItem = item;
+    // }
+    // for(i = oldStartIndex; i <= oldEndIndex; i++){
+    //   oldItem = oldList[i];
+    //   if(oldListMap[oldItem.key] !== null){
+    //     removeFragment(context, parentNode, oldItem);
+    //   }
+    // }
   }
 
   rendererFunc     = rerenderArrayValue;
@@ -286,6 +294,10 @@ function attachNodeFromValueOrReference(vnode, values, parentNode){
 function initialPatch(node, spec){
   attachNodeFromValueOrReference(spec.template, spec.values, node);
   node.xvdom__spec = spec;
+}
+
+function rerenderIfSpec(node, values){
+  if(node.xvdom__spec) rerender(node, values);
 }
 
 function rerender(node, values){

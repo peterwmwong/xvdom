@@ -446,6 +446,64 @@ describe('patch rerender', ()=>{
       resetCounts();
     });
 
+    it('Reordering 3', ()=>{
+      const PARENT_TMPL = {el: 'div', children:[0]};
+      const CHILD_EL = {el: 'span', props:{$className:0}};
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 0, template:CHILD_EL, values:['0']},
+            {key: 1, template:CHILD_EL, values:['1']},
+            {key: 2, template:CHILD_EL, values:['2']},
+            {key: 3, template:CHILD_EL, values:['3']}
+          ]
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span class="0"></span>'+
+          '<span class="1"></span>'+
+          '<span class="2"></span>'+
+          '<span class="3"></span>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 5);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+
+      spyOnInsertBefore(target.firstChild);
+      spyOnRemoveChild(target.firstChild);
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 2, template:CHILD_EL, values:['21']},
+            {key: 3, template:CHILD_EL, values:['31']},
+            {key: 0, template:CHILD_EL, values:['01']},
+            {key: 1, template:CHILD_EL, values:['11']}
+          ]
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span class="21"></span>'+
+          '<span class="31"></span>'+
+          '<span class="01"></span>'+
+          '<span class="11"></span>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
+      assert.equal(insertBeforeCount, 4);
+      assert.equal(removeChildCount, 0);
+      resetCounts();
+    });
+
     it('Add to the beginning', ()=>{
       const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_EL1   = {el: 'span'};
@@ -460,7 +518,11 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(), '<div><span></span></div>');
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span></span>'+
+        '</div>'
+      );
       assert.equal(createElementCount, 2);
       assert.equal(createTextNodeCount, 0);
       resetCounts();
@@ -515,6 +577,79 @@ describe('patch rerender', ()=>{
       assert.equal(insertBeforeCount, 1);
       assert.equal(removeChildCount, 0);
       assert.equal(childEl1, target.firstChild.childNodes[2]);
+      assert.equal(childEl2, target.firstChild.childNodes[1]);
+      resetCounts();
+    });
+
+    it('Add to the end', ()=>{
+      const PARENT_TMPL = {el: 'div', children:[0]};
+      const CHILD_EL1   = {el: 'span'};
+      const CHILD_EL2   = {el: 'b'};
+      const CHILD_EL3   = {el: 'a'};
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 1, template:CHILD_EL1}
+          ]
+        ]
+      });
+      assert.equal(getTargetHTML(), '<div><span></span></div>');
+      assert.equal(createElementCount, 2);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+
+      const childEl1 = target.firstChild.childNodes[0];
+      spyOnInsertBefore(target.firstChild);
+      spyOnRemoveChild(target.firstChild);
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 1, template:CHILD_EL1},
+            {key: 2, template:CHILD_EL2}
+          ]
+        ]
+      });
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span></span>'+
+          '<b></b>'+
+        '</div>'
+      );
+      assert.equal(createElementCount , 1);
+      assert.equal(createTextNodeCount, 0);
+      assert.equal(insertBeforeCount, 1);
+      assert.equal(removeChildCount, 0);
+      assert.equal(childEl1, target.firstChild.childNodes[0]);
+      resetCounts();
+
+      const childEl2 = target.firstChild.childNodes[1];
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 1, template:CHILD_EL1},
+            {key: 2, template:CHILD_EL2},
+            {key: 3, template:CHILD_EL3}
+          ]
+        ]
+      });
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span></span>'+
+          '<b></b>'+
+          '<a></a>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 1);
+      assert.equal(createTextNodeCount, 0);
+      assert.equal(insertBeforeCount, 1);
+      assert.equal(removeChildCount, 0);
+      assert.equal(childEl1, target.firstChild.childNodes[0]);
       assert.equal(childEl2, target.firstChild.childNodes[1]);
       resetCounts();
     });
