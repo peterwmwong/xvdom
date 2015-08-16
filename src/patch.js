@@ -74,9 +74,6 @@ function rerenderValue(rArg/* [parentNode, node, prevValue] */, value){
 //   rendererFirstArg = rArg;
 // }
 
-// O( MAX(prevArrayValue.length, arrayValue.length) + NumOfRemovals )
-
-//TODO(pwong): Remove beforeFirstNode, not using it!
 function rerenderArrayValue(rArg /*parentNode, keyMap, beforeFirstNode, oldList*/, list){
   const [parentNode, keyMap, beforeFirstNode, oldList] = rArg;
   let oldListLength = oldList.length;
@@ -95,7 +92,8 @@ function rerenderArrayValue(rArg /*parentNode, keyMap, beforeFirstNode, oldList*
     if(isListNotArray){
       parentNode.insertBefore(
         (rArg[1] = createNodeFromValue(list)),
-        beforeFirstNode ? beforeFirstNode.nextSibling : null
+        //TODO(pwong): Test rerendering IN THE MIDDLE Array, Array -> Text, Array -> Element
+        (beforeFirstNode ? beforeFirstNode.nextSibling : null)
       );
       rArg[2] = list;
       rArg[3] = null;
@@ -107,7 +105,10 @@ function rerenderArrayValue(rArg /*parentNode, keyMap, beforeFirstNode, oldList*
     i = 0;
     while(i < listLength){
       value = list[i++];
-      parentNode.appendChild(keyMap[value.key] = createNodeFromValue(value));
+      parentNode.insertBefore(
+        (keyMap[value.key] = createNodeFromValue(value)),
+        (beforeFirstNode ? beforeFirstNode.nextSibling : null)
+      );
     }
   }
   else{

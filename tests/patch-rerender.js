@@ -955,9 +955,6 @@ describe('patch rerender', ()=>{
           '<div class="0" id="id0">'+
             '0 Value'+
           '</div>'+
-          // '<div class="1" id="id1">'+
-          //   '1 Value'+
-          // '</div>'+
         '</div>'
       );
       assert.equal(createElementCount, 2);
@@ -982,9 +979,6 @@ describe('patch rerender', ()=>{
           '<div class="02" id="id02">'+
             '0 Value2'+
           '</div>'+
-          // '<div class="12" id="id12">'+
-          //   '1 Value2'+
-          // '</div>'+
         '</div>'
       );
       assert.equal(createElementCount, 0);
@@ -1379,6 +1373,103 @@ describe('patch rerender', ()=>{
       );
       assert.equal(createElementCount, 1);
       assert.equal(createTextNodeCount, 0);
+      resetCounts();
+    });
+
+    it('Add in the middle of statics', ()=>{
+      const TMPL = {el: 'div', children:[0]};
+      const ROOT_TMPL = {
+        el: 'div',
+        children:[
+          {el:'div', children:['static 1']},
+          0,
+          {el:'div', children:['static 2']}
+        ]
+      };
+
+      patch(target, {
+        template: ROOT_TMPL,
+        values: [
+          []
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div>static 1</div>'+
+          '<div>static 2</div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 3);
+      assert.equal(createTextNodeCount, 2);
+      resetCounts();
+
+      spyOnInsertBefore(target.firstChild);
+      spyOnRemoveChild(target.firstChild);
+
+      patch(target, {
+        template: ROOT_TMPL,
+        values: [
+          [
+            {key: 0, template:TMPL, values:['dynamic 1']}
+          ]
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div>static 1</div>'+
+          '<div>dynamic 1</div>'+
+          '<div>static 2</div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 1);
+      assert.equal(createTextNodeCount, 1);
+      assert.equal(insertBeforeCount, 1);
+      assert.equal(removeChildCount, 0);
+      resetCounts();
+
+      patch(target, {
+        template: ROOT_TMPL,
+        values: [
+          [
+            {key: 0, template:TMPL, values:['dynamic 1']},
+            {key: 1, template:TMPL, values:['dynamic 2']}
+          ]
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div>static 1</div>'+
+          '<div>dynamic 1</div>'+
+          '<div>dynamic 2</div>'+
+          '<div>static 2</div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 1);
+      assert.equal(createTextNodeCount, 1);
+      assert.equal(insertBeforeCount, 1);
+      assert.equal(removeChildCount, 0);
+      resetCounts();
+
+      patch(target, {
+        template: ROOT_TMPL,
+        values: [
+          []
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div>static 1</div>'+
+          '<div>static 2</div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
+      assert.equal(insertBeforeCount, 0);
+      assert.equal(removeChildCount, 2);
       resetCounts();
     });
   });
