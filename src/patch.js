@@ -36,6 +36,32 @@ function createElement({el, props, children}, values){
   return node;
 }
 
+function rerenderToArray(rArg/* [parentNode, node, prevValue] */, list){
+  const length          = list.length;
+  const keyMap          = {};
+  const beforeNode      = rArg[1];
+  const parentNode      = rArg[0];
+  let item, i=0;
+
+  // parentNode, keyMap, beforeFirstNode, oldList
+  // rArg[0] = parentNode;
+  rArg[1] = keyMap;
+  rArg[2] = beforeNode.previousSibling;
+  rArg[3] = list;
+
+  while(i<length){
+    item = list[i++];
+    parentNode.insertBefore(
+      (keyMap[item.key] = createNodeFromValue(item)),
+      beforeNode
+    );
+  }
+
+  parentNode.removeChild(beforeNode);
+  rendererFunc = rerenderArrayValue;
+  rendererFirstArg = rArg;
+}
+
 function rerenderTextNodeValue(rArg/* [parentNode, node, prevValue] */, value){
   if(typeof value === 'string'){
     if(rArg[2] !== value){
@@ -43,12 +69,16 @@ function rerenderTextNodeValue(rArg/* [parentNode, node, prevValue] */, value){
       rArg[2] = value;
     }
   }
+  else if(value instanceof Array){
+    rerenderToArray(rArg, value);
+  }
   else{
     rerenderValue(rArg, value);
   }
 }
 
 function rerenderValue(rArg/* [parentNode, node, prevValue] */, value){
+  if(value instanceof Array) return rerenderToArray(rArg, value);
   const newNode = createNodeFromValue(value);
   rArg[0].replaceChild(newNode, rArg[1]);
   rArg[1] = newNode;

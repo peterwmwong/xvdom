@@ -1327,7 +1327,6 @@ describe('patch rerender', ()=>{
     });
 
     it('Array to Text', ()=>{
-
       patch(target, {
         template: TMPL,
         values: [
@@ -1380,6 +1379,109 @@ describe('patch rerender', ()=>{
       );
       assert.equal(document.createElement.count, 0);
       assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
+    });
+
+    it('Text to Array', ()=>{
+      patch(target, {
+        template: TMPL,
+        values: [
+          'A string'
+        ]
+      });
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          'A string'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 1);
+      assert.equal(document.createTextNode.count, 1);
+      spyOn.resetSpyCounts();
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          [
+            {key:0, template:TMPL, values:['one']},
+            {key:1, template:TMPL, values:['two']},
+            {key:2, template:TMPL, values:['three']}
+          ]
+        ]
+      });
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div>one</div>'+
+          '<div>two</div>'+
+          '<div>three</div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 3);
+      assert.equal(document.createTextNode.count, 3);
+      assert.equal(Node.prototype.insertBefore.count, 3);
+      assert.equal(Node.prototype.removeChild.count, 1);
+      spyOn.resetSpyCounts();
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          [
+            {key:0, template:TMPL, values:['one']},
+            {key:2, template:TMPL, values:['three']}
+          ]
+        ]
+      });
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div>one</div>'+
+          '<div>three</div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 1);
+      spyOn.resetSpyCounts();
+    });
+
+    it('Element to Array', ()=>{
+      patch(target, {
+        template: TMPL,
+        values: [
+          {template:TMPL, values:['one']}
+        ]
+      });
+
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div>one</div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 2);
+      assert.equal(document.createTextNode.count, 1);
+      spyOn.resetSpyCounts();
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          [
+            {key:0, template:TMPL, values:['one']},
+            {key:1, template:TMPL, values:['two']},
+            {key:2, template:TMPL, values:['three']}
+          ]
+        ]
+      });
+
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div>one</div>'+
+          '<div>two</div>'+
+          '<div>three</div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 3);
+      assert.equal(document.createTextNode.count, 3);
+      assert.equal(Node.prototype.insertBefore.count, 3);
+      assert.equal(Node.prototype.removeChild.count, 1);
       spyOn.resetSpyCounts();
     });
 
