@@ -525,6 +525,99 @@ describe('patch rerender', ()=>{
       spyOn.resetSpyCounts();
     });
 
+    it('Add in the middle', ()=>{
+      patch(target, {
+        template: TMPL,
+        values: [
+          [
+            {key:0, template:TMPL, values:['0']},
+            {key:1, template:TMPL, values:['1']},
+            {key:2, template:TMPL, values:['2']},
+            {key:3, template:TMPL, values:['3']}
+          ]
+        ]
+      });
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div>0</div>'+
+          '<div>1</div>'+
+          '<div>2</div>'+
+          '<div>3</div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 5);
+      assert.equal(document.createTextNode.count, 4);
+      spyOn.resetSpyCounts();
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          [
+            {key:0, template:TMPL, values:['0']},
+            {key:1, template:TMPL, values:['1']},
+
+            {key:4, template:TMPL, values:['New 1']},
+            {key:5, template:TMPL, values:['New 2']},
+
+            {key:2, template:TMPL, values:['2']},
+            {key:3, template:TMPL, values:['3']}
+          ]
+        ]
+      });
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div>0</div>'+
+          '<div>1</div>'+
+          '<div>New 1</div>'+
+          '<div>New 2</div>'+
+          '<div>2</div>'+
+          '<div>3</div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 2);
+      assert.equal(document.createTextNode.count, 2);
+      assert.equal(Node.prototype.insertBefore.count, 2);
+      assert.equal(Node.prototype.removeChild.count, 0);
+      spyOn.resetSpyCounts();
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          [
+            {key:0, template:TMPL, values:['0']},
+            {key:1, template:TMPL, values:['1']},
+
+            {key:4, template:TMPL, values:['New 1']},
+
+            {key:6, template:TMPL, values:['New 1.1']},
+            {key:7, template:TMPL, values:['New 1.2']},
+
+            {key:5, template:TMPL, values:['New 2']},
+
+            {key:2, template:TMPL, values:['2']},
+            {key:3, template:TMPL, values:['3']}
+          ]
+        ]
+      });
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div>0</div>'+
+          '<div>1</div>'+
+          '<div>New 1</div>'+
+          '<div>New 1.1</div>'+
+          '<div>New 1.2</div>'+
+          '<div>New 2</div>'+
+          '<div>2</div>'+
+          '<div>3</div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 2);
+      assert.equal(document.createTextNode.count, 2);
+      assert.equal(Node.prototype.insertBefore.count, 2);
+      assert.equal(Node.prototype.removeChild.count, 0);
+      spyOn.resetSpyCounts();
+    });
+
     it('Add to the end', ()=>{
       const CHILD_EL1   = {el: 'span'};
       const CHILD_EL2   = {el: 'b'};
@@ -592,6 +685,81 @@ describe('patch rerender', ()=>{
       assert.equal(Node.prototype.removeChild.count, 0);
       assert.equal(childEl1, target.firstChild.childNodes[0]);
       assert.equal(childEl2, target.firstChild.childNodes[1]);
+      spyOn.resetSpyCounts();
+    });
+
+    it('Remove from the middle', ()=>{
+      patch(target, {
+        template: TMPL,
+        values: [
+          [
+            {key:0, template:TMPL, values:['0']},
+            {key:1, template:TMPL, values:['1']},
+            {key:2, template:TMPL, values:['2']},
+            {key:3, template:TMPL, values:['3']},
+            {key:4, template:TMPL, values:['4']},
+            {key:5, template:TMPL, values:['5']}
+          ]
+        ]
+      });
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div>0</div>'+
+          '<div>1</div>'+
+          '<div>2</div>'+
+          '<div>3</div>'+
+          '<div>4</div>'+
+          '<div>5</div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 7);
+      assert.equal(document.createTextNode.count, 6);
+      spyOn.resetSpyCounts();
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          [
+            {key:0, template:TMPL, values:['0']},
+            {key:1, template:TMPL, values:['1']},
+            {key:4, template:TMPL, values:['4']},
+            {key:5, template:TMPL, values:['5']}
+          ]
+        ]
+      });
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div>0</div>'+
+          '<div>1</div>'+
+          '<div>4</div>'+
+          '<div>5</div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 2);
+      spyOn.resetSpyCounts();
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          [
+            {key:0, template:TMPL, values:['0']},
+            {key:5, template:TMPL, values:['5']}
+          ]
+        ]
+      });
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div>0</div>'+
+          '<div>5</div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 2);
       spyOn.resetSpyCounts();
     });
 
