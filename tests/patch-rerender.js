@@ -4,6 +4,7 @@ import spyOn         from './utils/spyOn.js';
 import {patch}       from '../src/patch.js';
 
 describe('patch rerender', ()=>{
+  const TMPL = {el: 'div', children:[0]};
   let target;
 
   beforeEach(()=>{
@@ -22,27 +23,27 @@ describe('patch rerender', ()=>{
   });
 
   it('Simple Node', ()=>{
-    const TMPL = {el: 'div'};
+    const singleNodeTmpl = {el: 'div'};
     patch(target, {
-      template: TMPL
+      template: singleNodeTmpl
     });
     patch(target, {
-      template: TMPL
+      template: singleNodeTmpl
     });
     assert.equal(getHTMLString(target), '<div></div>');
     assert.equal(document.createElement.count, 1);
   });
 
   it('Properties', ()=>{
-    const TMPL = {el: 'div', props:{$className:0}};
+    const singleNodeWithPropTmpl = {el: 'div', props:{$className:0}};
     patch(target, {
-      template: TMPL,
+      template: singleNodeWithPropTmpl,
       values:['foo']
     });
     spyOn.resetSpyCounts();
 
     patch(target, {
-      template: TMPL,
+      template: singleNodeWithPropTmpl,
       values:['bar']
     });
     assert.equal(getHTMLString(target), '<div class="bar"></div>');
@@ -51,7 +52,7 @@ describe('patch rerender', ()=>{
 
 
     patch(target, {
-      template: TMPL,
+      template: singleNodeWithPropTmpl,
       values:['baz']
     });
     assert.equal(getHTMLString(target), '<div class="baz"></div>');
@@ -60,7 +61,6 @@ describe('patch rerender', ()=>{
   });
 
   it('Text Nodes', ()=>{
-    const TMPL = {el: 'div', children:[0]};
     patch(target, {
       template: TMPL,
       values:[
@@ -83,7 +83,6 @@ describe('patch rerender', ()=>{
   });
 
   it('Text to Element', ()=>{
-    const TMPL = {el: 'div', children:[0]};
     patch(target, {
       template: TMPL,
       values:[
@@ -121,7 +120,6 @@ describe('patch rerender', ()=>{
   });
 
   it('Element to Text', ()=>{
-    const TMPL = {el: 'div', children:[0]};
     patch(target, {
       template: TMPL,
       values:[
@@ -167,12 +165,11 @@ describe('patch rerender', ()=>{
   });
 
   it('Nested Nodes', ()=>{
-    const PARENT_TMPL = {el: 'div', children:[0]};
     const CHILD_EL1   = {el: 'span'};
     const CHILD_EL2   = {el: 'b'};
     const CHILD_EL3   = {el: 'a'};
     patch(target, {
-      template: PARENT_TMPL,
+      template: TMPL,
       values:[
         {template:CHILD_EL1}
       ]
@@ -181,7 +178,7 @@ describe('patch rerender', ()=>{
     spyOn.resetSpyCounts();
 
     patch(target, {
-      template: PARENT_TMPL,
+      template: TMPL,
       values:[
         {template:CHILD_EL2}
       ]
@@ -192,7 +189,7 @@ describe('patch rerender', ()=>{
     spyOn.resetSpyCounts();
 
     patch(target, {
-      template: PARENT_TMPL,
+      template: TMPL,
       values:[
         {template:CHILD_EL3}
       ]
@@ -203,7 +200,7 @@ describe('patch rerender', ()=>{
     spyOn.resetSpyCounts();
 
     patch(target, {
-      template: PARENT_TMPL,
+      template: TMPL,
       values:[
         'Hello World'
       ]
@@ -214,7 +211,7 @@ describe('patch rerender', ()=>{
     spyOn.resetSpyCounts();
 
     patch(target, {
-      template: PARENT_TMPL,
+      template: TMPL,
       values:[
         'Hello World2'
       ]
@@ -226,11 +223,10 @@ describe('patch rerender', ()=>{
 
   describe('Arrays', ()=>{
     it('Update array elements', ()=>{
-      const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_EL    = {el: 'div', props:{$className:0}};
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 1, template:CHILD_EL, values:['1']},
@@ -239,7 +235,6 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-
       assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="1"></div>'+
@@ -249,7 +244,7 @@ describe('patch rerender', ()=>{
       );
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 1, template:CHILD_EL, values:['4']},
@@ -258,7 +253,6 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-
       assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="4"></div>'+
@@ -269,13 +263,12 @@ describe('patch rerender', ()=>{
     });
 
     it('Reordering', ()=>{
-      const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_EL1   = {el: 'span'};
       const CHILD_EL2   = {el: 'b'};
       const CHILD_EL3   = {el: 'a'};
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 1, template:CHILD_EL1},
@@ -284,7 +277,6 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-
       assert.equal(getHTMLString(target),
         '<div>'+
           '<span></span>'+
@@ -300,9 +292,8 @@ describe('patch rerender', ()=>{
       const childEl2 = target.firstChild.childNodes[1];
       const childEl3 = target.firstChild.childNodes[2];
 
-
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 3, template:CHILD_EL3},
@@ -328,7 +319,7 @@ describe('patch rerender', ()=>{
       spyOn.resetSpyCounts();
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 1, template:CHILD_EL1},
@@ -355,13 +346,12 @@ describe('patch rerender', ()=>{
     });
 
     it('Reordering 2', ()=>{
-      const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_EL1   = {el: 'span', props:{className:'0'}};
       const CHILD_EL2   = {el: 'span', props:{className:'1'}};
       const CHILD_EL3   = {el: 'span', props:{className:'2'}};
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 0, template:CHILD_EL1},
@@ -384,7 +374,7 @@ describe('patch rerender', ()=>{
 
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 1, template:CHILD_EL2},
@@ -407,11 +397,10 @@ describe('patch rerender', ()=>{
     });
 
     it('Reordering 3', ()=>{
-      const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_EL = {el: 'span', props:{$className:0}};
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 0, template:CHILD_EL, values:['0']},
@@ -436,7 +425,7 @@ describe('patch rerender', ()=>{
 
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 2, template:CHILD_EL, values:['21']},
@@ -463,13 +452,12 @@ describe('patch rerender', ()=>{
     });
 
     it('Add to the start', ()=>{
-      const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_EL1   = {el: 'span'};
       const CHILD_EL2   = {el: 'b'};
       const CHILD_EL3   = {el: 'a'};
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 1, template:CHILD_EL1}
@@ -488,7 +476,7 @@ describe('patch rerender', ()=>{
       const childEl1 = target.firstChild.childNodes[0];
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 2, template:CHILD_EL2},
@@ -512,7 +500,7 @@ describe('patch rerender', ()=>{
       const childEl2 = target.firstChild.childNodes[0];
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 3, template:CHILD_EL3},
@@ -538,13 +526,12 @@ describe('patch rerender', ()=>{
     });
 
     it('Add to the end', ()=>{
-      const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_EL1   = {el: 'span'};
       const CHILD_EL2   = {el: 'b'};
       const CHILD_EL3   = {el: 'a'};
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 1, template:CHILD_EL1}
@@ -559,7 +546,7 @@ describe('patch rerender', ()=>{
       const childEl1 = target.firstChild.childNodes[0];
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 1, template:CHILD_EL1},
@@ -583,7 +570,7 @@ describe('patch rerender', ()=>{
       const childEl2 = target.firstChild.childNodes[1];
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 1, template:CHILD_EL1},
@@ -609,13 +596,12 @@ describe('patch rerender', ()=>{
     });
 
     it('Remove from the end', ()=>{
-      const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_EL1   = {el: 'span'};
       const CHILD_EL2   = {el: 'b'};
       const CHILD_EL3   = {el: 'a'};
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 1, template:CHILD_EL1},
@@ -639,7 +625,7 @@ describe('patch rerender', ()=>{
       const childEl2 = target.firstChild.childNodes[1];
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 1, template:CHILD_EL1},
@@ -662,7 +648,7 @@ describe('patch rerender', ()=>{
       spyOn.resetSpyCounts();
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 1, template:CHILD_EL1}
@@ -683,13 +669,12 @@ describe('patch rerender', ()=>{
     });
 
     it('Remove from the start', ()=>{
-      const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_EL1   = {el: 'span'};
       const CHILD_EL2   = {el: 'b'};
       const CHILD_EL3   = {el: 'a'};
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 1, template:CHILD_EL1},
@@ -713,7 +698,7 @@ describe('patch rerender', ()=>{
       const childEl3 = target.firstChild.childNodes[2];
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 2, template:CHILD_EL2},
@@ -736,7 +721,7 @@ describe('patch rerender', ()=>{
       spyOn.resetSpyCounts();
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 3, template:CHILD_EL3}
@@ -757,13 +742,12 @@ describe('patch rerender', ()=>{
     });
 
     it('Remove from the start and end', ()=>{
-      const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_EL1   = {el: 'span'};
       const CHILD_EL2   = {el: 'b'};
       const CHILD_EL3   = {el: 'a'};
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 1, template:CHILD_EL1},
@@ -786,7 +770,7 @@ describe('patch rerender', ()=>{
       const childEl2 = target.firstChild.childNodes[1];
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 2, template:CHILD_EL2}
@@ -807,7 +791,7 @@ describe('patch rerender', ()=>{
     });
 
     it('Mixed in with statics', ()=>{
-      const PARENT_TMPL = {
+      const TMPL = {
         el:'div',
         children:[
           {el:'div', props:{className:'staticBegin'}},
@@ -820,7 +804,7 @@ describe('patch rerender', ()=>{
       const CHILD_EL3   = {el:'a'};
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 1, template:CHILD_EL1},
@@ -847,7 +831,7 @@ describe('patch rerender', ()=>{
       const childEl3 = target.querySelector('a');
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 3, template:CHILD_EL3},
@@ -877,14 +861,13 @@ describe('patch rerender', ()=>{
 
 
     it('Simple Array of Arrays', ()=>{
-      const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_EL1 = {
         el: 'div', props:{$className:0, $id:1},
         children:[2]
       };
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [0].map(index=>(
             {key:index, template:CHILD_EL1, values:[
@@ -908,7 +891,7 @@ describe('patch rerender', ()=>{
       spyOn.resetSpyCounts();
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [0].map(index=>(
             {key:index, template:CHILD_EL1, values:[
@@ -933,14 +916,13 @@ describe('patch rerender', ()=>{
     });
 
     it('Array of Arrays', ()=>{
-      const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_EL1 = {
         el: 'div', props:{$className:0, $id:1},
         children:[2]
       };
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [0, 1].map(index=>(
             {key:index, template:CHILD_EL1, values:[
@@ -967,7 +949,7 @@ describe('patch rerender', ()=>{
       spyOn.resetSpyCounts();
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [0, 1].map(index=>(
             {key:index, template:CHILD_EL1, values:[
@@ -995,7 +977,6 @@ describe('patch rerender', ()=>{
     });
 
     it('Array of Arrays of Arrays', ()=>{
-      const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_TMPL = {
         el: 'div', props:{$className:0},
         children:[1]
@@ -1008,7 +989,7 @@ describe('patch rerender', ()=>{
 
       function render(num){
         return {
-          template: PARENT_TMPL,
+          template: TMPL,
           values:[
             [
               {
@@ -1095,13 +1076,12 @@ describe('patch rerender', ()=>{
     });
 
     it('All elements removed', ()=>{
-      const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_EL1   = {el: 'span', props:{className:'0'}};
       const CHILD_EL2   = {el: 'span', props:{className:'1'}};
       const CHILD_EL3   = {el: 'span', props:{className:'2'}};
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 0, template:CHILD_EL1},
@@ -1122,7 +1102,7 @@ describe('patch rerender', ()=>{
 
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           []
         ]
@@ -1137,7 +1117,7 @@ describe('patch rerender', ()=>{
       spyOn.resetSpyCounts();
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 0, template:CHILD_EL1},
@@ -1160,13 +1140,12 @@ describe('patch rerender', ()=>{
     });
 
     it('Initially empty', ()=>{
-      const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_EL1   = {el: 'span', props:{className:'0'}};
       const CHILD_EL2   = {el: 'span', props:{className:'1'}};
       const CHILD_EL3   = {el: 'span', props:{className:'2'}};
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           []
         ]
@@ -1181,7 +1160,7 @@ describe('patch rerender', ()=>{
       spyOn.resetSpyCounts();
 
       patch(target, {
-        template: PARENT_TMPL,
+        template: TMPL,
         values:[
           [
             {key: 0, template:CHILD_EL1},
@@ -1204,7 +1183,6 @@ describe('patch rerender', ()=>{
     });
 
     it('Array to Text', ()=>{
-      const TMPL = {el: 'div', children:[0]};
 
       patch(target, {
         template: TMPL,
@@ -1323,7 +1301,6 @@ describe('patch rerender', ()=>{
     });
 
     it('Add in the middle of statics', ()=>{
-      const TMPL = {el: 'div', children:[0]};
       const ROOT_TMPL = {
         el: 'div',
         children:[
