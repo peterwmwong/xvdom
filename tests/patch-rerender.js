@@ -504,7 +504,7 @@ describe('patch rerender', ()=>{
       resetCounts();
     });
 
-    it('Add to the beginning', ()=>{
+    it('Add to the start', ()=>{
       const PARENT_TMPL = {el: 'div', children:[0]};
       const CHILD_EL1   = {el: 'span'};
       const CHILD_EL2   = {el: 'b'};
@@ -651,6 +651,210 @@ describe('patch rerender', ()=>{
       assert.equal(removeChildCount, 0);
       assert.equal(childEl1, target.firstChild.childNodes[0]);
       assert.equal(childEl2, target.firstChild.childNodes[1]);
+      resetCounts();
+    });
+
+    it('Remove from the end', ()=>{
+      const PARENT_TMPL = {el: 'div', children:[0]};
+      const CHILD_EL1   = {el: 'span'};
+      const CHILD_EL2   = {el: 'b'};
+      const CHILD_EL3   = {el: 'a'};
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 1, template:CHILD_EL1},
+            {key: 2, template:CHILD_EL2},
+            {key: 3, template:CHILD_EL3}
+          ]
+        ]
+      });
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span></span>'+
+          '<b></b>'+
+          '<a></a>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 4);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+
+      const childEl1 = target.firstChild.childNodes[0];
+      const childEl2 = target.firstChild.childNodes[1];
+      spyOnInsertBefore(target.firstChild);
+      spyOnRemoveChild(target.firstChild);
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 1, template:CHILD_EL1},
+            {key: 2, template:CHILD_EL2}
+          ]
+        ]
+      });
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span></span>'+
+          '<b></b>'+
+        '</div>'
+      );
+      assert.equal(createElementCount , 0);
+      assert.equal(createTextNodeCount, 0);
+      assert.equal(insertBeforeCount, 0);
+      assert.equal(removeChildCount, 1);
+      assert.equal(childEl1, target.firstChild.childNodes[0]);
+      assert.equal(childEl2, target.firstChild.childNodes[1]);
+      resetCounts();
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 1, template:CHILD_EL1}
+          ]
+        ]
+      });
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span></span>'+
+        '</div>'
+      );
+      assert.equal(createElementCount , 0);
+      assert.equal(createTextNodeCount, 0);
+      assert.equal(insertBeforeCount, 0);
+      assert.equal(removeChildCount, 1);
+      assert.equal(childEl1, target.firstChild.childNodes[0]);
+      resetCounts();
+    });
+
+    it('Remove from the start', ()=>{
+      const PARENT_TMPL = {el: 'div', children:[0]};
+      const CHILD_EL1   = {el: 'span'};
+      const CHILD_EL2   = {el: 'b'};
+      const CHILD_EL3   = {el: 'a'};
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 1, template:CHILD_EL1},
+            {key: 2, template:CHILD_EL2},
+            {key: 3, template:CHILD_EL3}
+          ]
+        ]
+      });
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span></span>'+
+          '<b></b>'+
+          '<a></a>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 4);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+
+      const childEl2 = target.firstChild.childNodes[1];
+      const childEl3 = target.firstChild.childNodes[2];
+      spyOnInsertBefore(target.firstChild);
+      spyOnRemoveChild(target.firstChild);
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 2, template:CHILD_EL2},
+            {key: 3, template:CHILD_EL3}
+          ]
+        ]
+      });
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<b></b>'+
+          '<a></a>'+
+        '</div>'
+      );
+      assert.equal(createElementCount , 0);
+      assert.equal(createTextNodeCount, 0);
+      assert.equal(insertBeforeCount, 0);
+      assert.equal(removeChildCount, 1);
+      assert.equal(childEl2, target.firstChild.childNodes[0]);
+      assert.equal(childEl3, target.firstChild.childNodes[1]);
+      resetCounts();
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 3, template:CHILD_EL3}
+          ]
+        ]
+      });
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<a></a>'+
+        '</div>'
+      );
+      assert.equal(createElementCount , 0);
+      assert.equal(createTextNodeCount, 0);
+      assert.equal(insertBeforeCount, 0);
+      assert.equal(removeChildCount, 1);
+      assert.equal(childEl3, target.firstChild.childNodes[0]);
+      resetCounts();
+    });
+
+    it('Remove from the start and end', ()=>{
+      const PARENT_TMPL = {el: 'div', children:[0]};
+      const CHILD_EL1   = {el: 'span'};
+      const CHILD_EL2   = {el: 'b'};
+      const CHILD_EL3   = {el: 'a'};
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 1, template:CHILD_EL1},
+            {key: 2, template:CHILD_EL2},
+            {key: 3, template:CHILD_EL3}
+          ]
+        ]
+      });
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span></span>'+
+          '<b></b>'+
+          '<a></a>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 4);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+
+      const childEl2 = target.firstChild.childNodes[1];
+      spyOnInsertBefore(target.firstChild);
+      spyOnRemoveChild(target.firstChild);
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 2, template:CHILD_EL2}
+          ]
+        ]
+      });
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<b></b>'+
+        '</div>'
+      );
+      assert.equal(createElementCount , 0);
+      assert.equal(createTextNodeCount, 0);
+      assert.equal(insertBeforeCount, 1);
+      assert.equal(removeChildCount, 2);
+      assert.equal(childEl2, target.firstChild.childNodes[0]);
       resetCounts();
     });
 
@@ -946,6 +1150,234 @@ describe('patch rerender', ()=>{
         '</div>'
       );
       assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+    });
+
+    it('All elements removed', ()=>{
+      const PARENT_TMPL = {el: 'div', children:[0]};
+      const CHILD_EL1   = {el: 'span', props:{className:'0'}};
+      const CHILD_EL2   = {el: 'span', props:{className:'1'}};
+      const CHILD_EL3   = {el: 'span', props:{className:'2'}};
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 0, template:CHILD_EL1},
+            {key: 1, template:CHILD_EL2},
+            {key: 2, template:CHILD_EL3}
+          ]
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span class="0"></span>'+
+          '<span class="1"></span>'+
+          '<span class="2"></span>'+
+        '</div>'
+      );
+      resetCounts();
+
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          []
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 0, template:CHILD_EL1},
+            {key: 1, template:CHILD_EL2},
+            {key: 2, template:CHILD_EL3}
+          ]
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span class="0"></span>'+
+          '<span class="1"></span>'+
+          '<span class="2"></span>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 3);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+    });
+
+    it('Initially empty', ()=>{
+      const PARENT_TMPL = {el: 'div', children:[0]};
+      const CHILD_EL1   = {el: 'span', props:{className:'0'}};
+      const CHILD_EL2   = {el: 'span', props:{className:'1'}};
+      const CHILD_EL3   = {el: 'span', props:{className:'2'}};
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          []
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 1);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+
+      patch(target, {
+        template: PARENT_TMPL,
+        values:[
+          [
+            {key: 0, template:CHILD_EL1},
+            {key: 1, template:CHILD_EL2},
+            {key: 2, template:CHILD_EL3}
+          ]
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span class="0"></span>'+
+          '<span class="1"></span>'+
+          '<span class="2"></span>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 3);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+    });
+
+    it('Array to Text', ()=>{
+      const TMPL = {el: 'div', children:[0]};
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          [
+            {key:0, template:TMPL, values:['one']},
+            {key:1, template:TMPL, values:['two']},
+            {key:2, template:TMPL, values:['three']}
+          ]
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div>one</div>'+
+          '<div>two</div>'+
+          '<div>three</div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 4);
+      assert.equal(createTextNodeCount, 3);
+      resetCounts();
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          'A string'
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          'A string'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 1);
+      resetCounts();
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          'New string'
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          'New string'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 0);
+      assert.equal(createTextNodeCount, 0);
+      resetCounts();
+    });
+
+    it('Array to Element', ()=>{
+      const TMPL  = {el: 'div', children:[0]};
+      const TMPL2 = {el: 'span'};
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          [
+            {key:0, template:TMPL, values:['one']},
+            {key:1, template:TMPL, values:['two']},
+            {key:2, template:TMPL, values:['three']}
+          ]
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div>one</div>'+
+          '<div>two</div>'+
+          '<div>three</div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 4);
+      assert.equal(createTextNodeCount, 3);
+      resetCounts();
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          {template:TMPL, values:['Hello World']}
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<div>'+
+            'Hello World'+
+          '</div>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 1);
+      assert.equal(createTextNodeCount, 1);
+      resetCounts();
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          {template:TMPL2}
+        ]
+      });
+
+      assert.equal(getTargetHTML(),
+        '<div>'+
+          '<span></span>'+
+        '</div>'
+      );
+      assert.equal(createElementCount, 1);
       assert.equal(createTextNodeCount, 0);
       resetCounts();
     });
