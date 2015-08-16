@@ -618,6 +618,52 @@ describe('patch rerender', ()=>{
       spyOn.resetSpyCounts();
     });
 
+    it('Add in the middle and end', ()=>{
+      patch(target, {
+        template: TMPL,
+        values: [
+          [
+            {key:0, template:TMPL, values:['0']},
+            {key:1, template:TMPL, values:['1']}
+          ]
+        ]
+      });
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div>0</div>'+
+          '<div>1</div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 3);
+      assert.equal(document.createTextNode.count, 2);
+      spyOn.resetSpyCounts();
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          [
+            {key:0, template:TMPL, values:['0']},
+            {key:2, template:TMPL, values:['New 0.0']},
+            {key:1, template:TMPL, values:['1']},
+            {key:3, template:TMPL, values:['New 1.0']}
+          ]
+        ]
+      });
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div>0</div>'+
+          '<div>New 0.0</div>'+
+          '<div>1</div>'+
+          '<div>New 1.0</div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 2);
+      assert.equal(document.createTextNode.count, 2);
+      assert.equal(Node.prototype.insertBefore.count, 3);
+      assert.equal(Node.prototype.removeChild.count, 0);
+      spyOn.resetSpyCounts();
+    });
+
     it('Add to the end', ()=>{
       const CHILD_EL1   = {el: 'span'};
       const CHILD_EL2   = {el: 'b'};

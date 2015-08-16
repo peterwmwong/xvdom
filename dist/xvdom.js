@@ -149,9 +149,6 @@
 	//   rendererFirstArg = rArg;
 	// }
 
-	// O( MAX(prevArrayValue.length, arrayValue.length) + NumOfRemovals )
-
-	//TODO(pwong): Remove beforeFirstNode, not using it!
 	function rerenderArrayValue(rArg, /*parentNode, keyMap, beforeFirstNode, oldList*/list) {
 	  var parentNode = rArg[0];
 	  var keyMap = rArg[1];
@@ -174,7 +171,9 @@
 	    }
 
 	    if (isListNotArray) {
-	      parentNode.insertBefore(rArg[1] = createNodeFromValue(list), beforeFirstNode ? beforeFirstNode.nextSibling : null);
+	      parentNode.insertBefore(rArg[1] = createNodeFromValue(list),
+	      //TODO(pwong): Test rerendering IN THE MIDDLE Array, Array -> Text, Array -> Element
+	      beforeFirstNode ? beforeFirstNode.nextSibling : null);
 	      rArg[2] = list;
 	      rArg[3] = null;
 	      setRerenderFuncForValue(rArg);
@@ -184,7 +183,7 @@
 	    i = 0;
 	    while (i < listLength) {
 	      value = list[i++];
-	      parentNode.appendChild(keyMap[value.key] = createNodeFromValue(value));
+	      parentNode.insertBefore(keyMap[value.key] = createNodeFromValue(value), beforeFirstNode ? beforeFirstNode.nextSibling : null);
 	    }
 	  } else {
 	    var afterLastNode = oldListLength ? keyMap[oldList[oldListLength - 1].key].nextSibling : null;
@@ -269,9 +268,8 @@
 	    if (oldStartIndex > oldEndIndex) {
 	      insertBeforNode = ++endIndex < listLength ? keyMap[list[endIndex].key] : afterLastNode;
 	      while (startIndex < endIndex) {
-	        startItem = list[startIndex];
+	        startItem = list[startIndex++];
 	        parentNode.insertBefore(keyMap[startItem.key] = createNodeFromValue(startItem), insertBeforNode);
-	        ++startIndex;
 	      }
 	    } else if (startIndex > endIndex) {
 	      while (oldStartIndex <= oldEndIndex) {
@@ -283,13 +281,12 @@
 	      while (startIndex <= endIndex) {
 	        item = list[startIndex++];
 	        node = keyMap[item.key];
-	        if (node) {
-	          if (node.xvdom__spec) rerender(node, item.values);
-	          parentNode.insertBefore(node, afterLastNode);
-	        } else {
-	          // node = createNodeFromValueOrReference(item.template, item.values);
-	          // parentNode.insertBefore(node, afterLastNode);
+	        if (!node) {
+	          node = keyMap[item.key] = createNodeFromValue(item);
+	        } else if (node.xvdom__spec) {
+	          rerender(node, item.values);
 	        }
+	        parentNode.insertBefore(node, afterLastNode);
 	      }
 
 	      var listKeysMap = {};

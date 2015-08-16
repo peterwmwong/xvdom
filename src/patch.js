@@ -188,9 +188,8 @@ function rerenderArrayValue(rArg /*parentNode, keyMap, beforeFirstNode, oldList*
     if(oldStartIndex > oldEndIndex){
       insertBeforNode = (++endIndex < listLength ? keyMap[list[endIndex].key] : afterLastNode);
       while(startIndex < endIndex){
-        startItem = list[startIndex];
+        startItem = list[startIndex++];
         parentNode.insertBefore(keyMap[startItem.key] = createNodeFromValue(startItem), insertBeforNode);
-        ++startIndex;
       }
     }
     else if(startIndex > endIndex){
@@ -204,14 +203,13 @@ function rerenderArrayValue(rArg /*parentNode, keyMap, beforeFirstNode, oldList*
       while(startIndex <= endIndex){
         item = list[startIndex++];
         node = keyMap[item.key];
-        if(node){
-          if(node.xvdom__spec) rerender(node, item.values);
-          parentNode.insertBefore(node, afterLastNode);
+        if(!node){
+          node = keyMap[item.key] = createNodeFromValue(item);
         }
-        else{
-          // node = createNodeFromValueOrReference(item.template, item.values);
-          // parentNode.insertBefore(node, afterLastNode);
+        else if(node.xvdom__spec){
+          rerender(node, item.values);
         }
+        parentNode.insertBefore(node, afterLastNode);
       }
 
       const listKeysMap = {};
