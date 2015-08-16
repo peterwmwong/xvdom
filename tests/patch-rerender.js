@@ -1,62 +1,24 @@
-import assert from 'assert';
-import HTML from 'html-parse-stringify';
-import {patch} from '../src/patch.js';
+import assert        from 'assert';
+import getHTMLString from './utils/getHTMLString.js';
+import spyOn         from './utils/spyOn.js';
+import {patch}       from '../src/patch.js';
 
 describe('patch rerender', ()=>{
   let target;
-  let createElementCount  = 0;
-  let createTextNodeCount = 0;
-  let insertBeforeCount   = 0;
-  let removeChildCount    = 0;
-  let createElement       = document.createElement;
-  let createTextNode      = document.createTextNode;
-
-  function spyOnInsertBefore(target){
-    if(target.insertBefore === HTMLElement.prototype.insertBefore){
-      const insertBefore = target.insertBefore;
-      target.insertBefore = (...args)=>{
-        ++insertBeforeCount;
-        return insertBefore.apply(target, args);
-      };
-    }
-  }
-
-  function spyOnRemoveChild(target){
-    if(target.removeChild === HTMLElement.prototype.removeChild){
-      const removeChild = target.removeChild;
-      target.removeChild = (...args)=>{
-        ++removeChildCount;
-        return removeChild.apply(target, args);
-      };
-    }
-  }
-
-  function getTargetHTML(){
-    return HTML.stringify(HTML.parse(target.innerHTML));
-  }
-
-  function resetCounts(){
-    insertBeforeCount = removeChildCount = createTextNodeCount = createElementCount = 0;
-  }
 
   beforeEach(()=>{
     target = document.createElement('div');
-    resetCounts();
 
-    document.createElement = (...args)=>{
-      ++createElementCount;
-      return createElement.apply(document, args);
-    };
-
-    document.createTextNode = (...args)=>{
-      ++createTextNodeCount;
-      return createTextNode.apply(document, args);
-    };
+    spyOn.uninstall();
+    spyOn(Node.prototype, 'insertBefore');
+    spyOn(Node.prototype, 'removeChild');
+    spyOn(document, 'createElement');
+    spyOn(document, 'createTextNode');
+    spyOn.resetSpyCounts();
   });
 
   afterEach(()=>{
-    document.createElement  = createElement;
-    document.createTextNode = createTextNode;
+    spyOn.uninstall();
   });
 
   it('Simple Node', ()=>{
@@ -67,8 +29,8 @@ describe('patch rerender', ()=>{
     patch(target, {
       template: TMPL
     });
-    assert.equal(getTargetHTML(), '<div></div>');
-    assert.equal(createElementCount, 1);
+    assert.equal(getHTMLString(target), '<div></div>');
+    assert.equal(document.createElement.count, 1);
   });
 
   it('Properties', ()=>{
@@ -77,24 +39,24 @@ describe('patch rerender', ()=>{
       template: TMPL,
       values:['foo']
     });
-    resetCounts();
+    spyOn.resetSpyCounts();
 
     patch(target, {
       template: TMPL,
       values:['bar']
     });
-    assert.equal(getTargetHTML(), '<div class="bar"></div>');
-    assert.equal(createElementCount, 0);
-    assert.equal(createTextNodeCount, 0);
+    assert.equal(getHTMLString(target), '<div class="bar"></div>');
+    assert.equal(document.createElement.count, 0);
+    assert.equal(document.createTextNode.count, 0);
 
 
     patch(target, {
       template: TMPL,
       values:['baz']
     });
-    assert.equal(getTargetHTML(), '<div class="baz"></div>');
-    assert.equal(createElementCount, 0);
-    assert.equal(createTextNodeCount, 0);
+    assert.equal(getHTMLString(target), '<div class="baz"></div>');
+    assert.equal(document.createElement.count, 0);
+    assert.equal(document.createTextNode.count, 0);
   });
 
   it('Text Nodes', ()=>{
@@ -105,8 +67,8 @@ describe('patch rerender', ()=>{
         'Hello'
       ]
     });
-    assert.equal(getTargetHTML(), '<div>Hello</div>');
-    resetCounts();
+    assert.equal(getHTMLString(target), '<div>Hello</div>');
+    spyOn.resetSpyCounts();
 
     patch(target, {
       template: TMPL,
@@ -114,10 +76,10 @@ describe('patch rerender', ()=>{
         'World'
       ]
     });
-    assert.equal(getTargetHTML(), '<div>World</div>');
-    assert.equal(createElementCount, 0);
-    assert.equal(createTextNodeCount, 0);
-    resetCounts();
+    assert.equal(getHTMLString(target), '<div>World</div>');
+    assert.equal(document.createElement.count, 0);
+    assert.equal(document.createTextNode.count, 0);
+    spyOn.resetSpyCounts();
   });
 
   it('Text to Element', ()=>{
@@ -128,8 +90,8 @@ describe('patch rerender', ()=>{
         'Hello'
       ]
     });
-    assert.equal(getTargetHTML(), '<div>Hello</div>');
-    resetCounts();
+    assert.equal(getHTMLString(target), '<div>Hello</div>');
+    spyOn.resetSpyCounts();
 
     patch(target, {
       template: TMPL,
@@ -139,10 +101,10 @@ describe('patch rerender', ()=>{
         }
       ]
     });
-    assert.equal(getTargetHTML(), '<div><span></span></div>');
-    assert.equal(createElementCount, 1);
-    assert.equal(createTextNodeCount, 0);
-    resetCounts();
+    assert.equal(getHTMLString(target), '<div><span></span></div>');
+    assert.equal(document.createElement.count, 1);
+    assert.equal(document.createTextNode.count, 0);
+    spyOn.resetSpyCounts();
 
     patch(target, {
       template: TMPL,
@@ -152,10 +114,10 @@ describe('patch rerender', ()=>{
         }
       ]
     });
-    assert.equal(getTargetHTML(), '<div><b></b></div>');
-    assert.equal(createElementCount, 1);
-    assert.equal(createTextNodeCount, 0);
-    resetCounts();
+    assert.equal(getHTMLString(target), '<div><b></b></div>');
+    assert.equal(document.createElement.count, 1);
+    assert.equal(document.createTextNode.count, 0);
+    spyOn.resetSpyCounts();
   });
 
   it('Element to Text', ()=>{
@@ -166,8 +128,8 @@ describe('patch rerender', ()=>{
         {template:{el:'span'}}
       ]
     });
-    assert.equal(getTargetHTML(), '<div><span></span></div>');
-    resetCounts();
+    assert.equal(getHTMLString(target), '<div><span></span></div>');
+    spyOn.resetSpyCounts();
 
 
     patch(target, {
@@ -176,10 +138,10 @@ describe('patch rerender', ()=>{
         'Meow'
       ]
     });
-    assert.equal(getTargetHTML(), '<div>Meow</div>');
-    assert.equal(createElementCount, 0);
-    assert.equal(createTextNodeCount, 1);
-    resetCounts();
+    assert.equal(getHTMLString(target), '<div>Meow</div>');
+    assert.equal(document.createElement.count, 0);
+    assert.equal(document.createTextNode.count, 1);
+    spyOn.resetSpyCounts();
 
     patch(target, {
       template: TMPL,
@@ -187,10 +149,10 @@ describe('patch rerender', ()=>{
         'Bark'
       ]
     });
-    assert.equal(getTargetHTML(), '<div>Bark</div>');
-    assert.equal(createElementCount, 0);
-    assert.equal(createTextNodeCount, 0);
-    resetCounts();
+    assert.equal(getHTMLString(target), '<div>Bark</div>');
+    assert.equal(document.createElement.count, 0);
+    assert.equal(document.createTextNode.count, 0);
+    spyOn.resetSpyCounts();
 
     patch(target, {
       template: TMPL,
@@ -198,10 +160,10 @@ describe('patch rerender', ()=>{
         'Chirp'
       ]
     });
-    assert.equal(getTargetHTML(), '<div>Chirp</div>');
-    assert.equal(createElementCount, 0);
-    assert.equal(createTextNodeCount, 0);
-    resetCounts();
+    assert.equal(getHTMLString(target), '<div>Chirp</div>');
+    assert.equal(document.createElement.count, 0);
+    assert.equal(document.createTextNode.count, 0);
+    spyOn.resetSpyCounts();
   });
 
   it('Nested Nodes', ()=>{
@@ -215,8 +177,8 @@ describe('patch rerender', ()=>{
         {template:CHILD_EL1}
       ]
     });
-    assert.equal(getTargetHTML(), '<div><span></span></div>');
-    resetCounts();
+    assert.equal(getHTMLString(target), '<div><span></span></div>');
+    spyOn.resetSpyCounts();
 
     patch(target, {
       template: PARENT_TMPL,
@@ -224,10 +186,10 @@ describe('patch rerender', ()=>{
         {template:CHILD_EL2}
       ]
     });
-    assert.equal(getTargetHTML(), '<div><b></b></div>');
-    assert.equal(createElementCount, 1);
-    assert.equal(createTextNodeCount, 0);
-    resetCounts();
+    assert.equal(getHTMLString(target), '<div><b></b></div>');
+    assert.equal(document.createElement.count, 1);
+    assert.equal(document.createTextNode.count, 0);
+    spyOn.resetSpyCounts();
 
     patch(target, {
       template: PARENT_TMPL,
@@ -235,10 +197,10 @@ describe('patch rerender', ()=>{
         {template:CHILD_EL3}
       ]
     });
-    assert.equal(getTargetHTML(), '<div><a></a></div>');
-    assert.equal(createElementCount, 1);
-    assert.equal(createTextNodeCount, 0);
-    resetCounts();
+    assert.equal(getHTMLString(target), '<div><a></a></div>');
+    assert.equal(document.createElement.count, 1);
+    assert.equal(document.createTextNode.count, 0);
+    spyOn.resetSpyCounts();
 
     patch(target, {
       template: PARENT_TMPL,
@@ -246,10 +208,10 @@ describe('patch rerender', ()=>{
         'Hello World'
       ]
     });
-    assert.equal(getTargetHTML(), '<div>Hello World</div>');
-    assert.equal(createElementCount, 0);
-    assert.equal(createTextNodeCount, 1);
-    resetCounts();
+    assert.equal(getHTMLString(target), '<div>Hello World</div>');
+    assert.equal(document.createElement.count, 0);
+    assert.equal(document.createTextNode.count, 1);
+    spyOn.resetSpyCounts();
 
     patch(target, {
       template: PARENT_TMPL,
@@ -257,9 +219,9 @@ describe('patch rerender', ()=>{
         'Hello World2'
       ]
     });
-    assert.equal(getTargetHTML(), '<div>Hello World2</div>');
-    assert.equal(createElementCount, 0);
-    assert.equal(createTextNodeCount, 0);
+    assert.equal(getHTMLString(target), '<div>Hello World2</div>');
+    assert.equal(document.createElement.count, 0);
+    assert.equal(document.createTextNode.count, 0);
   });
 
   describe('Arrays', ()=>{
@@ -278,7 +240,7 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="1"></div>'+
           '<div class="2"></div>'+
@@ -297,7 +259,7 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="4"></div>'+
           '<div class="5"></div>'+
@@ -323,23 +285,21 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span></span>'+
           '<b></b>'+
           '<a></a>'+
         '</div>'
       );
-      assert.equal(createElementCount, 4);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 4);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
 
       const childEl1 = target.firstChild.childNodes[0];
       const childEl2 = target.firstChild.childNodes[1];
       const childEl3 = target.firstChild.childNodes[2];
 
-      spyOnInsertBefore(target.firstChild);
-      spyOnRemoveChild(target.firstChild);
 
       patch(target, {
         template: PARENT_TMPL,
@@ -351,21 +311,21 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<a></a>'+
           '<b></b>'+
           '<span></span>'+
         '</div>'
       );
-      assert.equal(createElementCount, 0);
-      assert.equal(createTextNodeCount, 0);
-      assert.equal(insertBeforeCount, 2);
-      assert.equal(removeChildCount, 0);
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 2);
+      assert.equal(Node.prototype.removeChild.count, 0);
       assert.equal(childEl1, target.firstChild.childNodes[2]);
       assert.equal(childEl2, target.firstChild.childNodes[1]);
       assert.equal(childEl3, target.firstChild.childNodes[0]);
-      resetCounts();
+      spyOn.resetSpyCounts();
 
       patch(target, {
         template: PARENT_TMPL,
@@ -377,21 +337,21 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span></span>'+
           '<a></a>'+
           '<b></b>'+
         '</div>'
       );
-      assert.equal(createElementCount, 0);
-      assert.equal(createTextNodeCount, 0);
-      assert.equal(insertBeforeCount, 1);
-      assert.equal(removeChildCount, 0);
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 1);
+      assert.equal(Node.prototype.removeChild.count, 0);
       assert.equal(childEl1, target.firstChild.childNodes[0]);
       assert.equal(childEl2, target.firstChild.childNodes[2]);
       assert.equal(childEl3, target.firstChild.childNodes[1]);
-      resetCounts();
+      spyOn.resetSpyCounts();
     });
 
     it('Reordering 2', ()=>{
@@ -411,16 +371,16 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span class="0"></span>'+
           '<span class="1"></span>'+
           '<span class="2"></span>'+
         '</div>'
       );
-      assert.equal(createElementCount, 4);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 4);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
 
 
       patch(target, {
@@ -434,16 +394,16 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span class="1"></span>'+
           '<span class="0"></span>'+
           '<span class="2"></span>'+
         '</div>'
       );
-      assert.equal(createElementCount, 0);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
     });
 
     it('Reordering 3', ()=>{
@@ -462,7 +422,7 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span class="0"></span>'+
           '<span class="1"></span>'+
@@ -470,12 +430,10 @@ describe('patch rerender', ()=>{
           '<span class="3"></span>'+
         '</div>'
       );
-      assert.equal(createElementCount, 5);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 5);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
 
-      spyOnInsertBefore(target.firstChild);
-      spyOnRemoveChild(target.firstChild);
 
       patch(target, {
         template: PARENT_TMPL,
@@ -489,7 +447,7 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span class="21"></span>'+
           '<span class="31"></span>'+
@@ -497,11 +455,11 @@ describe('patch rerender', ()=>{
           '<span class="11"></span>'+
         '</div>'
       );
-      assert.equal(createElementCount, 0);
-      assert.equal(createTextNodeCount, 0);
-      assert.equal(insertBeforeCount, 4);
-      assert.equal(removeChildCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 4);
+      assert.equal(Node.prototype.removeChild.count, 0);
+      spyOn.resetSpyCounts();
     });
 
     it('Add to the start', ()=>{
@@ -518,18 +476,16 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span></span>'+
         '</div>'
       );
-      assert.equal(createElementCount, 2);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 2);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
 
       const childEl1 = target.firstChild.childNodes[0];
-      spyOnInsertBefore(target.firstChild);
-      spyOnRemoveChild(target.firstChild);
 
       patch(target, {
         template: PARENT_TMPL,
@@ -540,18 +496,18 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<b></b>'+
           '<span></span>'+
         '</div>'
       );
-      assert.equal(createElementCount , 1);
-      assert.equal(createTextNodeCount, 0);
-      assert.equal(insertBeforeCount, 1);
-      assert.equal(removeChildCount, 0);
+      assert.equal(document.createElement.count , 1);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 1);
+      assert.equal(Node.prototype.removeChild.count, 0);
       assert.equal(childEl1, target.firstChild.childNodes[1]);
-      resetCounts();
+      spyOn.resetSpyCounts();
 
       const childEl2 = target.firstChild.childNodes[0];
 
@@ -565,20 +521,20 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<a></a>'+
           '<b></b>'+
           '<span></span>'+
         '</div>'
       );
-      assert.equal(createElementCount, 1);
-      assert.equal(createTextNodeCount, 0);
-      assert.equal(insertBeforeCount, 1);
-      assert.equal(removeChildCount, 0);
+      assert.equal(document.createElement.count, 1);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 1);
+      assert.equal(Node.prototype.removeChild.count, 0);
       assert.equal(childEl1, target.firstChild.childNodes[2]);
       assert.equal(childEl2, target.firstChild.childNodes[1]);
-      resetCounts();
+      spyOn.resetSpyCounts();
     });
 
     it('Add to the end', ()=>{
@@ -595,14 +551,12 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(), '<div><span></span></div>');
-      assert.equal(createElementCount, 2);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(getHTMLString(target), '<div><span></span></div>');
+      assert.equal(document.createElement.count, 2);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
 
       const childEl1 = target.firstChild.childNodes[0];
-      spyOnInsertBefore(target.firstChild);
-      spyOnRemoveChild(target.firstChild);
 
       patch(target, {
         template: PARENT_TMPL,
@@ -613,18 +567,18 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span></span>'+
           '<b></b>'+
         '</div>'
       );
-      assert.equal(createElementCount , 1);
-      assert.equal(createTextNodeCount, 0);
-      assert.equal(insertBeforeCount, 1);
-      assert.equal(removeChildCount, 0);
+      assert.equal(document.createElement.count , 1);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 1);
+      assert.equal(Node.prototype.removeChild.count, 0);
       assert.equal(childEl1, target.firstChild.childNodes[0]);
-      resetCounts();
+      spyOn.resetSpyCounts();
 
       const childEl2 = target.firstChild.childNodes[1];
 
@@ -638,20 +592,20 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span></span>'+
           '<b></b>'+
           '<a></a>'+
         '</div>'
       );
-      assert.equal(createElementCount, 1);
-      assert.equal(createTextNodeCount, 0);
-      assert.equal(insertBeforeCount, 1);
-      assert.equal(removeChildCount, 0);
+      assert.equal(document.createElement.count, 1);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 1);
+      assert.equal(Node.prototype.removeChild.count, 0);
       assert.equal(childEl1, target.firstChild.childNodes[0]);
       assert.equal(childEl2, target.firstChild.childNodes[1]);
-      resetCounts();
+      spyOn.resetSpyCounts();
     });
 
     it('Remove from the end', ()=>{
@@ -670,21 +624,19 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span></span>'+
           '<b></b>'+
           '<a></a>'+
         '</div>'
       );
-      assert.equal(createElementCount, 4);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 4);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
 
       const childEl1 = target.firstChild.childNodes[0];
       const childEl2 = target.firstChild.childNodes[1];
-      spyOnInsertBefore(target.firstChild);
-      spyOnRemoveChild(target.firstChild);
 
       patch(target, {
         template: PARENT_TMPL,
@@ -695,19 +647,19 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span></span>'+
           '<b></b>'+
         '</div>'
       );
-      assert.equal(createElementCount , 0);
-      assert.equal(createTextNodeCount, 0);
-      assert.equal(insertBeforeCount, 0);
-      assert.equal(removeChildCount, 1);
+      assert.equal(document.createElement.count , 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 1);
       assert.equal(childEl1, target.firstChild.childNodes[0]);
       assert.equal(childEl2, target.firstChild.childNodes[1]);
-      resetCounts();
+      spyOn.resetSpyCounts();
 
       patch(target, {
         template: PARENT_TMPL,
@@ -717,17 +669,17 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span></span>'+
         '</div>'
       );
-      assert.equal(createElementCount , 0);
-      assert.equal(createTextNodeCount, 0);
-      assert.equal(insertBeforeCount, 0);
-      assert.equal(removeChildCount, 1);
+      assert.equal(document.createElement.count , 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 1);
       assert.equal(childEl1, target.firstChild.childNodes[0]);
-      resetCounts();
+      spyOn.resetSpyCounts();
     });
 
     it('Remove from the start', ()=>{
@@ -746,21 +698,19 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span></span>'+
           '<b></b>'+
           '<a></a>'+
         '</div>'
       );
-      assert.equal(createElementCount, 4);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 4);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
 
       const childEl2 = target.firstChild.childNodes[1];
       const childEl3 = target.firstChild.childNodes[2];
-      spyOnInsertBefore(target.firstChild);
-      spyOnRemoveChild(target.firstChild);
 
       patch(target, {
         template: PARENT_TMPL,
@@ -771,19 +721,19 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<b></b>'+
           '<a></a>'+
         '</div>'
       );
-      assert.equal(createElementCount , 0);
-      assert.equal(createTextNodeCount, 0);
-      assert.equal(insertBeforeCount, 0);
-      assert.equal(removeChildCount, 1);
+      assert.equal(document.createElement.count , 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 1);
       assert.equal(childEl2, target.firstChild.childNodes[0]);
       assert.equal(childEl3, target.firstChild.childNodes[1]);
-      resetCounts();
+      spyOn.resetSpyCounts();
 
       patch(target, {
         template: PARENT_TMPL,
@@ -793,17 +743,17 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<a></a>'+
         '</div>'
       );
-      assert.equal(createElementCount , 0);
-      assert.equal(createTextNodeCount, 0);
-      assert.equal(insertBeforeCount, 0);
-      assert.equal(removeChildCount, 1);
+      assert.equal(document.createElement.count , 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 1);
       assert.equal(childEl3, target.firstChild.childNodes[0]);
-      resetCounts();
+      spyOn.resetSpyCounts();
     });
 
     it('Remove from the start and end', ()=>{
@@ -822,20 +772,18 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span></span>'+
           '<b></b>'+
           '<a></a>'+
         '</div>'
       );
-      assert.equal(createElementCount, 4);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 4);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
 
       const childEl2 = target.firstChild.childNodes[1];
-      spyOnInsertBefore(target.firstChild);
-      spyOnRemoveChild(target.firstChild);
 
       patch(target, {
         template: PARENT_TMPL,
@@ -845,17 +793,17 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<b></b>'+
         '</div>'
       );
-      assert.equal(createElementCount , 0);
-      assert.equal(createTextNodeCount, 0);
-      assert.equal(insertBeforeCount, 1);
-      assert.equal(removeChildCount, 2);
+      assert.equal(document.createElement.count , 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 1);
+      assert.equal(Node.prototype.removeChild.count, 2);
       assert.equal(childEl2, target.firstChild.childNodes[0]);
-      resetCounts();
+      spyOn.resetSpyCounts();
     });
 
     it('Mixed in with statics', ()=>{
@@ -881,7 +829,7 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="staticBegin"></div>'+
           '<span></span>'+
@@ -890,15 +838,13 @@ describe('patch rerender', ()=>{
           '<div class="staticEnd"></div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 6);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 6);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
 
       const childEl1 = target.querySelector('span');
       const childEl2 = target.querySelector('b');
       const childEl3 = target.querySelector('a');
-      spyOnInsertBefore(target.firstChild);
-      spyOnRemoveChild(target.firstChild);
 
       patch(target, {
         template: PARENT_TMPL,
@@ -910,7 +856,7 @@ describe('patch rerender', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="staticBegin"></div>'+
           '<a></a>'+
@@ -919,14 +865,14 @@ describe('patch rerender', ()=>{
           '<div class="staticEnd"></div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 0);
-      assert.equal(createTextNodeCount, 0);
-      assert.equal(insertBeforeCount, 2);
-      assert.equal(removeChildCount, 0);
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 2);
+      assert.equal(Node.prototype.removeChild.count, 0);
       assert.equal(childEl1, target.querySelector('span'));
       assert.equal(childEl2, target.querySelector('b'));
       assert.equal(childEl3, target.querySelector('a'));
-      resetCounts();
+      spyOn.resetSpyCounts();
     });
 
 
@@ -950,16 +896,16 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="0" id="id0">'+
             '0 Value'+
           '</div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 2);
-      assert.equal(createTextNodeCount, 1);
-      resetCounts();
+      assert.equal(document.createElement.count, 2);
+      assert.equal(document.createTextNode.count, 1);
+      spyOn.resetSpyCounts();
 
       patch(target, {
         template: PARENT_TMPL,
@@ -974,16 +920,16 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="02" id="id02">'+
             '0 Value2'+
           '</div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 0);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
     });
 
     it('Array of Arrays', ()=>{
@@ -1006,7 +952,7 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="0" id="id0">'+
             '0 Value'+
@@ -1016,9 +962,9 @@ describe('patch rerender', ()=>{
           '</div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 3);
-      assert.equal(createTextNodeCount, 2);
-      resetCounts();
+      assert.equal(document.createElement.count, 3);
+      assert.equal(document.createTextNode.count, 2);
+      spyOn.resetSpyCounts();
 
       patch(target, {
         template: PARENT_TMPL,
@@ -1033,7 +979,7 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="02" id="id02">'+
             '0 Value2'+
@@ -1043,9 +989,9 @@ describe('patch rerender', ()=>{
           '</div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 0);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
     });
 
     it('Array of Arrays of Arrays', ()=>{
@@ -1089,7 +1035,7 @@ describe('patch rerender', ()=>{
 
       patch(target, render(1));
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="1">'+
             '<span class="1-1">'+
@@ -1098,13 +1044,13 @@ describe('patch rerender', ()=>{
           '</div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 3);
-      assert.equal(createTextNodeCount, 1);
-      resetCounts();
+      assert.equal(document.createElement.count, 3);
+      assert.equal(document.createTextNode.count, 1);
+      spyOn.resetSpyCounts();
 
       patch(target, render(2));
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="2">'+
             '<span class="2-1">'+
@@ -1113,13 +1059,13 @@ describe('patch rerender', ()=>{
           '</div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 0);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
 
       patch(target, render(3));
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="3">'+
             '<span class="3-1">'+
@@ -1128,13 +1074,13 @@ describe('patch rerender', ()=>{
           '</div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 0);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
 
       patch(target, render(4));
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="4">'+
             '<span class="4-1">'+
@@ -1143,9 +1089,9 @@ describe('patch rerender', ()=>{
           '</div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 0);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
     });
 
     it('All elements removed', ()=>{
@@ -1165,14 +1111,14 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span class="0"></span>'+
           '<span class="1"></span>'+
           '<span class="2"></span>'+
         '</div>'
       );
-      resetCounts();
+      spyOn.resetSpyCounts();
 
 
       patch(target, {
@@ -1182,13 +1128,13 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 0);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
 
       patch(target, {
         template: PARENT_TMPL,
@@ -1201,16 +1147,16 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span class="0"></span>'+
           '<span class="1"></span>'+
           '<span class="2"></span>'+
         '</div>'
       );
-      assert.equal(createElementCount, 3);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 3);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
     });
 
     it('Initially empty', ()=>{
@@ -1226,13 +1172,13 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 1);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 1);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
 
       patch(target, {
         template: PARENT_TMPL,
@@ -1245,16 +1191,16 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span class="0"></span>'+
           '<span class="1"></span>'+
           '<span class="2"></span>'+
         '</div>'
       );
-      assert.equal(createElementCount, 3);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 3);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
     });
 
     it('Array to Text', ()=>{
@@ -1271,16 +1217,16 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div>one</div>'+
           '<div>two</div>'+
           '<div>three</div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 4);
-      assert.equal(createTextNodeCount, 3);
-      resetCounts();
+      assert.equal(document.createElement.count, 4);
+      assert.equal(document.createTextNode.count, 3);
+      spyOn.resetSpyCounts();
 
       patch(target, {
         template: TMPL,
@@ -1289,14 +1235,14 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           'A string'+
         '</div>'
       );
-      assert.equal(createElementCount, 0);
-      assert.equal(createTextNodeCount, 1);
-      resetCounts();
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 1);
+      spyOn.resetSpyCounts();
 
       patch(target, {
         template: TMPL,
@@ -1305,14 +1251,14 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           'New string'+
         '</div>'
       );
-      assert.equal(createElementCount, 0);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
     });
 
     it('Array to Element', ()=>{
@@ -1330,16 +1276,16 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div>one</div>'+
           '<div>two</div>'+
           '<div>three</div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 4);
-      assert.equal(createTextNodeCount, 3);
-      resetCounts();
+      assert.equal(document.createElement.count, 4);
+      assert.equal(document.createTextNode.count, 3);
+      spyOn.resetSpyCounts();
 
       patch(target, {
         template: TMPL,
@@ -1348,16 +1294,16 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div>'+
             'Hello World'+
           '</div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 1);
-      assert.equal(createTextNodeCount, 1);
-      resetCounts();
+      assert.equal(document.createElement.count, 1);
+      assert.equal(document.createTextNode.count, 1);
+      spyOn.resetSpyCounts();
 
       patch(target, {
         template: TMPL,
@@ -1366,14 +1312,14 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<span></span>'+
         '</div>'
       );
-      assert.equal(createElementCount, 1);
-      assert.equal(createTextNodeCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 1);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
     });
 
     it('Add in the middle of statics', ()=>{
@@ -1394,18 +1340,16 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div>static 1</div>'+
           '<div>static 2</div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 3);
-      assert.equal(createTextNodeCount, 2);
-      resetCounts();
+      assert.equal(document.createElement.count, 3);
+      assert.equal(document.createTextNode.count, 2);
+      spyOn.resetSpyCounts();
 
-      spyOnInsertBefore(target.firstChild);
-      spyOnRemoveChild(target.firstChild);
 
       patch(target, {
         template: ROOT_TMPL,
@@ -1416,18 +1360,18 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div>static 1</div>'+
           '<div>dynamic 1</div>'+
           '<div>static 2</div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 1);
-      assert.equal(createTextNodeCount, 1);
-      assert.equal(insertBeforeCount, 1);
-      assert.equal(removeChildCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 1);
+      assert.equal(document.createTextNode.count, 1);
+      assert.equal(Node.prototype.insertBefore.count, 1);
+      assert.equal(Node.prototype.removeChild.count, 0);
+      spyOn.resetSpyCounts();
 
       patch(target, {
         template: ROOT_TMPL,
@@ -1439,7 +1383,7 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div>static 1</div>'+
           '<div>dynamic 1</div>'+
@@ -1447,11 +1391,11 @@ describe('patch rerender', ()=>{
           '<div>static 2</div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 1);
-      assert.equal(createTextNodeCount, 1);
-      assert.equal(insertBeforeCount, 1);
-      assert.equal(removeChildCount, 0);
-      resetCounts();
+      assert.equal(document.createElement.count, 1);
+      assert.equal(document.createTextNode.count, 1);
+      assert.equal(Node.prototype.insertBefore.count, 1);
+      assert.equal(Node.prototype.removeChild.count, 0);
+      spyOn.resetSpyCounts();
 
       patch(target, {
         template: ROOT_TMPL,
@@ -1460,17 +1404,17 @@ describe('patch rerender', ()=>{
         ]
       });
 
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div>static 1</div>'+
           '<div>static 2</div>'+
         '</div>'
       );
-      assert.equal(createElementCount, 0);
-      assert.equal(createTextNodeCount, 0);
-      assert.equal(insertBeforeCount, 0);
-      assert.equal(removeChildCount, 2);
-      resetCounts();
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 2);
+      spyOn.resetSpyCounts();
     });
   });
 });

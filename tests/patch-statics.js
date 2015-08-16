@@ -1,12 +1,9 @@
 import assert from 'assert';
-import HTML from 'html-parse-stringify';
+import getHTMLString from './utils/getHTMLString.js';
 import {patch} from '../src/patch.js';
 
 describe('patch statics', ()=>{
   let target;
-  function getTargetHTML(){
-    return HTML.stringify(HTML.parse(target.innerHTML));
-  }
 
   beforeEach(()=>{
     target = document.createElement('div');
@@ -16,7 +13,7 @@ describe('patch statics', ()=>{
     patch(target, {
       template: {el: 'div'}
     });
-    assert.equal(getTargetHTML(), '<div></div>');
+    assert.equal(getHTMLString(target), '<div></div>');
   });
 
   it('Nested nodes', ()=>{
@@ -28,7 +25,7 @@ describe('patch statics', ()=>{
         ]
       }
     });
-    assert.equal(getTargetHTML(), '<div><span></span></div>');
+    assert.equal(getHTMLString(target), '<div><span></span></div>');
   });
 
   it('Text nodes', ()=>{
@@ -40,7 +37,7 @@ describe('patch statics', ()=>{
         ]
       }
     });
-    assert.equal(getTargetHTML(), '<div>hello world</div>');
+    assert.equal(getHTMLString(target), '<div>hello world</div>');
   });
 
   it('Properties', ()=>{
@@ -50,6 +47,6 @@ describe('patch statics', ()=>{
         props: {className:'foo bar'}
       }
     });
-    assert.equal(getTargetHTML(), '<div class="foo bar"></div>');
+    assert.equal(getHTMLString(target), '<div class="foo bar"></div>');
   });
 });

@@ -1,62 +1,24 @@
 import assert from 'assert';
-import HTML from 'html-parse-stringify';
+import spyOn from './utils/spyOn.js';
+import getHTMLString from './utils/getHTMLString.js';
 import {patch, unmount} from '../src/patch.js';
 
 describe('patch recycle', ()=>{
   let target;
-  let createElementCount  = 0;
-  let createTextNodeCount = 0;
-  let insertBeforeCount   = 0;
-  let removeChildCount    = 0;
-  let createElement       = document.createElement;
-  let createTextNode      = document.createTextNode;
-
-  function spyOnInsertBefore(target){
-    if(target.insertBefore === HTMLElement.prototype.insertBefore){
-      const insertBefore = target.insertBefore;
-      target.insertBefore = (...args)=>{
-        ++insertBeforeCount;
-        return insertBefore.apply(target, args);
-      };
-    }
-  }
-
-  function spyOnRemoveChild(target){
-    if(target.removeChild === HTMLElement.prototype.removeChild){
-      const removeChild = target.removeChild;
-      target.removeChild = (...args)=>{
-        ++removeChildCount;
-        return removeChild.apply(target, args);
-      };
-    }
-  }
-
-  function getTargetHTML(){
-    return HTML.stringify(HTML.parse(target.innerHTML));
-  }
-
-  function resetCounts(){
-    insertBeforeCount = removeChildCount = createTextNodeCount = createElementCount = 0;
-  }
 
   beforeEach(()=>{
     target = document.createElement('div');
-    resetCounts();
 
-    document.createElement = (...args)=>{
-      ++createElementCount;
-      return createElement.apply(document, args);
-    };
-
-    document.createTextNode = (...args)=>{
-      ++createTextNodeCount;
-      return createTextNode.apply(document, args);
-    };
+    spyOn.uninstall();
+    spyOn(Node.prototype, 'insertBefore');
+    spyOn(Node.prototype, 'removeChild');
+    spyOn(document, 'createElement');
+    spyOn(document, 'createTextNode');
+    spyOn.resetSpyCounts();
   });
 
   afterEach(()=>{
-    document.createElement  = createElement;
-    document.createTextNode = createTextNode;
+    spyOn.uninstall();
   });
 
   it('Update array elements', ()=>{
@@ -75,7 +37,7 @@ describe('patch recycle', ()=>{
       ]
     });
 
-    assert.equal(getTargetHTML(),
+    assert.equal(getHTMLString(target),
       '<div>'+
         '<div class="1"></div>'+
         '<div class="2"></div>'+
@@ -83,13 +45,15 @@ describe('patch recycle', ()=>{
       '</div>'
     );
 
-    assert.equal(createElementCount, 4);
-    assert.equal(createTextNodeCount, 0);
+    assert.equal(document.createElement.count, 4);
+    assert.equal(document.createTextNode.count, 0);
+    assert.equal(Node.prototype.insertBefore.count, 0);
+    assert.equal(Node.prototype.removeChild.count, 0);
 
     unmount(target);
-    resetCounts();
+    spyOn.resetSpyCounts();
 
-    assert.equal(getTargetHTML(), '');
+    assert.equal(getHTMLString(target), '');
 
     patch(target, {
       recycleKey: 123,
@@ -103,8 +67,10 @@ describe('patch recycle', ()=>{
       ]
     });
 
-    assert.equal(createElementCount, 0);
-    assert.equal(createTextNodeCount, 0);
+    assert.equal(document.createElement.count, 0);
+    assert.equal(document.createTextNode.count, 0);
+    assert.equal(Node.prototype.insertBefore.count, 0);
+    assert.equal(Node.prototype.removeChild.count, 0);
 
   });
 });

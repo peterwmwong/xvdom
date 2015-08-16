@@ -1,15 +1,23 @@
-import assert from 'assert';
-import HTML from 'html-parse-stringify';
-import {patch} from '../src/patch.js';
+import assert        from 'assert';
+import spyOn         from './utils/spyOn.js';
+import getHTMLString from './utils/getHTMLString.js';
+import {patch}       from '../src/patch.js';
 
 describe('patch dynamics', ()=>{
   let target;
-  function getTargetHTML(){
-    return HTML.stringify(HTML.parse(target.innerHTML));
-  }
 
   beforeEach(()=>{
     target = document.createElement('div');
+    spyOn.uninstall();
+    spyOn(Node.prototype, 'insertBefore');
+    spyOn(Node.prototype, 'removeChild');
+    spyOn(document, 'createElement');
+    spyOn(document, 'createTextNode');
+    spyOn.resetSpyCounts();
+  });
+
+  afterEach(()=>{
+    spyOn.uninstall();
   });
 
   it('Text nodes', ()=>{
@@ -20,7 +28,11 @@ describe('patch dynamics', ()=>{
       },
       values: ['yolo']
     });
-    assert.equal(getTargetHTML(), '<div>yolo</div>');
+    assert.equal(getHTMLString(target), '<div>yolo</div>');
+    assert.equal(document.createElement.count, 1);
+    assert.equal(document.createTextNode.count, 1);
+    assert.equal(Node.prototype.insertBefore.count, 0);
+    assert.equal(Node.prototype.removeChild.count, 0);
   });
 
   it('Properties', ()=>{
@@ -33,7 +45,11 @@ describe('patch dynamics', ()=>{
         'baz qux'
       ]
     });
-    assert.equal(getTargetHTML(), '<div class="baz qux"></div>');
+    assert.equal(getHTMLString(target), '<div class="baz qux"></div>');
+    assert.equal(document.createElement.count, 1);
+    assert.equal(document.createTextNode.count, 0);
+    assert.equal(Node.prototype.insertBefore.count, 0);
+    assert.equal(Node.prototype.removeChild.count, 0);
   });
 
   it('Mixed with statics', ()=>{
@@ -63,9 +79,18 @@ describe('patch dynamics', ()=>{
         }
       ]
     });
-    assert.equal(getTargetHTML(),
-      '<div><span class="one"></span>bubbles<span class="two"></span><span class="three"></span></div>'
+    assert.equal(getHTMLString(target),
+      '<div>'+
+        '<span class="one"></span>'+
+        'bubbles'+
+        '<span class="two"></span>'+
+        '<span class="three"></span>'+
+      '</div>'
     );
+    assert.equal(document.createElement.count, 4);
+    assert.equal(document.createTextNode.count, 1);
+    assert.equal(Node.prototype.insertBefore.count, 0);
+    assert.equal(Node.prototype.removeChild.count, 0);
   });
 
   describe('Children', ()=>{
@@ -89,7 +114,15 @@ describe('patch dynamics', ()=>{
           }
         ]
       });
-      assert.equal(getTargetHTML(), '<div><span class="foo bar baz">hello world</span></div>');
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<span class="foo bar baz">hello world</span>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 2);
+      assert.equal(document.createTextNode.count, 1);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 0);
     });
 
     it('Element', ()=>{
@@ -102,7 +135,15 @@ describe('patch dynamics', ()=>{
           {template:{el:'span'}}
         ]
       });
-      assert.equal(getTargetHTML(), '<div><span></span></div>');
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<span></span>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 2);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 0);
     });
 
     it('String', ()=>{
@@ -115,7 +156,15 @@ describe('patch dynamics', ()=>{
           'yolo'
         ]
       });
-      assert.equal(getTargetHTML(), '<div>yolo</div>');
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          'yolo'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 1);
+      assert.equal(document.createTextNode.count, 1);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 0);
     });
 
     it('Array of Elements or Strings', ()=>{
@@ -140,7 +189,17 @@ describe('patch dynamics', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(), '<div><span class="foo bar baz"></span>hello world<b class="qux"></b></div>');
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<span class="foo bar baz"></span>'+
+          'hello world'+
+          '<b class="qux"></b>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 3);
+      assert.equal(document.createTextNode.count, 1);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 0);
     });
 
     it('Array of Elements or Strings mixed with statics', ()=>{
@@ -163,18 +222,22 @@ describe('patch dynamics', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="static one"></div>'+
           'static two'+
           '<div class="static three"></div>'+
-
           '<div class="four"></div>'+
           'five'+
           '<div class="six"></div>'+
           '<div class="static seven"></div>'+
         '</div>'
       );
+
+      assert.equal(document.createElement.count, 6);
+      assert.equal(document.createTextNode.count, 2);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 0);
     });
 
     it('Array of Elements or Strings mixed with statics (surrounding statics)', ()=>{
@@ -200,19 +263,21 @@ describe('patch dynamics', ()=>{
           ]
         ]
       });
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="one"></div>'+
           'two'+
           '<div class="three"></div>'+
-
           '<div class="static four"></div>'+
-
           '<div class="five"></div>'+
           'six'+
           '<div class="seven"></div>'+
         '</div>'
       );
+      assert.equal(document.createElement.count, 6);
+      assert.equal(document.createTextNode.count, 2);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 0);
     });
 
     it('Array of Arrays', ()=>{
@@ -240,8 +305,7 @@ describe('patch dynamics', ()=>{
           ]
         ]
       });
-
-      assert.equal(getTargetHTML(),
+      assert.equal(getHTMLString(target),
         '<div>'+
           '<div class="1" id="id1">'+
             '<div class="1-1" id="id11">'+
@@ -250,6 +314,10 @@ describe('patch dynamics', ()=>{
           '</div>'+
         '</div>'
       );
+      assert.equal(document.createElement.count, 3);
+      assert.equal(document.createTextNode.count, 1);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 0);
     });
   });
 });
