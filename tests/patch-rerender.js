@@ -790,76 +790,6 @@ describe('patch rerender', ()=>{
       spyOn.resetSpyCounts();
     });
 
-    it('Mixed in with statics', ()=>{
-      const TMPL = {
-        el:'div',
-        children:[
-          {el:'div', props:{className:'staticBegin'}},
-          0,
-          {el:'div', props:{className:'staticEnd'}}
-        ]
-      };
-      const CHILD_EL1   = {el:'span'};
-      const CHILD_EL2   = {el:'b'};
-      const CHILD_EL3   = {el:'a'};
-
-      patch(target, {
-        template: TMPL,
-        values:[
-          [
-            {key: 1, template:CHILD_EL1},
-            {key: 2, template:CHILD_EL2},
-            {key: 3, template:CHILD_EL3}
-          ]
-        ]
-      });
-      assert.equal(getHTMLString(target),
-        '<div>'+
-          '<div class="staticBegin"></div>'+
-          '<span></span>'+
-          '<b></b>'+
-          '<a></a>'+
-          '<div class="staticEnd"></div>'+
-        '</div>'
-      );
-      assert.equal(document.createElement.count, 6);
-      assert.equal(document.createTextNode.count, 0);
-      spyOn.resetSpyCounts();
-
-      const childEl1 = target.querySelector('span');
-      const childEl2 = target.querySelector('b');
-      const childEl3 = target.querySelector('a');
-
-      patch(target, {
-        template: TMPL,
-        values:[
-          [
-            {key: 3, template:CHILD_EL3},
-            {key: 2, template:CHILD_EL2},
-            {key: 1, template:CHILD_EL1}
-          ]
-        ]
-      });
-      assert.equal(getHTMLString(target),
-        '<div>'+
-          '<div class="staticBegin"></div>'+
-          '<a></a>'+
-          '<b></b>'+
-          '<span></span>'+
-          '<div class="staticEnd"></div>'+
-        '</div>'
-      );
-      assert.equal(document.createElement.count, 0);
-      assert.equal(document.createTextNode.count, 0);
-      assert.equal(Node.prototype.insertBefore.count, 2);
-      assert.equal(Node.prototype.removeChild.count, 0);
-      assert.equal(childEl1, target.querySelector('span'));
-      assert.equal(childEl2, target.querySelector('b'));
-      assert.equal(childEl3, target.querySelector('a'));
-      spyOn.resetSpyCounts();
-    });
-
-
     it('Simple Array of Arrays', ()=>{
       const CHILD_EL1 = {
         el: 'div', props:{$className:0, $id:1},
@@ -1300,7 +1230,76 @@ describe('patch rerender', ()=>{
       spyOn.resetSpyCounts();
     });
 
-    it('Add in the middle of statics', ()=>{
+    it('Reorder in the middle of statics', ()=>{
+      const TMPL = {
+        el:'div',
+        children:[
+          {el:'div', props:{className:'staticBegin'}},
+          0,
+          {el:'div', props:{className:'staticEnd'}}
+        ]
+      };
+      const CHILD_EL1   = {el:'span'};
+      const CHILD_EL2   = {el:'b'};
+      const CHILD_EL3   = {el:'a'};
+
+      patch(target, {
+        template: TMPL,
+        values:[
+          [
+            {key: 1, template:CHILD_EL1},
+            {key: 2, template:CHILD_EL2},
+            {key: 3, template:CHILD_EL3}
+          ]
+        ]
+      });
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div class="staticBegin"></div>'+
+          '<span></span>'+
+          '<b></b>'+
+          '<a></a>'+
+          '<div class="staticEnd"></div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 6);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
+
+      const childEl1 = target.querySelector('span');
+      const childEl2 = target.querySelector('b');
+      const childEl3 = target.querySelector('a');
+
+      patch(target, {
+        template: TMPL,
+        values:[
+          [
+            {key: 3, template:CHILD_EL3},
+            {key: 2, template:CHILD_EL2},
+            {key: 1, template:CHILD_EL1}
+          ]
+        ]
+      });
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div class="staticBegin"></div>'+
+          '<a></a>'+
+          '<b></b>'+
+          '<span></span>'+
+          '<div class="staticEnd"></div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 2);
+      assert.equal(Node.prototype.removeChild.count, 0);
+      assert.equal(childEl1, target.querySelector('span'));
+      assert.equal(childEl2, target.querySelector('b'));
+      assert.equal(childEl3, target.querySelector('a'));
+      spyOn.resetSpyCounts();
+    });
+
+    it('Add/Empty/Remove in the middle of statics', ()=>{
       const ROOT_TMPL = {
         el: 'div',
         children:[
