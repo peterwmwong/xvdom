@@ -63,18 +63,14 @@ describe('patch rerender', ()=>{
   it('Text Nodes', ()=>{
     patch(target, {
       template: TMPL,
-      values:[
-        'Hello'
-      ]
+      values:['Hello']
     });
     assert.equal(getHTMLString(target), '<div>Hello</div>');
     spyOn.resetSpyCounts();
 
     patch(target, {
       template: TMPL,
-      values:[
-        'World'
-      ]
+      values:['World']
     });
     assert.equal(getHTMLString(target), '<div>World</div>');
     assert.equal(document.createElement.count, 0);
@@ -85,9 +81,7 @@ describe('patch rerender', ()=>{
   it('Text to Element', ()=>{
     patch(target, {
       template: TMPL,
-      values:[
-        'Hello'
-      ]
+      values:['Hello']
     });
     assert.equal(getHTMLString(target), '<div>Hello</div>');
     spyOn.resetSpyCounts();
@@ -95,9 +89,7 @@ describe('patch rerender', ()=>{
     patch(target, {
       template: TMPL,
       values:[
-        {
-          template:{el:'span'}
-        }
+        {template:{el:'span'}}
       ]
     });
     assert.equal(getHTMLString(target), '<div><span></span></div>');
@@ -108,9 +100,7 @@ describe('patch rerender', ()=>{
     patch(target, {
       template: TMPL,
       values:[
-        {
-          template:{el:'b'}
-        }
+        {template:{el:'b'}}
       ]
     });
     assert.equal(getHTMLString(target), '<div><b></b></div>');
@@ -132,9 +122,7 @@ describe('patch rerender', ()=>{
 
     patch(target, {
       template: TMPL,
-      values:[
-        'Meow'
-      ]
+      values:['Meow']
     });
     assert.equal(getHTMLString(target), '<div>Meow</div>');
     assert.equal(document.createElement.count, 0);
@@ -143,9 +131,7 @@ describe('patch rerender', ()=>{
 
     patch(target, {
       template: TMPL,
-      values:[
-        'Bark'
-      ]
+      values:['Bark']
     });
     assert.equal(getHTMLString(target), '<div>Bark</div>');
     assert.equal(document.createElement.count, 0);
@@ -154,9 +140,7 @@ describe('patch rerender', ()=>{
 
     patch(target, {
       template: TMPL,
-      values:[
-        'Chirp'
-      ]
+      values:['Chirp']
     });
     assert.equal(getHTMLString(target), '<div>Chirp</div>');
     assert.equal(document.createElement.count, 0);
@@ -201,9 +185,7 @@ describe('patch rerender', ()=>{
 
     patch(target, {
       template: TMPL,
-      values:[
-        'Hello World'
-      ]
+      values:['Hello World']
     });
     assert.equal(getHTMLString(target), '<div>Hello World</div>');
     assert.equal(document.createElement.count, 0);
@@ -212,9 +194,7 @@ describe('patch rerender', ()=>{
 
     patch(target, {
       template: TMPL,
-      values:[
-        'Hello World2'
-      ]
+      values:['Hello World2']
     });
     assert.equal(getHTMLString(target), '<div>Hello World2</div>');
     assert.equal(document.createElement.count, 0);
@@ -1706,6 +1686,103 @@ describe('patch rerender', ()=>{
       assert.equal(document.createTextNode.count, 0);
       assert.equal(Node.prototype.insertBefore.count, 0);
       assert.equal(Node.prototype.removeChild.count, 2);
+      spyOn.resetSpyCounts();
+    });
+
+    it('Array item changes templates', ()=>{
+      const TMPL2 = {el:'span', children:[0]};
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          [
+            {key:0, template:TMPL2, values:['0']},
+            {key:1, template:TMPL2, values:['1']}
+          ]
+        ]
+      });
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<span>0</span>'+
+          '<span>1</span>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 3);
+      assert.equal(document.createTextNode.count, 2);
+      spyOn.resetSpyCounts();
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          [
+            {key:0, template:TMPL, values:[
+              [
+                {key:0, template:TMPL2, values:['0']},
+                {key:1, template:TMPL2, values:['1']}
+              ]
+            ]},
+            {key:1, template:TMPL, values:[
+              [
+                {key:0, template:TMPL2, values:['0']},
+                {key:1, template:TMPL2, values:['1']}
+              ]
+            ]}
+          ]
+        ]
+      });
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div>'+
+            '<span>0</span>'+
+            '<span>1</span>'+
+          '</div>'+
+          '<div>'+
+            '<span>0</span>'+
+            '<span>1</span>'+
+          '</div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 6);
+      assert.equal(document.createTextNode.count, 4);
+      assert.equal(Node.prototype.insertBefore.count, 4);
+      assert.equal(Node.prototype.removeChild.count, 0);
+      spyOn.resetSpyCounts();
+
+      patch(target, {
+        template: TMPL,
+        values: [
+          [
+            {key:0, template:TMPL, values:[
+              [
+                {key:0, template:TMPL2, values:['2']},
+                {key:1, template:TMPL2, values:['3']}
+              ]
+            ]},
+            {key:1, template:TMPL, values:[
+              [
+                {key:0, template:TMPL2, values:['4']},
+                {key:1, template:TMPL2, values:['5']}
+              ]
+            ]}
+          ]
+        ]
+      });
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div>'+
+            '<span>2</span>'+
+            '<span>3</span>'+
+          '</div>'+
+          '<div>'+
+            '<span>4</span>'+
+            '<span>5</span>'+
+          '</div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 0);
       spyOn.resetSpyCounts();
     });
   });

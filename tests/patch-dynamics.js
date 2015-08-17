@@ -31,7 +31,7 @@ describe('patch dynamics', ()=>{
     assert.equal(getHTMLString(target), '<div>yolo</div>');
     assert.equal(document.createElement.count, 1);
     assert.equal(document.createTextNode.count, 1);
-    assert.equal(Node.prototype.insertBefore.count, 0);
+    assert.equal(Node.prototype.insertBefore.count, 1);
     assert.equal(Node.prototype.removeChild.count, 0);
   });
 
@@ -48,7 +48,7 @@ describe('patch dynamics', ()=>{
     assert.equal(getHTMLString(target), '<div class="baz qux"></div>');
     assert.equal(document.createElement.count, 1);
     assert.equal(document.createTextNode.count, 0);
-    assert.equal(Node.prototype.insertBefore.count, 0);
+    assert.equal(Node.prototype.insertBefore.count, 1);
     assert.equal(Node.prototype.removeChild.count, 0);
   });
 
@@ -89,7 +89,7 @@ describe('patch dynamics', ()=>{
     );
     assert.equal(document.createElement.count, 4);
     assert.equal(document.createTextNode.count, 1);
-    assert.equal(Node.prototype.insertBefore.count, 0);
+    assert.equal(Node.prototype.insertBefore.count, 3);
     assert.equal(Node.prototype.removeChild.count, 0);
   });
 
@@ -121,7 +121,7 @@ describe('patch dynamics', ()=>{
       );
       assert.equal(document.createElement.count, 2);
       assert.equal(document.createTextNode.count, 1);
-      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 1);
       assert.equal(Node.prototype.removeChild.count, 0);
     });
 
@@ -142,7 +142,7 @@ describe('patch dynamics', ()=>{
       );
       assert.equal(document.createElement.count, 2);
       assert.equal(document.createTextNode.count, 0);
-      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 1);
       assert.equal(Node.prototype.removeChild.count, 0);
     });
 
@@ -163,7 +163,7 @@ describe('patch dynamics', ()=>{
       );
       assert.equal(document.createElement.count, 1);
       assert.equal(document.createTextNode.count, 1);
-      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 1);
       assert.equal(Node.prototype.removeChild.count, 0);
     });
 
@@ -198,7 +198,7 @@ describe('patch dynamics', ()=>{
       );
       assert.equal(document.createElement.count, 3);
       assert.equal(document.createTextNode.count, 1);
-      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 4);
       assert.equal(Node.prototype.removeChild.count, 0);
     });
 
@@ -236,7 +236,7 @@ describe('patch dynamics', ()=>{
 
       assert.equal(document.createElement.count, 6);
       assert.equal(document.createTextNode.count, 2);
-      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 8);
       assert.equal(Node.prototype.removeChild.count, 0);
     });
 
@@ -276,7 +276,7 @@ describe('patch dynamics', ()=>{
       );
       assert.equal(document.createElement.count, 6);
       assert.equal(document.createTextNode.count, 2);
-      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 8);
       assert.equal(Node.prototype.removeChild.count, 0);
     });
 
@@ -316,7 +316,7 @@ describe('patch dynamics', ()=>{
       );
       assert.equal(document.createElement.count, 3);
       assert.equal(document.createTextNode.count, 1);
-      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 2);
       assert.equal(Node.prototype.removeChild.count, 0);
     });
   });

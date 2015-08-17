@@ -148,7 +148,7 @@ function rerenderArrayValue(rArg /*parentNode, keyMap, beforeFirstNode, oldList*
     let oldStartIndex = 0;
     let startIndex    = 0;
     let successful    = true;
-    let key, insertBeforNode, item, oldStartItem, oldEndItem, startItem, endItem;
+    let key, insertBeforeNode, item, oldStartItem, oldEndItem, startItem, endItem;
 
     outer: while(successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex){
       successful = false;
@@ -157,7 +157,7 @@ function rerenderArrayValue(rArg /*parentNode, keyMap, beforeFirstNode, oldList*
       startItem = list[startIndex];
       while (oldStartItem.key === startItem.key){
         node = keyMap[startItem.key];
-        if(node.xvdom__spec) rerender(node, startItem.values);
+        if(node.xvdom__spec) keyMap[startItem.key] = rerender(node, startItem);
 
         ++oldStartIndex; ++startIndex;
         if (oldStartIndex > oldEndIndex || startIndex > endIndex){
@@ -172,7 +172,7 @@ function rerenderArrayValue(rArg /*parentNode, keyMap, beforeFirstNode, oldList*
       endItem = list[endIndex];
       while (oldEndItem.key === endItem.key){
         node = keyMap[endItem.key];
-        if(node.xvdom__spec) rerender(node, endItem.values);
+        if(node.xvdom__spec) keyMap[endItem.key] = rerender(node, endItem);
 
         --oldEndIndex; --endIndex;
         if (oldStartIndex > oldEndIndex || startIndex > endIndex){
@@ -185,7 +185,7 @@ function rerenderArrayValue(rArg /*parentNode, keyMap, beforeFirstNode, oldList*
 
       while (oldStartItem.key === endItem.key){
         node = keyMap[endItem.key];
-        if(node.xvdom__spec) rerender(node, endItem.values);
+        if(node.xvdom__spec) keyMap[endItem.key] = rerender(node, endItem);
 
         if(oldEndItem.key !== endItem.key){
           parentNode.insertBefore(node, keyMap[oldEndItem.key].nextSibling);
@@ -201,7 +201,7 @@ function rerenderArrayValue(rArg /*parentNode, keyMap, beforeFirstNode, oldList*
 
       while (oldEndItem.key === startItem.key){
         node = keyMap[startItem.key];
-        if(node.xvdom__spec) rerender(node, startItem.values);
+        if(node.xvdom__spec) keyMap[startItem.key] = rerender(node, startItem);
 
         if(oldStartItem.key !== startItem.key){
           parentNode.insertBefore(node, keyMap[oldStartItem.key]);
@@ -216,10 +216,10 @@ function rerenderArrayValue(rArg /*parentNode, keyMap, beforeFirstNode, oldList*
       }
     }
     if(oldStartIndex > oldEndIndex){
-      insertBeforNode = (++endIndex < listLength ? keyMap[list[endIndex].key] : afterLastNode);
+      insertBeforeNode = (++endIndex < listLength ? keyMap[list[endIndex].key] : afterLastNode);
       while(startIndex < endIndex){
         startItem = list[startIndex++];
-        parentNode.insertBefore(keyMap[startItem.key] = createNodeFromValue(startItem), insertBeforNode);
+        parentNode.insertBefore(keyMap[startItem.key] = createNodeFromValue(startItem), insertBeforeNode);
       }
     }
     else if(startIndex > endIndex){
@@ -234,11 +234,12 @@ function rerenderArrayValue(rArg /*parentNode, keyMap, beforeFirstNode, oldList*
         item = list[startIndex++];
         node = keyMap[item.key];
         if(!node){
-          node = keyMap[item.key] = createNodeFromValue(item);
+          node = createNodeFromValue(item);
         }
         else if(node.xvdom__spec){
-          rerender(node, item.values);
+          node = rerender(node, item);
         }
+        keyMap[item.key] = node;
         parentNode.insertBefore(node, afterLastNode);
       }
 
@@ -275,7 +276,7 @@ function createNodeFromValue(value){
   return node;
 }
 
-function createAndRegisterFromArrayValue(parentNode, arrayValue, values){
+function createAndRegisterFromArrayValue(parentNode, arrayValue, values, insertBeforeNode){
   const length          = arrayValue.length;
   const keyMap          = {};
   const beforeFirstNode = parentNode.lastChild;
@@ -284,7 +285,10 @@ function createAndRegisterFromArrayValue(parentNode, arrayValue, values){
   while(i<length){
     value = arrayValue[i++];
     node  = createNodeFromValue(value);
-    parentNode.appendChild(keyMap[value.key] = node);
+    parentNode.insertBefore(
+      (keyMap[value.key] = node),
+      insertBeforeNode
+    );
   }
 
   rendererFunc     = rerenderArrayValue;
@@ -292,8 +296,8 @@ function createAndRegisterFromArrayValue(parentNode, arrayValue, values){
   values.push(rendererFunc, rendererFirstArg);
 }
 
-function attachAndRegisterNodeFromValue(value, parentNode, values){
-  if(value instanceof Array) return createAndRegisterFromArrayValue(parentNode, value, values);
+function attachAndRegisterNodeFromValue(value, parentNode, values, insertBeforeNode){
+  if(value instanceof Array) return createAndRegisterFromArrayValue(parentNode, value, values, insertBeforeNode);
 
   let node = createNodeFromValue(value);
   setRerenderFuncForValue([parentNode, node, value]);
@@ -306,52 +310,29 @@ function attachAndRegisterNodeFromValue(value, parentNode, values){
   values    : Array<any>
   paretNode : Node
 */
-function attachNodeFromValueOrReference(vnode, values, parentNode){
+function attachNodeFromValueOrReference(vnode, values, parentNode, insertBeforeNode){
   switch(typeof vnode){
     case 'object':
-      parentNode.appendChild(createElement(vnode, values));
+      parentNode.insertBefore(createElement(vnode, values), insertBeforeNode);
       break;
     case 'string':
-      parentNode.appendChild(document.createTextNode(vnode));
+      parentNode.insertBefore(document.createTextNode(vnode), insertBeforeNode);
       break;
     default:
-      attachAndRegisterNodeFromValue(values[vnode], parentNode, values);
+      attachAndRegisterNodeFromValue(values[vnode], parentNode, values, insertBeforeNode);
   }
 }
 
-function initialPatch(node, spec){
-  attachNodeFromValueOrReference(spec.template, spec.values, node);
-  node.xvdom__spec = spec;
+function rerenderRootNode(node, spec){
+  const vnode = spec.template;
+  const newNode = 'object' === typeof vnode ? createElement(vnode, spec.values)
+                    : document.createTextNode(vnode);
+  node.parentNode.replaceChild(newNode, node);
+  newNode.xvdom__spec = spec;
+  return newNode;
 }
 
-function rerender(node, values){
-  const oldValues = node.xvdom__spec.values;
-  const length    = oldValues.length/3;
-  let newValue;
-
-  for(let i=0, j=length; i<length; ++i, ++j){
-    newValue         = values[i];
-    rendererFunc     = oldValues[j];
-    rendererFirstArg = oldValues[++j];
-
-    if(newValue !== oldValues[i]){
-      rendererFunc(rendererFirstArg, newValue);
-      oldValues[i]   = newValue;
-      oldValues[j-1] = rendererFunc;
-      oldValues[j]   = rendererFirstArg;
-    }
-  }
-}
-
-const recycledSpecs = {};
-
-export function patch(node, spec){
-  if(node.xvdom__spec){
-    // Only rerender if there are dynamic values
-    if(spec.values) rerender(node, spec.values);
-    return;
-  }
-
+function initialPatch(node, spec, insertBeforeNode){
   if(spec.recycleKey){
     const recycledStack = recycledSpecs[spec.recycleKey];
     if(recycledStack){
@@ -367,13 +348,47 @@ export function patch(node, spec){
         }
 
         node.xvdom__spec = oldSpec;
-        rerender(node, spec.values);
+        rerender(node, spec);
         return;
       }
     }
   }
 
-  initialPatch(node, spec);
+  attachNodeFromValueOrReference(spec.template, spec.values, node, insertBeforeNode);
+  node.xvdom__spec = spec;
+}
+
+function rerender(node, spec){
+  const prevSpec = node.xvdom__spec;
+  if(spec.template !== prevSpec.template){
+    return rerenderRootNode(node, spec);
+  }
+  const values    = spec.values;
+  const oldValues = prevSpec.values;
+  const length    = oldValues.length/3;
+  let newValue;
+
+  for(let i=0, j=length; i<length; ++i, ++j){
+    newValue         = values[i];
+    rendererFunc     = oldValues[j];
+    rendererFirstArg = oldValues[++j];
+
+    if(newValue !== oldValues[i]){
+      rendererFunc(rendererFirstArg, newValue);
+      oldValues[i]   = newValue;
+      oldValues[j-1] = rendererFunc;
+      oldValues[j]   = rendererFirstArg;
+    }
+  }
+  return node;
+}
+
+const recycledSpecs = {};
+
+export function patch(node, spec){
+  if(!node.xvdom__spec) initialPatch(node, spec);
+  // Only rerender if there are dynamic values
+  else if(spec.values)  rerender(node, spec);
 }
 
 export function unmount(node){
