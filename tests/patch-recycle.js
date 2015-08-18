@@ -11,6 +11,7 @@ describe('patch recycle', ()=>{
 
     spyOn.uninstall();
     spyOn(Node.prototype, 'insertBefore');
+    spyOn(Node.prototype, 'appendChild');
     spyOn(Node.prototype, 'removeChild');
     spyOn(document, 'createElement');
     spyOn(document, 'createTextNode');
@@ -47,7 +48,8 @@ describe('patch recycle', ()=>{
 
     assert.equal(document.createElement.count, 4);
     assert.equal(document.createTextNode.count, 0);
-    assert.equal(Node.prototype.insertBefore.count, 4);
+    assert.equal(Node.prototype.insertBefore.count, 0);
+    assert.equal(Node.prototype.appendChild.count, 4);
     assert.equal(Node.prototype.removeChild.count, 0);
 
     unmount(target);
@@ -70,6 +72,7 @@ describe('patch recycle', ()=>{
     assert.equal(document.createElement.count, 0);
     assert.equal(document.createTextNode.count, 0);
     assert.equal(Node.prototype.insertBefore.count, 0);
+    assert.equal(Node.prototype.appendChild.count, 1);
     assert.equal(Node.prototype.removeChild.count, 0);
 
   });

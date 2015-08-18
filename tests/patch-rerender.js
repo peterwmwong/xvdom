@@ -12,6 +12,7 @@ describe('patch rerender', ()=>{
 
     spyOn.uninstall();
     spyOn(Node.prototype, 'insertBefore');
+    spyOn(Node.prototype, 'appendChild');
     spyOn(Node.prototype, 'removeChild');
     spyOn(document, 'createElement');
     spyOn(document, 'createTextNode');
@@ -1744,7 +1745,8 @@ describe('patch rerender', ()=>{
       );
       assert.equal(document.createElement.count, 6);
       assert.equal(document.createTextNode.count, 4);
-      assert.equal(Node.prototype.insertBefore.count, 4);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.appendChild.count, 8);
       assert.equal(Node.prototype.removeChild.count, 0);
       spyOn.resetSpyCounts();
 
