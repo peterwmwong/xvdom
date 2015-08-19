@@ -370,16 +370,19 @@ function rerender(node, spec){
   const length    = oldValues.length/3;
   let newValue;
 
-  for(let i=0, j=length; i<length; ++i, ++j){
-    newValue         = values[i];
-    rendererFunc     = oldValues[j];
-    rendererFirstArg = oldValues[++j];
+  for(let i=0, j=length; i<length; ++i, j+=2){
+    newValue = values[i];
 
     if(newValue !== oldValues[i]){
+      let firstArgOffset = j+1;
+      rendererFunc     = oldValues[j];
+      rendererFirstArg = oldValues[firstArgOffset];
+
       rendererFunc(rendererFirstArg, newValue);
-      oldValues[i]   = newValue;
-      oldValues[j-1] = rendererFunc;
-      oldValues[j]   = rendererFirstArg;
+
+      oldValues[i]              = newValue;
+      oldValues[j]              = rendererFunc;
+      oldValues[firstArgOffset] = rendererFirstArg;
     }
   }
   return node;
