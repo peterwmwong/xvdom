@@ -74,6 +74,10 @@
 	var rendererFunc = undefined;
 	var rendererFirstArg = undefined;
 
+	function isString(value) {
+	  return typeof value === 'string';
+	}
+
 	function rerenderProp(rArg, /* [node, prop] */value) {
 	  rArg[0][rArg[1]] = value;
 	}
@@ -135,7 +139,7 @@
 	}
 
 	function rerenderTextNodeValue(rArg, /*[node, prevValue] */value) {
-	  if (typeof value === 'string') {
+	  if (isString(value)) {
 	    rArg[0].nodeValue = value;
 	    rArg[1] = value;
 	  } else if (value.constructor === Array) {
@@ -326,7 +330,7 @@
 	}
 
 	function setRerenderFuncForValue(rArg /*[node, value]*/) {
-	  rendererFunc = typeof rArg[1] === 'string' ? rerenderTextNodeValue : rerenderValue;
+	  rendererFunc = isString(rArg[1]) ? rerenderTextNodeValue : rerenderValue;
 	  rendererFirstArg = rArg;
 	}
 
@@ -338,7 +342,7 @@
 	}
 
 	function createNodeFromValue(value) {
-	  return typeof value === 'string' ? document.createTextNode(value) : createElementFromValue(value);
+	  return isString(value) ? document.createTextNode(value) : createElementFromValue(value);
 	}
 
 	function createAndRegisterFromArrayValue(parentNode, arrayValue, values, insertBeforeNode) {
@@ -394,8 +398,7 @@
 	}
 
 	function rerenderRootNode(node, spec) {
-	  var vnode = spec.template;
-	  var newNode = 'object' === typeof vnode ? createElement(vnode, spec.values) : document.createTextNode(vnode);
+	  var newNode = createElementFromValue(spec);
 	  node.parentNode.replaceChild(newNode, node);
 	  newNode.xvdom__spec = spec;
 	  return newNode;
@@ -436,16 +439,19 @@
 	  var length = oldValues.length / 3;
 	  var newValue = undefined;
 
-	  for (var i = 0, j = length; i < length; ++i, ++j) {
+	  for (var i = 0, j = length; i < length; ++i, j += 2) {
 	    newValue = values[i];
-	    rendererFunc = oldValues[j];
-	    rendererFirstArg = oldValues[++j];
 
 	    if (newValue !== oldValues[i]) {
+	      var firstArgOffset = j + 1;
+	      rendererFunc = oldValues[j];
+	      rendererFirstArg = oldValues[firstArgOffset];
+
 	      rendererFunc(rendererFirstArg, newValue);
+
 	      oldValues[i] = newValue;
-	      oldValues[j - 1] = rendererFunc;
-	      oldValues[j] = rendererFirstArg;
+	      oldValues[j] = rendererFunc;
+	      oldValues[firstArgOffset] = rendererFirstArg;
 	    }
 	  }
 	  return node;
