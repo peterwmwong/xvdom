@@ -1,6 +1,8 @@
 let rendererFunc;
 let rendererFirstArg;
 
+function isString(value){ return typeof value === 'string'; }
+
 function rerenderProp(rArg/* [node, prop] */, value){
   rArg[0][rArg[1]] = value;
 }
@@ -61,7 +63,7 @@ function rerenderToArray(rArg/* [node, prevValue] */, list){
 }
 
 function rerenderTextNodeValue(rArg/*[node, prevValue] */, value){
-  if(typeof value === 'string'){
+  if(isString(value)){
     rArg[0].nodeValue = value;
     rArg[1] = value;
   }
@@ -257,7 +259,7 @@ function rerenderArrayValue(rArg /* [parentNode, beforeFirstNode, oldList] */, l
 }
 
 function setRerenderFuncForValue(rArg /*[node, value]*/){
-  rendererFunc = typeof rArg[1] === 'string' ? rerenderTextNodeValue : rerenderValue;
+  rendererFunc = isString(rArg[1]) ? rerenderTextNodeValue : rerenderValue;
   rendererFirstArg = rArg;
 }
 
@@ -269,8 +271,7 @@ function createElementFromValue(value){
 }
 
 function createNodeFromValue(value){
-  return (typeof value === 'string') ? document.createTextNode(value)
-            : createElementFromValue(value);
+  return isString(value) ? document.createTextNode(value) : createElementFromValue(value);
 }
 
 function createAndRegisterFromArrayValue(parentNode, arrayValue, values, insertBeforeNode){
@@ -328,9 +329,7 @@ function attachNodeFromValueOrReference(vnode, values, parentNode){
 }
 
 function rerenderRootNode(node, spec){
-  const vnode = spec.template;
-  const newNode = 'object' === typeof vnode ? createElement(vnode, spec.values)
-                    : document.createTextNode(vnode);
+  const newNode = createElementFromValue(spec);
   node.parentNode.replaceChild(newNode, node);
   newNode.xvdom__spec = spec;
   return newNode;
