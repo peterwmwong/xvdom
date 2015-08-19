@@ -74,7 +74,7 @@
 	var rendererFunc = undefined;
 	var rendererFirstArg = undefined;
 
-	function rerenderProp(rArg, /* [parentNode, node, prevValue] */value) {
+	function rerenderProp(rArg, /* [node, prop] */value) {
 	  rArg[0][rArg[1]] = value;
 	}
 
@@ -113,23 +113,20 @@
 	  return node;
 	}
 
-	function rerenderToArray(rArg, /* [parentNode, node, prevValue] */list) {
+	function rerenderToArray(rArg, /* [node, prevValue] */list) {
 	  var length = list.length;
-	  var keyMap = {};
-	  var beforeNode = rArg[1];
-	  var parentNode = rArg[0];
+	  var beforeNode = rArg[0];
+	  var parentNode = rArg[0] = beforeNode.parentNode;
 	  var item = undefined,
 	      i = 0;
 
-	  // parentNode, keyMap, beforeFirstNode, oldList
-	  // rArg[0] = parentNode;
-	  rArg[1] = keyMap;
-	  rArg[2] = beforeNode.previousSibling;
-	  rArg[3] = list;
+	  /*parentNode, beforeFirstNode, oldList*/
+	  rArg[1] = beforeNode.previousSibling;
+	  rArg[2] = list;
 
 	  while (i < length) {
 	    item = list[i++];
-	    parentNode.insertBefore(keyMap[item.key] = createElementFromValue(item), beforeNode);
+	    parentNode.insertBefore(item.node = createElementFromValue(item), beforeNode);
 	  }
 
 	  parentNode.removeChild(beforeNode);
@@ -137,25 +134,23 @@
 	  rendererFirstArg = rArg;
 	}
 
-	function rerenderTextNodeValue(rArg, /* [parentNode, node, prevValue] */value) {
+	function rerenderTextNodeValue(rArg, /*[node, prevValue] */value) {
 	  if (typeof value === 'string') {
-	    if (rArg[2] !== value) {
-	      rArg[1].nodeValue = value;
-	      rArg[2] = value;
-	    }
-	  } else if (value instanceof Array) {
+	    rArg[0].nodeValue = value;
+	    rArg[1] = value;
+	  } else if (value.constructor === Array) {
 	    rerenderToArray(rArg, value);
 	  } else {
 	    rerenderValue(rArg, value);
 	  }
 	}
 
-	function rerenderValue(rArg, /* [parentNode, node, prevValue] */value) {
-	  if (value instanceof Array) return rerenderToArray(rArg, value);
-	  var newNode = createNodeFromValue(value);
-	  rArg[0].replaceChild(newNode, rArg[1]);
-	  rArg[1] = newNode;
-	  rArg[2] = value;
+	function rerenderValue(rArg, /* [node, prevValue] */value) {
+	  if (value.constructor === Array) return rerenderToArray(rArg, value);
+	  var node = rArg[0];
+	  var newNode = rArg[0] = createNodeFromValue(value);
+	  node.parentNode.replaceChild(newNode, node);
+	  rArg[1] = value;
 	  setRerenderFuncForValue(rArg);
 	}
 
@@ -177,33 +172,29 @@
 	//   rendererFirstArg = rArg;
 	// }
 
-	function rerenderArrayValue(rArg, /*parentNode, keyMap, beforeFirstNode, oldList*/list) {
+	function rerenderArrayValue(rArg, /* [parentNode, beforeFirstNode, oldList] */list) {
 	  var parentNode = rArg[0];
-	  var keyMap = rArg[1];
-	  var beforeFirstNode = rArg[2];
-	  var oldList = rArg[3];
+	  var beforeFirstNode = rArg[1];
+	  var oldList = rArg[2];
 
 	  var oldListLength = oldList.length;
 	  var listLength = list.length;
 	  var i = undefined,
 	      node = undefined,
 	      value = undefined;
-	  var isListNotArray = !(list instanceof Array);
+	  var isListNotArray = list.constructor !== Array;
 
 	  if (listLength === 0 || isListNotArray) {
-	    for (var key in keyMap) {
-	      if (node = keyMap[key]) {
-	        parentNode.removeChild(node);
-	        keyMap[key] = null;
-	      }
+	    for (i = 0; i < oldListLength; ++i) {
+	      parentNode.removeChild(oldList[i].node);
 	    }
 
 	    if (isListNotArray) {
-	      parentNode.insertBefore(rArg[1] = createNodeFromValue(list),
+	      parentNode.insertBefore(rArg[0] = createNodeFromValue(list),
 	      //TODO(pwong): Test rerendering IN THE MIDDLE Array, Array -> Text, Array -> Element
 	      beforeFirstNode ? beforeFirstNode.nextSibling : null);
-	      rArg[2] = list;
-	      rArg[3] = null;
+	      rArg[1] = list;
+	      rArg[2] = null;
 	      setRerenderFuncForValue(rArg);
 	      return;
 	    }
@@ -211,10 +202,10 @@
 	    i = 0;
 	    while (i < listLength) {
 	      value = list[i++];
-	      parentNode.insertBefore(keyMap[value.key] = createElementFromValue(value), beforeFirstNode ? beforeFirstNode.nextSibling : null);
+	      parentNode.insertBefore(value.node = createElementFromValue(value), beforeFirstNode ? beforeFirstNode.nextSibling : null);
 	    }
 	  } else {
-	    var afterLastNode = oldListLength ? keyMap[oldList[oldListLength - 1].key].nextSibling : null;
+	    var afterLastNode = oldListLength ? oldList[oldListLength - 1].node.nextSibling : null;
 	    var oldEndIndex = oldListLength - 1;
 	    var endIndex = listLength - 1;
 	    var oldStartIndex = 0;
@@ -222,7 +213,6 @@
 	    var successful = true;
 	    var key = undefined,
 	        insertBeforeNode = undefined,
-	        item = undefined,
 	        oldStartItem = undefined,
 	        oldEndItem = undefined,
 	        startItem = undefined,
@@ -234,8 +224,8 @@
 	      oldStartItem = oldList[oldStartIndex];
 	      startItem = list[startIndex];
 	      while (oldStartItem.key === startItem.key) {
-	        node = keyMap[startItem.key];
-	        if (node.xvdom__spec) keyMap[startItem.key] = rerender(node, startItem);
+	        node = oldStartItem.node;
+	        startItem.node = node.xvdom__spec ? rerender(node, startItem) : node;
 
 	        ++oldStartIndex;++startIndex;
 	        if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
@@ -249,8 +239,8 @@
 	      oldEndItem = oldList[oldEndIndex];
 	      endItem = list[endIndex];
 	      while (oldEndItem.key === endItem.key) {
-	        node = keyMap[endItem.key];
-	        if (node.xvdom__spec) keyMap[endItem.key] = rerender(node, endItem);
+	        node = oldEndItem.node;
+	        endItem.node = node.xvdom__spec ? rerender(node, endItem) : node;
 
 	        --oldEndIndex;--endIndex;
 	        if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
@@ -262,11 +252,11 @@
 	      }
 
 	      while (oldStartItem.key === endItem.key) {
-	        node = keyMap[endItem.key];
-	        if (node.xvdom__spec) keyMap[endItem.key] = rerender(node, endItem);
+	        node = oldStartItem.node;
+	        endItem.node = node.xvdom__spec ? rerender(node, endItem) : node;
 
 	        if (oldEndItem.key !== endItem.key) {
-	          parentNode.insertBefore(node, keyMap[oldEndItem.key].nextSibling);
+	          parentNode.insertBefore(node, oldEndItem.node.nextSibling);
 	        }
 	        ++oldStartIndex;--endIndex;
 	        if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
@@ -278,11 +268,11 @@
 	      }
 
 	      while (oldEndItem.key === startItem.key) {
-	        node = keyMap[startItem.key];
-	        if (node.xvdom__spec) keyMap[startItem.key] = rerender(node, startItem);
+	        node = oldEndItem.node;
+	        startItem.node = node.xvdom__spec ? rerender(node, startItem) : node;
 
 	        if (oldStartItem.key !== startItem.key) {
-	          parentNode.insertBefore(node, keyMap[oldStartItem.key]);
+	          parentNode.insertBefore(node, oldStartItem.node);
 	        }
 	        --oldEndIndex;++startIndex;
 	        if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
@@ -294,52 +284,49 @@
 	      }
 	    }
 	    if (oldStartIndex > oldEndIndex) {
-	      insertBeforeNode = ++endIndex < listLength ? keyMap[list[endIndex].key] : afterLastNode;
-	      while (startIndex < endIndex) {
+	      insertBeforeNode = endItem ? endItem.node : afterLastNode;
+	      while (startIndex <= endIndex) {
 	        startItem = list[startIndex++];
-	        parentNode.insertBefore(keyMap[startItem.key] = createElementFromValue(startItem), insertBeforeNode);
+	        parentNode.insertBefore(startItem.node = createElementFromValue(startItem), insertBeforeNode);
 	      }
 	    } else if (startIndex > endIndex) {
 	      while (oldStartIndex <= oldEndIndex) {
-	        key = oldList[oldStartIndex++].key;
-	        parentNode.removeChild(keyMap[key]);
-	        keyMap[key] = null;
+	        oldStartItem = oldList[oldStartIndex++];
+	        parentNode.removeChild(oldStartItem.node);
 	      }
 	    } else {
+	      var oldListNodeKeyMap = {};
+	      while (oldStartItem) {
+	        oldListNodeKeyMap[oldStartItem.key] = oldStartItem.node;
+	        oldStartItem = oldList[++oldStartIndex];
+	      }
+
 	      while (startIndex <= endIndex) {
-	        item = list[startIndex++];
-	        node = keyMap[item.key];
+	        startItem = list[startIndex++];
+	        node = oldListNodeKeyMap[startItem.key];
 	        if (!node) {
-	          node = createElementFromValue(item);
+	          node = createElementFromValue(startItem);
 	        } else if (node.xvdom__spec) {
-	          node = rerender(node, item);
+	          node = rerender(node, startItem);
 	        }
-	        keyMap[item.key] = node;
-	        parentNode.insertBefore(node, afterLastNode);
+
+	        delete oldListNodeKeyMap[startItem.key];
+	        parentNode.insertBefore(startItem.node = node, afterLastNode);
 	      }
 
-	      var listKeysMap = {};
-	      for (i = 0; i < listLength; ++i) {
-	        listKeysMap[list[i].key] = null;
-	      }
-
-	      for (i = 0; i < oldListLength; ++i) {
-	        key = oldList[i].key;
-	        if (!(key in listKeysMap)) {
-	          parentNode.removeChild(keyMap[key]);
-	          keyMap[key] = null;
-	        }
+	      for (key in oldListNodeKeyMap) {
+	        parentNode.removeChild(oldListNodeKeyMap[key]);
 	      }
 	    }
 	  }
 
 	  rendererFunc = rerenderArrayValue;
-	  rArg[3] = list;
+	  rArg[2] = list;
 	  rendererFirstArg = rArg;
 	}
 
-	function setRerenderFuncForValue(rArg /*[parentNode, node, value]*/) {
-	  rendererFunc = typeof rArg[2] === 'string' ? rerenderTextNodeValue : rerenderValue;
+	function setRerenderFuncForValue(rArg /*[node, value]*/) {
+	  rendererFunc = typeof rArg[1] === 'string' ? rerenderTextNodeValue : rerenderValue;
 	  rendererFirstArg = rArg;
 	}
 
@@ -356,7 +343,6 @@
 
 	function createAndRegisterFromArrayValue(parentNode, arrayValue, values, insertBeforeNode) {
 	  var length = arrayValue.length;
-	  var keyMap = {};
 	  var beforeFirstNode = parentNode.lastChild;
 	  var node = undefined,
 	      value = undefined,
@@ -366,25 +352,25 @@
 	    while (i < length) {
 	      value = arrayValue[i++];
 	      node = createElementFromValue(value);
-	      parentNode.insertBefore(keyMap[value.key] = node, insertBeforeNode);
+	      parentNode.insertBefore(value.node = node, insertBeforeNode);
 	    }
 	  } else {
 	    while (i < length) {
 	      value = arrayValue[i++];
-	      parentNode.appendChild(keyMap[value.key] = createElementFromValue(value));
+	      parentNode.appendChild(value.node = createElementFromValue(value));
 	    }
 	  }
 
 	  rendererFunc = rerenderArrayValue;
-	  rendererFirstArg = [parentNode, keyMap, beforeFirstNode, arrayValue];
+	  rendererFirstArg = [parentNode, beforeFirstNode, arrayValue];
 	  values.push(rendererFunc, rendererFirstArg);
 	}
 
 	function attachAndRegisterNodeFromValue(value, parentNode, values) {
-	  if (value instanceof Array) return createAndRegisterFromArrayValue(parentNode, value, values);
+	  if (value.constructor === Array) return createAndRegisterFromArrayValue(parentNode, value, values);
 
 	  var node = createNodeFromValue(value);
-	  setRerenderFuncForValue([parentNode, node, value]);
+	  setRerenderFuncForValue([node, value]);
 	  values.push(rendererFunc, rendererFirstArg);
 	  parentNode.appendChild(node);
 	}
