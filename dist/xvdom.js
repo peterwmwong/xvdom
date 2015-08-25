@@ -71,6 +71,7 @@
 	exports.__esModule = true;
 	exports.patch = patch;
 	exports.unmount = unmount;
+	var recycledSpecs = {};
 	var rendererFunc = undefined;
 	var rendererFirstArg = undefined;
 
@@ -83,13 +84,13 @@
 	}
 
 	function applyProp(node, prop, propValue, values) {
-	  if (prop[0] === '$') {
-	    var actualProp = prop.slice(1);
-	    node[actualProp] = values[propValue];
-	    values.push(rerenderProp, [node, actualProp]);
-	  } else {
+	  if (prop[0] !== '$') {
 	    node[prop] = propValue;
+	    return;
 	  }
+	  var actualProp = prop.slice(1);
+	  node[actualProp] = values[propValue];
+	  values.push(rerenderProp, [node, actualProp]);
 	}
 
 	function applyProps(node, props, values) {
@@ -155,7 +156,6 @@
 	  var newNode = rArg[0] = createNodeFromValue(value);
 	  node.parentNode.replaceChild(newNode, node);
 	  rArg[1] = value;
-	  setRerenderFuncForValue(rArg);
 	}
 
 	// TODO(pwong): Provide a way for the user to choose/customize rerendering an Array
@@ -199,7 +199,6 @@
 	      beforeFirstNode ? beforeFirstNode.nextSibling : null);
 	      rArg[1] = list;
 	      rArg[2] = null;
-	      setRerenderFuncForValue(rArg);
 	      return;
 	    }
 	  } else if (oldListLength === 0) {
@@ -329,11 +328,6 @@
 	  rendererFirstArg = rArg;
 	}
 
-	function setRerenderFuncForValue(rArg /*[node, value]*/) {
-	  rendererFunc = isString(rArg[1]) ? rerenderTextNodeValue : rerenderValue;
-	  rendererFirstArg = rArg;
-	}
-
 	function createElementFromValue(value) {
 	  var values = value.values;
 	  var node = createElement(value.template, values);
@@ -342,7 +336,7 @@
 	}
 
 	function createNodeFromValue(value) {
-	  return isString(value) ? document.createTextNode(value) : createElementFromValue(value);
+	  return isString(value) ? (rendererFunc = rerenderTextNodeValue, document.createTextNode(value)) : (rendererFunc = rerenderValue, createElementFromValue(value));
 	}
 
 	function createAndRegisterFromArrayValue(parentNode, arrayValue, values, insertBeforeNode) {
@@ -374,8 +368,7 @@
 	  if (value.constructor === Array) return createAndRegisterFromArrayValue(parentNode, value, values);
 
 	  var node = createNodeFromValue(value);
-	  setRerenderFuncForValue([node, value]);
-	  values.push(rendererFunc, rendererFirstArg);
+	  values.push(rendererFunc, [node, value]);
 	  parentNode.appendChild(node);
 	}
 
@@ -385,15 +378,13 @@
 	  paretNode : Node
 	*/
 	function attachNodeFromValueOrReference(vnode, values, parentNode) {
-	  switch (typeof vnode) {
-	    case 'object':
-	      parentNode.appendChild(createElement(vnode, values));
-	      break;
-	    case 'string':
-	      parentNode.appendChild(document.createTextNode(vnode));
-	      break;
-	    default:
-	      attachAndRegisterNodeFromValue(values[vnode], parentNode, values);
+	  var constructor = vnode.constructor;
+	  if (constructor === Number) {
+	    attachAndRegisterNodeFromValue(values[vnode], parentNode, values);
+	  } else if (constructor === String) {
+	    parentNode.appendChild(document.createTextNode(vnode));
+	  } else {
+	    parentNode.appendChild(createElement(vnode, values));
 	  }
 	}
 
@@ -407,22 +398,19 @@
 	function initialPatch(node, spec) {
 	  if (spec.recycleKey) {
 	    var recycledStack = recycledSpecs[spec.recycleKey];
-	    if (recycledStack) {
-	      var recycled = recycledStack.pop();
-	      if (recycled) {
-	        var oldSpec = recycled.spec;
-	        var rootNodes = recycled.rootNodes;
-	        var _length = rootNodes.length;
-	        var i = 0;
+	    var recycled = recycledStack && recycledStack.pop();
+	    if (recycled) {
+	      var rootNodes = recycled.rootNodes;
+	      var _length = rootNodes.length;
+	      var i = 0;
 
-	        while (i < _length) {
-	          node.appendChild(rootNodes[i++]);
-	        }
-
-	        node.xvdom__spec = oldSpec;
-	        rerender(node, spec);
-	        return;
+	      while (i < _length) {
+	        node.appendChild(rootNodes[i++]);
 	      }
+
+	      node.xvdom__spec = recycled.spec;
+	      rerender(node, spec);
+	      return;
 	    }
 	  }
 
@@ -456,8 +444,6 @@
 	  }
 	  return node;
 	}
-
-	var recycledSpecs = {};
 
 	function patch(node, spec) {
 	  if (!node.xvdom__spec) initialPatch(node, spec);

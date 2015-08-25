@@ -1,3 +1,4 @@
+const recycledSpecs = {};
 let rendererFunc;
 let rendererFirstArg;
 
@@ -8,14 +9,13 @@ function rerenderProp(rArg/* [node, prop] */, value){
 }
 
 function applyProp(node, prop, propValue, values){
-  if(prop[0] === '$'){
-    const actualProp = prop.slice(1);
-    node[actualProp] = values[propValue];
-    values.push(rerenderProp, [node, actualProp]);
-  }
-  else{
+  if(prop[0] !== '$'){
     node[prop] = propValue;
+    return;
   }
+  const actualProp = prop.slice(1);
+  node[actualProp] = values[propValue];
+  values.push(rerenderProp, [node, actualProp]);
 }
 
 function applyProps(node, props, values){
@@ -81,7 +81,6 @@ function rerenderValue(rArg/* [node, prevValue] */, value){
   const newNode = rArg[0] = createNodeFromValue(value);
   node.parentNode.replaceChild(newNode, node);
   rArg[1] = value;
-  setRerenderFuncForValue(rArg);
 }
 
 // TODO(pwong): Provide a way for the user to choose/customize rerendering an Array
@@ -122,7 +121,6 @@ function rerenderArrayValue(rArg /* [parentNode, beforeFirstNode, oldList] */, l
       );
       rArg[1] = list;
       rArg[2] = null;
-      setRerenderFuncForValue(rArg);
       return;
     }
   }
@@ -258,11 +256,6 @@ function rerenderArrayValue(rArg /* [parentNode, beforeFirstNode, oldList] */, l
   rendererFirstArg = rArg;
 }
 
-function setRerenderFuncForValue(rArg /*[node, value]*/){
-  rendererFunc = isString(rArg[1]) ? rerenderTextNodeValue : rerenderValue;
-  rendererFirstArg = rArg;
-}
-
 function createElementFromValue(value){
   const values = value.values;
   const node = createElement(value.template, values);
@@ -271,7 +264,9 @@ function createElementFromValue(value){
 }
 
 function createNodeFromValue(value){
-  return isString(value) ? document.createTextNode(value) : createElementFromValue(value);
+  return isString(value)
+            ? (rendererFunc = rerenderTextNodeValue, document.createTextNode(value))
+            : (rendererFunc = rerenderValue,         createElementFromValue(value));
 }
 
 function createAndRegisterFromArrayValue(parentNode, arrayValue, values, insertBeforeNode){
@@ -304,9 +299,8 @@ function createAndRegisterFromArrayValue(parentNode, arrayValue, values, insertB
 function attachAndRegisterNodeFromValue(value, parentNode, values){
   if(value.constructor === Array) return createAndRegisterFromArrayValue(parentNode, value, values);
 
-  let node = createNodeFromValue(value);
-  setRerenderFuncForValue([node, value]);
-  values.push(rendererFunc, rendererFirstArg);
+  const node = createNodeFromValue(value);
+  values.push(rendererFunc, [node, value]);
   parentNode.appendChild(node);
 }
 
@@ -316,15 +310,15 @@ function attachAndRegisterNodeFromValue(value, parentNode, values){
   paretNode : Node
 */
 function attachNodeFromValueOrReference(vnode, values, parentNode){
-  switch(typeof vnode){
-    case 'object':
-      parentNode.appendChild(createElement(vnode, values));
-      break;
-    case 'string':
-      parentNode.appendChild(document.createTextNode(vnode));
-      break;
-    default:
-      attachAndRegisterNodeFromValue(values[vnode], parentNode, values);
+  const constructor = vnode.constructor;
+  if(constructor === Number){
+    attachAndRegisterNodeFromValue(values[vnode], parentNode, values);
+  }
+  else if(constructor === String){
+    parentNode.appendChild(document.createTextNode(vnode));
+  }
+  else{
+    parentNode.appendChild(createElement(vnode, values));
   }
 }
 
@@ -338,22 +332,19 @@ function rerenderRootNode(node, spec){
 function initialPatch(node, spec){
   if(spec.recycleKey){
     const recycledStack = recycledSpecs[spec.recycleKey];
-    if(recycledStack){
-      const recycled = recycledStack.pop();
-      if(recycled){
-        const oldSpec = recycled.spec;
-        const rootNodes = recycled.rootNodes;
-        const length = rootNodes.length;
-        let i=0;
+    const recycled      = recycledStack && recycledStack.pop();
+    if(recycled){
+      const rootNodes = recycled.rootNodes;
+      const length    = rootNodes.length;
+      let i=0;
 
-        while(i<length){
-          node.appendChild(rootNodes[i++]);
-        }
-
-        node.xvdom__spec = oldSpec;
-        rerender(node, spec);
-        return;
+      while(i<length){
+        node.appendChild(rootNodes[i++]);
       }
+
+      node.xvdom__spec = recycled.spec;
+      rerender(node, spec);
+      return;
     }
   }
 
@@ -387,8 +378,6 @@ function rerender(node, spec){
   }
   return node;
 }
-
-const recycledSpecs = {};
 
 export function patch(node, spec){
   if(!node.xvdom__spec) initialPatch(node, spec);
