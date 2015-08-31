@@ -1,3 +1,4 @@
+const EMPTY_PROPS = {};
 const recycledSpecs = {};
 let rendererFunc;
 let rendererFirstArg;
@@ -32,11 +33,36 @@ function createAddChildren(parentNode, vchildren, values){
   }
 }
 
-function createElement({el, props, children}, values){
+function getPropValues(props, values){
+  let result = props;
+  for(let key in props){
+    if(key[0] === '$'){
+      if(result === props){
+        result = Object.create(props);
+      }
+      result[key.slice(1)] = values[props[key]];
+    }
+  }
+  return result;
+}
+
+function createComponent(component, componentProps, componentChildren, componentValues){
+  const componentPropValues = componentProps ? getPropValues(componentProps, componentValues) : EMPTY_PROPS;
+  const {template, values} = component(componentPropValues);
+  const node = createDOMElement(template.el, template.props, template.children, values);
+  return node;
+}
+
+function createDOMElement(el, props, children, values){
   const node = document.createElement(el);
   if(props)    applyProps(node, props, values);
   if(children) createAddChildren(node, children, values);
   return node;
+}
+
+function createElement({el, props, children}, values){
+  return el.constructor === String ? createDOMElement(el, props, children, values)
+    : createComponent(el, props, children, values);
 }
 
 function rerenderToArray(rArg/* [node, prevValue] */, list){
