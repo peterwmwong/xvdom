@@ -1,6 +1,7 @@
-import assert from 'assert';
+import assert        from 'assert';
 import getHTMLString from './utils/getHTMLString.js';
-import {patch} from '../src/patch.js';
+import spyOn         from './utils/spyOn.js';
+import {patch}       from '../src/patch.js';
 
 describe('patch components', ()=>{
   let target;
@@ -107,26 +108,65 @@ describe('patch components', ()=>{
   });
 
   describe('Rerendering', ()=>{
-    it('Skips calling Component when props are the same', ()=>{
-      const TMPL =
-      {
-        el:'header',
-        children:[
-          {
-            el:MyComponent,
-            props:{
-              $one:0,
-              $two:1
-            }
-          },
-          {el:'div', children:[2]}
-        ]
-      };
+    const TMPL =
+    {
+      el:'header',
+      children:[
+        {
+          el:MyComponent,
+          props:{
+            $one:0,
+            $two:1
+          }
+        },
+        {el:'div', children:[2]}
+      ]
+    };
+
+    beforeEach(()=>{
+      spyOn.uninstall();
+      spyOn(Node.prototype, 'insertBefore');
+      spyOn(Node.prototype, 'appendChild');
+      spyOn(Node.prototype, 'removeChild');
+      spyOn(document, 'createElement');
+      spyOn(document, 'createTextNode');
+
       patch(target, {
         template:TMPL,
-        values:['one value', 'two value2', 'yolo']
+        values:['one value', 'two value', 'yolo']
       });
 
+      spyOn.resetSpyCounts();
+    });
+
+    afterEach(()=>{
+      spyOn.uninstall();
+    });
+
+    it('Skips calling Component when props are the same', ()=>{
+      patch(target, {
+        template:TMPL,
+        values:['one value', 'two value', 'yolo']
+      });
+
+      assert.equal(getHTMLString(target),
+        '<header>'+
+          '<ul>'+
+            '<li>one value</li>'+
+            '<li>two value</li>'+
+          '</ul>'+
+          '<div>yolo</div>'+
+        '</header>'
+      );
+      assert.equal(MyComponent.callCount, 1);
+
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 0);
+    });
+
+    it('Calls the component and rerenders when props are the different', ()=>{
       patch(target, {
         template:TMPL,
         values:['one value', 'two value2', 'yolo']
@@ -141,7 +181,33 @@ describe('patch components', ()=>{
           '<div>yolo</div>'+
         '</header>'
       );
-      assert.equal(MyComponent.callCount, 1);
+      assert.equal(MyComponent.callCount, 2);
+
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 0);
+
+      patch(target, {
+        template:TMPL,
+        values:['one value1', 'two value3', 'yolo']
+      });
+
+      assert.equal(getHTMLString(target),
+        '<header>'+
+          '<ul>'+
+            '<li>one value1</li>'+
+            '<li>two value3</li>'+
+          '</ul>'+
+          '<div>yolo</div>'+
+        '</header>'
+      );
+      assert.equal(MyComponent.callCount, 3);
+
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.removeChild.count, 0);
     });
   });
 });

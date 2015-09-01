@@ -33,39 +33,47 @@ function createAddChildren(parentNode, vchildren, values){
   }
 }
 
-function rerenderComponent(rArg/* [props, node] */, componentValues){
-  debugger; //eslint-disable-line
-  const [props, node] = rArg;
-  for(let key in props.__proto__){
-    if(key[0] === '$'){
-      props[key.slice(1)] = componentValues[props[key]];
-    }
-  }
-
-  const prevSpec  = node.xvdom__componentSpec;
-  const component = node.xvdom__component;
-  const spec      = component(props);
-
+function rerenderSpec(prevSpec, spec, rerenderCount){
   const values    = spec.values;
   const oldValues = prevSpec.values;
   const length    = oldValues.length/3;
-  let newValue;
+  let newValue, firstArgOffset;
 
   for(let i=0, j=length; i<length; ++i, j+=2){
     newValue = values[i];
 
     if(newValue !== oldValues[i]){
-      let firstArgOffset = j+1;
+      firstArgOffset   = j+1;
       rendererFunc     = oldValues[j];
       rendererFirstArg = oldValues[firstArgOffset];
 
-      rendererFunc(rendererFirstArg, newValue);
+      if(rerenderComponent === rendererFunc){
+        if(rendererFirstArg.rerenderCount !== rerenderCount){
+          rendererFirstArg.rerenderCount = rerenderCount;
+          rendererFunc(rendererFirstArg, values);
+        }
+      }
+      else{
+        rendererFunc(rendererFirstArg, newValue);
+      }
 
       oldValues[i]              = newValue;
       oldValues[j]              = rendererFunc;
       oldValues[firstArgOffset] = rendererFirstArg;
     }
   }
+}
+
+function rerenderComponent(rArg/* [props, origProps, node] */, componentValues){
+  const [props, origProps, node] = rArg;
+  for(let key in origProps){
+    if(key[0] === '$'){
+      props[key.slice(1)] = componentValues[props[key]];
+    }
+  }
+  rerenderSpec(node.xvdom__componentSpec, node.xvdom__component(props));
+  rendererFunc     = rerenderComponent;
+  rendererFirstArg = rArg;
   return node;
 }
 
@@ -76,7 +84,7 @@ function getPropValues(props, values){
     if(key[0] === '$'){
       if(result === props){
         result        = Object.create(props);
-        rArg          = [result];
+        rArg          = [result, props];
       }
 
       value              = values[props[key]];
@@ -436,31 +444,11 @@ function rerender(node, spec){
   const prevSpec = node.xvdom__spec;
   if(spec.template !== prevSpec.template) return rerenderRootNode(node, spec);
 
-  const values    = spec.values;
-  const oldValues = prevSpec.values;
-  const length    = oldValues.length/3;
-  let newValue;
-
-  for(let i=0, j=length; i<length; ++i, j+=2){
-    newValue = values[i];
-
-    if(newValue !== oldValues[i]){
-      let firstArgOffset = j+1;
-      rendererFunc     = oldValues[j];
-      rendererFirstArg = oldValues[firstArgOffset];
-
-      if(rerenderComponent === rendererFunc){
-        rendererFunc(rendererFirstArg, values);
-      }
-      else{
-        rendererFunc(rendererFirstArg, newValue);
-      }
-
-      oldValues[i]              = newValue;
-      oldValues[j]              = rendererFunc;
-      oldValues[firstArgOffset] = rendererFirstArg;
-    }
-  }
+  rerenderSpec(
+    prevSpec,
+    spec,
+    (node.xvdom__rerenderCount = (node.xvdom__rerenderCount || 0) + 1)
+  );
   return node;
 }
 
