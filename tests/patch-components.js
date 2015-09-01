@@ -88,12 +88,12 @@ describe('patch components', ()=>{
         el:MyComponent,
         props:{
           $one:0,
-          two:'two value'
+          $two:1
         }
       };
       patch(target, {
         template:TMPL,
-        values:['one value']
+        values:['one value', 'two value']
       });
 
       assert.equal(getHTMLString(target),
@@ -101,6 +101,45 @@ describe('patch components', ()=>{
           '<li>one value</li>'+
           '<li>two value</li>'+
         '</ul>'
+      );
+      assert.equal(MyComponent.callCount, 1);
+    });
+  });
+
+  describe('Rerendering', ()=>{
+    it('Skips calling Component when props are the same', ()=>{
+      const TMPL =
+      {
+        el:'header',
+        children:[
+          {
+            el:MyComponent,
+            props:{
+              $one:0,
+              $two:1
+            }
+          },
+          {el:'div', children:[2]}
+        ]
+      };
+      patch(target, {
+        template:TMPL,
+        values:['one value', 'two value2', 'yolo']
+      });
+
+      patch(target, {
+        template:TMPL,
+        values:['one value', 'two value2', 'yolo']
+      });
+
+      assert.equal(getHTMLString(target),
+        '<header>'+
+          '<ul>'+
+            '<li>one value</li>'+
+            '<li>two value2</li>'+
+          '</ul>'+
+          '<div>yolo</div>'+
+        '</header>'
       );
       assert.equal(MyComponent.callCount, 1);
     });
