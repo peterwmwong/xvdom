@@ -71,6 +71,7 @@
 	exports.__esModule = true;
 	exports.patch = patch;
 	exports.unmount = unmount;
+	var EMPTY_PROPS = {};
 	var recycledSpecs = {};
 	var rendererFunc = undefined;
 	var rendererFirstArg = undefined;
@@ -107,15 +108,107 @@
 	  }
 	}
 
+	function rerenderSpec(prevSpec, spec, rerenderCount) {
+	  var values = spec.values;
+	  var oldValues = prevSpec.values;
+	  var length = oldValues.length / 3;
+	  var newValue = undefined,
+	      firstArgOffset = undefined;
+
+	  for (var i = 0, j = length; i < length; ++i, j += 2) {
+	    newValue = values[i];
+
+	    if (newValue !== oldValues[i]) {
+	      firstArgOffset = j + 1;
+	      rendererFunc = oldValues[j];
+	      rendererFirstArg = oldValues[firstArgOffset];
+
+	      if (rerenderComponent === rendererFunc) {
+	        if (rendererFirstArg.rerenderCount !== rerenderCount) {
+	          rendererFirstArg.rerenderCount = rerenderCount;
+	          rendererFunc(rendererFirstArg, values);
+	        }
+	      } else {
+	        rendererFunc(rendererFirstArg, newValue);
+	      }
+
+	      oldValues[i] = newValue;
+	      oldValues[j] = rendererFunc;
+	      oldValues[firstArgOffset] = rendererFirstArg;
+	    }
+	  }
+	}
+
+	function rerenderComponent(rArg, /* [props, origProps, node] */componentValues) {
+	  var props = rArg[0];
+	  var origProps = rArg[1];
+	  var node = rArg[2];
+
+	  for (var key in origProps) {
+	    if (key[0] === '$') {
+	      props[key.slice(1)] = componentValues[props[key]];
+	    }
+	  }
+	  rerenderSpec(node.xvdom__componentSpec, node.xvdom__component(props));
+	  rendererFunc = rerenderComponent;
+	  rendererFirstArg = rArg;
+	  return node;
+	}
+
+	function getPropValues(props, values) {
+	  var result = props;
+	  var actualProp = undefined,
+	      rArg = undefined,
+	      value = undefined;
+	  for (var key in props) {
+	    if (key[0] === '$') {
+	      if (result === props) {
+	        result = Object.create(props);
+	        rArg = [result, props];
+	      }
+
+	      value = values[props[key]];
+	      actualProp = key.slice(1);
+	      result[actualProp] = value;
+	      values.push(rerenderComponent, rArg);
+	    }
+	  }
+
+	  rendererFirstArg = rArg;
+	  return result;
+	}
+
+	function createComponent(component, componentProps, componentChildren, componentValues) {
+	  var componentPropValues = componentProps ? getPropValues(componentProps, componentValues) : EMPTY_PROPS;
+	  var rArg = rendererFirstArg;
+	  var componentSpec = component(componentPropValues);
+	  var template = componentSpec.template;
+	  var values = componentSpec.values;
+
+	  var node = createDOMElement(template.el, template.props, template.children, values);
+
+	  if (componentProps !== componentPropValues) {
+	    rArg.push(node);
+	  }
+	  node.xvdom__componentRenderCount = 0;
+	  node.xvdom__componentSpec = componentSpec;
+	  node.xvdom__component = component;
+	  return node;
+	}
+
+	function createDOMElement(el, props, children, values) {
+	  var node = document.createElement(el);
+	  if (props) applyProps(node, props, values);
+	  if (children) createAddChildren(node, children, values);
+	  return node;
+	}
+
 	function createElement(_ref, values) {
 	  var el = _ref.el;
 	  var props = _ref.props;
 	  var children = _ref.children;
 
-	  var node = document.createElement(el);
-	  if (props) applyProps(node, props, values);
-	  if (children) createAddChildren(node, children, values);
-	  return node;
+	  return el.constructor === String ? createDOMElement(el, props, children, values) : createComponent(el, props, children, values);
 	}
 
 	function rerenderToArray(rArg, /* [node, prevValue] */list) {
@@ -183,10 +276,10 @@
 
 	  var oldListLength = oldList.length;
 	  var listLength = list.length;
+	  var isListNotArray = list.constructor !== Array;
 	  var i = undefined,
 	      node = undefined,
 	      value = undefined;
-	  var isListNotArray = list.constructor !== Array;
 
 	  if (listLength === 0 || isListNotArray) {
 	    for (i = 0; i < oldListLength; ++i) {
@@ -416,32 +509,14 @@
 
 	  attachNodeFromValueOrReference(spec.template, spec.values, node);
 	  node.xvdom__spec = spec;
+	  node.xvdom__componentRenderCount = 0;
 	}
 
 	function rerender(node, spec) {
 	  var prevSpec = node.xvdom__spec;
 	  if (spec.template !== prevSpec.template) return rerenderRootNode(node, spec);
 
-	  var values = spec.values;
-	  var oldValues = prevSpec.values;
-	  var length = oldValues.length / 3;
-	  var newValue = undefined;
-
-	  for (var i = 0, j = length; i < length; ++i, j += 2) {
-	    newValue = values[i];
-
-	    if (newValue !== oldValues[i]) {
-	      var firstArgOffset = j + 1;
-	      rendererFunc = oldValues[j];
-	      rendererFirstArg = oldValues[firstArgOffset];
-
-	      rendererFunc(rendererFirstArg, newValue);
-
-	      oldValues[i] = newValue;
-	      oldValues[j] = rendererFunc;
-	      oldValues[firstArgOffset] = rendererFirstArg;
-	    }
-	  }
+	  rerenderSpec(prevSpec, spec, node.xvdom__rerenderCount = (node.xvdom__rerenderCount || 0) + 1);
 	  return node;
 	}
 

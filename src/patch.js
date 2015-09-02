@@ -127,9 +127,9 @@ function createElement({el, props, children}, values){
 }
 
 function rerenderToArray(rArg/* [node, prevValue] */, list){
-  const length          = list.length;
-  const beforeNode      = rArg[0];
-  const parentNode      = rArg[0] = beforeNode.parentNode;
+  const length     = list.length;
+  const beforeNode = rArg[0];
+  const parentNode = rArg[0] = beforeNode.parentNode;
   let item, i=0;
 
   /*parentNode, beforeFirstNode, oldList*/
@@ -164,7 +164,7 @@ function rerenderTextNodeValue(rArg/*[node, prevValue] */, value){
 
 function rerenderValue(rArg/* [node, prevValue] */, value){
   if(value.constructor === Array) return rerenderToArray(rArg, value);
-  const node = rArg[0];
+  const node    = rArg[0];
   const newNode = rArg[0] = createNodeFromValue(value);
   node.parentNode.replaceChild(newNode, node);
   rArg[1] = value;
@@ -190,10 +190,10 @@ function rerenderValue(rArg/* [node, prevValue] */, value){
 
 function rerenderArrayValue(rArg /* [parentNode, beforeFirstNode, oldList] */, list){
   const [parentNode, beforeFirstNode, oldList] = rArg;
-  let oldListLength = oldList.length;
-  let listLength = list.length;
-  let i, node, value;
+  let oldListLength  = oldList.length;
+  let listLength     = list.length;
   let isListNotArray = list.constructor !== Array;
+  let i, node, value;
 
   if(listLength === 0 || isListNotArray){
     for(i=0; i<oldListLength; ++i){
@@ -223,11 +223,11 @@ function rerenderArrayValue(rArg /* [parentNode, beforeFirstNode, oldList] */, l
   }
   else{
     const afterLastNode = oldListLength ? oldList[oldListLength-1].node.nextSibling : null;
-    let oldEndIndex   = oldListLength - 1;
-    let endIndex      = listLength - 1;
-    let oldStartIndex = 0;
-    let startIndex    = 0;
-    let successful    = true;
+    let oldEndIndex     = oldListLength - 1;
+    let endIndex        = listLength - 1;
+    let oldStartIndex   = 0;
+    let startIndex      = 0;
+    let successful      = true;
     let key, insertBeforeNode, oldStartItem, oldEndItem, startItem, endItem;
 
     outer: while(successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex){
