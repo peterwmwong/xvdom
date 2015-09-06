@@ -356,26 +356,14 @@ function createNodeFromValue(value){
             : (rendererFunc = rerenderValue,         createElementFromValue(value));
 }
 
-function createAndRegisterFromArrayValue(parentNode, arrayValue, values, insertBeforeNode){
+function createAndRegisterFromArrayValue(parentNode, arrayValue, values){
   const length          = arrayValue.length;
   const beforeFirstNode = parentNode.lastChild;
-  let node, value, i=0;
+  let value, i=0;
 
-  if(insertBeforeNode){
-    while(i<length){
-      value = arrayValue[i++];
-      node  = createElementFromValue(value);
-      parentNode.insertBefore(
-        (value.node = node),
-        insertBeforeNode
-      );
-    }
-  }
-  else{
-    while(i<length){
-      value = arrayValue[i++];
-      parentNode.appendChild(value.node = createElementFromValue(value));
-    }
+  while(i<length){
+    value = arrayValue[i++];
+    parentNode.appendChild(value.node = createElementFromValue(value));
   }
 
   rendererFunc     = rerenderArrayValue;
