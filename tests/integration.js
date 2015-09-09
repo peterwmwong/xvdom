@@ -1,8 +1,10 @@
 import assert          from 'assert';
 import getHTMLString   from './utils/getHTMLString.js';
-import render          from '../src/render.js';
-import rerender        from '../src/rerender.js';
-import {createDynamic} from '../src/createDynamic.js';
+import {
+  createDynamic,
+  rerender,
+  renderInstance
+} from '../src/index.js';
 
 describe('Integration', ()=>{
   const SPEC = {
@@ -20,7 +22,7 @@ describe('Integration', ()=>{
   describe('Dynamic changing type', ()=>{
     describe('From String', ()=>{
       beforeEach(()=>{
-        node = render({spec: SPEC, values: ['hello world']});
+        node = renderInstance({spec: SPEC, values: ['hello world']});
       });
 
       it('renders', ()=>{

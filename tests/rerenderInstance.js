@@ -1,5 +1,5 @@
 import assert             from 'assert';
-import {rerenderInstance} from '../src/rerenderInstance.js';
+import {rerenderInstance} from '../src/index.js';
 
 describe('rerenderInstance - newValue, previousValueAndContext, valueIndex, contextIndex', ()=>{
   let node, valueContext, specRerenderArgs, specRerenderCallCount;

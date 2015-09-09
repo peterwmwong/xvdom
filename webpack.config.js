@@ -6,7 +6,9 @@ module.exports = {
   },
   output: {
     path    : 'dist',
-    filename: 'xvdom.js'
+    filename: 'xvdom.js',
+    library: 'xvdom',
+    libraryTarget: 'var'
   },
   module: {
     loaders: [

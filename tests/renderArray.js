@@ -1,6 +1,6 @@
 import assert        from 'assert';
 import getHTMLString from './utils/getHTMLString.js';
-import {renderArray} from '../src/renderArray.js';
+import {renderArray} from '../src/index.js';
 
 describe('rerenderArray - frag, array', ()=>{
   const INSTANCE1 = {

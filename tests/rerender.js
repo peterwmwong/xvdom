@@ -1,7 +1,6 @@
-import assert        from 'assert';
-import getHTMLString from './utils/getHTMLString.js';
-import render        from '../src/render.js';
-import rerender      from '../src/rerender.js';
+import assert                     from 'assert';
+import getHTMLString              from './utils/getHTMLString.js';
+import {rerender, renderInstance} from '../src/index.js';
 
 describe('rerender - node, renderInstance', ()=>{
   it('calls rerender() with values and previous values w/context', ()=>{
@@ -22,7 +21,7 @@ describe('rerender - node, renderInstance', ()=>{
         rerenderArgs = [values, previousValuesContext];
       }
     };
-    const node = render({spec, values: mockValues});
+    const node = renderInstance({spec, values: mockValues});
     rerender(node, {spec, values: mockRerenderValues});
 
     assert.equal(getHTMLString(node), '<span></span>');

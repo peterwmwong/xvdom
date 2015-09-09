@@ -1,5 +1,5 @@
 import assert         from 'assert';
-import {rerenderText} from '../src/rerenderText.js';
+import {rerenderText} from '../src/index.js';
 
 describe('rerenderText - newValue, previousValueAndContext, valueIndex, contextIndex', ()=>{
   let textNode, valueContext;

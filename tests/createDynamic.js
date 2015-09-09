@@ -1,9 +1,11 @@
 import assert             from 'assert';
 import getHTMLString      from './utils/getHTMLString.js';
-import {createDynamic}    from '../src/createDynamic.js';
-import {rerenderText}     from '../src/rerenderText.js';
-import {rerenderInstance} from '../src/rerenderInstance.js';
-import {rerenderArray}    from '../src/rerenderArray.js';
+import {
+  createDynamic,
+  rerenderText,
+  rerenderInstance,
+  rerenderArray
+} from '../src/index.js';
 
 describe('createDynamic - valuesAndContext, valueIndex, contextIndex', ()=>{
   let parentNode, resultNode;

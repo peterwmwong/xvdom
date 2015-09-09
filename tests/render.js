@@ -1,6 +1,6 @@
-import assert        from 'assert';
-import getHTMLString from './utils/getHTMLString.js';
-import render        from '../src/render.js';
+import assert           from 'assert';
+import getHTMLString    from './utils/getHTMLString.js';
+import {renderInstance} from '../src/index.js';
 
 describe('render - renderInstance', ()=>{
   const mockValues = [1, 2, 3];
@@ -16,7 +16,7 @@ describe('render - renderInstance', ()=>{
       },
       values: mockValues
     };
-    resultNode = render(instance);
+    resultNode = renderInstance(instance);
   });
 
   it('calls render() with values', ()=>{

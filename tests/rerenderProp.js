@@ -1,5 +1,5 @@
 import assert                         from 'assert';
-import {setDynamicProp, rerenderProp} from '../src/setDynamicProp.js';
+import {setDynamicProp, rerenderProp} from '../src/index.js';
 
 describe('rerenderProp - attr, value, valueAndContext, valueIndex, contextIndex', ()=>{
   let node, valueContext;
