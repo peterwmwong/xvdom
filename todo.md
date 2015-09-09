@@ -1,0 +1,1 @@
+- inline environment variables `NODE_ENV` (see https://babeljs.io/docs/advanced/transformers/utility/inline-environment-variables/)
