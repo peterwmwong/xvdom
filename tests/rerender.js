@@ -1,5 +1,4 @@
 import assert                     from 'assert';
-import createInstance             from './utils/createInstance.js';
 import getHTMLString              from './utils/getHTMLString.js';
 import {rerender, renderInstance} from '../src/index.js';
 

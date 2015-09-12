@@ -5,6 +5,7 @@
 // import './patch-components.js';
 
 import './render.js';
+import './render-recycle.js';
 import './renderArray.js';
 
 import './rerender.js';

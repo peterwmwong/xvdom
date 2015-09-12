@@ -1,3 +1,6 @@
+
+const RECYCLED = {};
+
 export function rerenderProp(attr, value, valuesAndContext, valueIndex, contextIndex){
   valuesAndContext[valueIndex] = value;
   valuesAndContext[contextIndex + 1][attr] = value;
@@ -54,9 +57,15 @@ export function rerenderInstance(value, valuesAndContext, valueIndex, contextInd
   }
 }
 
-export function renderInstance(value){
-  const node = value.spec.render(value.values);
-  node.xvdom = value;
+export function renderInstance(instance){
+  let node;
+  if(instance.spec.recycleKey && (node = RECYCLED[instance.spec.recycleKey])){
+    instance.spec.rerender(instance.values, node.xvdom.values);
+    return node;
+  }
+
+  node       = instance.spec.render(instance.values);
+  node.xvdom = instance;
   return node;
 }
 
@@ -271,4 +280,14 @@ export function createDynamic(valuesAndContext, valueIndex, contextIndex){
   valuesAndContext[contextIndex]     = rerenderFunc;
   valuesAndContext[contextIndex + 1] = context;
   return node;
+}
+
+export function unmount(node){
+  const instance = node.xvdom;
+  if(instance && instance.spec.recycleKey){
+    RECYCLED[instance.spec.recycleKey] = node;
+  }
+  if(node.parentNode){
+    node.parentNode.removeChild(node);
+  }
 }
