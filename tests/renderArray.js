@@ -2,7 +2,7 @@ import assert        from 'assert';
 import getHTMLString from './utils/getHTMLString.js';
 import {renderArray} from '../src/index.js';
 
-describe('rerenderArray - frag, array', ()=>{
+describe('renderArray - frag, array', ()=>{
   const INSTANCE1 = {
     key: 'one',
     spec:{render: ()=>document.createElement('a')}
@@ -20,8 +20,6 @@ describe('rerenderArray - frag, array', ()=>{
 
   it('returns marker node (empty text node) with map (key to node)', ()=>{
     assert(markerNode instanceof Text);
-    assert.strictEqual(markerNode.xvdomKeymap.one, markerNode.nextSibling);
-    assert.strictEqual(markerNode.xvdomKeymap.two, markerNode.nextSibling.nextSibling);
   });
 
   it('renders array items to `frag`', ()=>{

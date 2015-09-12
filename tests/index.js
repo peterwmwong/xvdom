@@ -8,6 +8,7 @@ import './render.js';
 import './renderArray.js';
 
 import './rerender.js';
+import './rerenderArray.js';
 import './rerenderText.js';
 import './rerenderInstance.js';
 

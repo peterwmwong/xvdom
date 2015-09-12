@@ -12,15 +12,12 @@ export function setDynamicProp(node, attr, valueContext, valueIndex, contextInde
 export function renderArray(frag, array){
   const length     = array.length;
   const markerNode = document.createTextNode('');
-  const keyMap     = markerNode.xvdomKeymap = {};
   let item;
   frag.appendChild(markerNode);
 
   for(let i=0; i<length; ++i){
     item = array[i];
-    frag.appendChild(
-      keyMap[item.key] = renderInstance(item)
-    );
+    frag.appendChild(item._node = renderInstance(item));
   }
   return markerNode;
 }
@@ -35,30 +32,13 @@ export function rerenderText(value, valuesAndContext, valueIndex, contextIndex){
   }
 }
 
-
-export function rerenderArray(value, valuesAndContext, valueIndex, contextIndex){
-  throw 'rerenderArray: Not implemented yet';
-}
-
-function removeArrayNodes(keyMap, parentNode){
-  for(let key in keyMap){
-    parentNode.removeChild(keyMap[key]);
-  }
-}
-
-function replacePrevNode(prevNode, newNode){
-  const parentNode = prevNode.parentNode;
-  if(prevNode.xvdomKeymap){
-    removeArrayNodes(prevNode.xvdomKeymap, parentNode);
-  }
-
-  parentNode.replaceChild(newNode, prevNode);
-}
-
 export function rerenderDynamic(value, valuesAndContext, valueIndex, contextIndex){
   const prevNode = valuesAndContext[contextIndex + 1];
   valuesAndContext[valueIndex] = value;
-  replacePrevNode(prevNode, createDynamic(valuesAndContext, valueIndex, contextIndex));
+  prevNode.parentNode.replaceChild(
+    createDynamic(valuesAndContext, valueIndex, contextIndex),
+    prevNode
+  );
 }
 
 export function rerenderInstance(value, valuesAndContext, valueIndex, contextIndex){
@@ -80,9 +60,193 @@ export function renderInstance(value){
   return node;
 }
 
+// export function rerenderArray(value, valuesAndContext, valueIndex, contextIndex){
+//   const keyMap = valuesAndContext[contextIndex + 1].xvdomKeymap;
+//   const length = value.length;
+//   let i = 0;
+//   let item, node, itemInstance;
+//
+//   while(i < length){
+//     item         = value[i++];
+//     node         = keyMap[item.key];
+//     itemInstance = node.xvdom;
+//
+//     itemInstance.spec.rerender(item.values, itemInstance.values);
+//   }
+//
+//   valuesAndContext[valueIndex] = value;
+// }
+
+function removeArrayNodes(list, parentNode){
+  const length = list.length;
+  for(let i=0; i<length; ++i){
+    parentNode.removeChild(list[i]._node);
+  }
+}
+
+export function rerenderArray(list, valuesAndContext, valueIndex, contextIndex){
+  const markerNode = valuesAndContext[contextIndex + 1];
+  const parentNode = markerNode.parentNode;
+
+  if(!list || list.constructor !== Array){
+    removeArrayNodes(valuesAndContext[valueIndex], parentNode);
+    rerenderDynamic(list, valuesAndContext, valueIndex, contextIndex);
+    return;
+  }
+
+  const length     = list.length;
+  const oldList    = valuesAndContext[valueIndex];
+  const oldLength  = oldList.length;
+  let i, key, node, value, insertBeforeNode;
+
+  valuesAndContext[valueIndex] = list;
+
+  if(length === 0){
+    removeArrayNodes(oldList, parentNode);
+    return;
+  }
+
+  if (oldLength === 0){
+    insertBeforeNode = markerNode.nextSibling;
+    i = 0;
+    while(i < length){
+      value = list[i++];
+      parentNode.insertBefore(
+        (value._node = renderInstance(value)),
+        insertBeforeNode
+      );
+    }
+    return;
+  }
+
+  const afterLastNode = oldLength ? oldList[oldLength - 1]._node.nextSibling : null;
+  let oldEndIndex     = oldLength - 1;
+  let endIndex        = length - 1;
+  let oldStartIndex   = 0;
+  let startIndex      = 0;
+  let successful      = true;
+  let oldStartItem, oldEndItem, startItem, endItem;
+
+  outer: while(successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex){
+    successful = false;
+
+    oldStartItem = oldList[oldStartIndex];
+    startItem = list[startIndex];
+    while (oldStartItem.key === startItem.key){
+      node = oldStartItem._node;
+      startItem._node = node.xvdom ? rerender(node, startItem) : node;
+
+      ++oldStartIndex; ++startIndex;
+      if (oldStartIndex > oldEndIndex || startIndex > endIndex){
+        break outer;
+      }
+      oldStartItem = oldList[oldStartIndex];
+      startItem = list[startIndex];
+      successful = true;
+    }
+
+    oldEndItem = oldList[oldEndIndex];
+    endItem = list[endIndex];
+    while (oldEndItem.key === endItem.key){
+      node = oldEndItem._node;
+      endItem._node = node.xvdom ? rerender(node, endItem) : node;
+
+      --oldEndIndex; --endIndex;
+      if (oldStartIndex > oldEndIndex || startIndex > endIndex){
+        break outer;
+      }
+      oldEndItem = oldList[oldEndIndex];
+      endItem = list[endIndex];
+      successful = true;
+    }
+
+    while (oldStartItem.key === endItem.key){
+      node = oldStartItem._node;
+      endItem._node = node.xvdom ? rerender(node, endItem) : node;
+
+      if(oldEndItem.key !== endItem.key){
+        parentNode.insertBefore(node, oldEndItem._node.nextSibling);
+      }
+      ++oldStartIndex; --endIndex;
+      if (oldStartIndex > oldEndIndex || startIndex > endIndex){
+        break outer;
+      }
+      oldStartItem = oldList[oldStartIndex];
+      endItem = list[endIndex];
+      successful = true;
+    }
+
+    while (oldEndItem.key === startItem.key){
+      node = oldEndItem._node;
+      startItem._node = node.xvdom ? rerender(node, startItem) : node;
+
+      if(oldStartItem.key !== startItem.key){
+        parentNode.insertBefore(node, oldStartItem._node);
+      }
+      --oldEndIndex; ++startIndex;
+      if (oldStartIndex > oldEndIndex || startIndex > endIndex){
+        break outer;
+      }
+      oldEndItem = oldList[oldEndIndex];
+      startItem = list[startIndex];
+      successful = true;
+    }
+  }
+  if(oldStartIndex > oldEndIndex){
+    insertBeforeNode = endItem ? endItem._node : afterLastNode;
+    while(startIndex <= endIndex){
+      startItem = list[startIndex++];
+      parentNode.insertBefore(
+        (startItem._node = renderInstance(startItem)),
+        insertBeforeNode
+      );
+    }
+  }
+  else if(startIndex > endIndex){
+    while(oldStartIndex <= oldEndIndex){
+      oldStartItem = oldList[oldStartIndex++];
+      parentNode.removeChild(oldStartItem._node);
+    }
+  }
+  else{
+    const oldListNodeKeyMap = {};
+    while(oldStartItem){
+      oldListNodeKeyMap[oldStartItem.key] = oldStartItem._node;
+      oldStartItem = oldList[++oldStartIndex];
+    }
+
+    while(startIndex <= endIndex){
+      startItem = list[startIndex++];
+      node = oldListNodeKeyMap[startItem.key];
+      if(!node){
+        node = renderInstance(startItem);
+      }
+      else if(node.xvdom){
+        node = rerender(node, startItem);
+      }
+
+      delete oldListNodeKeyMap[startItem.key];
+      parentNode.insertBefore((startItem._node = node), afterLastNode);
+    }
+
+    for(key in oldListNodeKeyMap){
+      parentNode.removeChild(oldListNodeKeyMap[key]);
+    }
+  }
+}
+
 export function rerender(node, instance){
-  const prevInstance = node.xvdom;
-  instance.spec.rerender(instance.values, prevInstance.values);
+  const prevInstance   = node.xvdom;
+  const {spec, values} = instance;
+  if(spec === prevInstance.spec){
+    spec.rerender(values, prevInstance.values);
+    return node;
+  }
+
+  const newNode = renderInstance(instance);
+  node.parentNode.replaceChild(newNode, node);
+  return newNode;
+
 }
 
 export function createDynamic(valuesAndContext, valueIndex, contextIndex){
