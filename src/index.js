@@ -94,9 +94,9 @@ export function rerenderArray(list, valuesAndContext, valueIndex, contextIndex){
     return;
   }
 
-  const length     = list.length;
-  const oldList    = valuesAndContext[valueIndex];
-  const oldLength  = oldList.length;
+  const length    = list.length;
+  const oldList   = valuesAndContext[valueIndex];
+  const oldLength = oldList.length;
   let i, key, node, value, insertBeforeNode;
 
   valuesAndContext[valueIndex] = list;
