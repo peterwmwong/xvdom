@@ -1,7 +1,7 @@
 import assert             from 'assert';
 import {rerenderInstance} from '../src/index.js';
 
-describe('rerenderInstance - newValue, previousValueAndContext, valueIndex, contextIndex', ()=>{
+describe('rerenderInstance - newValue, previousValueAndContext, valueIndex, rerenderIndex, rerenderContextIndex', ()=>{
   let node, valueContext, specRerenderArgs, specRerenderCallCount;
   const MOCK_RERENDER_VALUES = [1, 2, 3];
   const SPEC = {
@@ -37,7 +37,7 @@ describe('rerenderInstance - newValue, previousValueAndContext, valueIndex, cont
 
     beforeEach(()=>{
       instance = {spec: SPEC, values: MOCK_RERENDER_VALUES};
-      rerenderInstance(instance, valueContext, 0, 1);
+      rerenderInstance(instance, valueContext, 0, 1, 2);
     });
 
     it('calls spec `rerender()`', ()=>{

@@ -10,7 +10,7 @@ import {
   setDynamicProp
 } from '../src/index.js';
 
-describe('rerenderArray - newValue, previousValueAndContext, valueIndex, contextIndex', ()=>{
+describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerenderIndex, rerenderContextIndex', ()=>{
 
   beforeEach(()=>{
     spyOn.uninstall();
@@ -32,7 +32,7 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, context
     const LIST_SPEC = {
       render: (vc)=>{
         const div = document.createElement('div');
-        div.appendChild(createDynamic(vc, 0, 1));
+        div.appendChild(createDynamic(vc, 0, 1, 2));
         return div;
       }
     };
@@ -80,12 +80,12 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, context
         createInstance(null, LIST_SPEC, listValueContext)
       );
 
-      markerNode = listNode.firstChild;
+      markerNode = listNode.lastChild;
 
       specRerenderArgs = [];
       specRerenderCallCount = 0;
 
-      rerenderArray(NEXT_ARRAY, listValueContext, 0, 1);
+      rerenderArray(NEXT_ARRAY, listValueContext, 0, 1, 2);
     });
 
     describe('For each item', ()=>{
@@ -116,19 +116,19 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, context
     const PARENT_SPEC = {
       render: vc=>{
         const div = document.createElement('div');
-        div.appendChild(createDynamic(vc, 0, 1));
+        div.appendChild(createDynamic(vc, 0, 1, 2));
         return div;
       },
-      rerender: (v, vc)=>{ vc[1](v[0], vc, 0, 1); }
+      rerender: (v, vc)=>{ vc[1](v[0], vc, 0, 1, 2); }
     };
 
     const CHILD_SPEC = {
       render: vc=>{
         const div = document.createElement('div');
-        setDynamicProp(div, 'className', vc, 0, 1);
+        setDynamicProp(div, 'className', vc, 0, 1, 2);
         return div;
       },
-      rerender: (v, vc)=>{ vc[1]('className', v[0], vc, 0, 1); }
+      rerender: (v, vc)=>{ vc[1]('className', v[0], vc, 0, 1, 2); }
     };
 
     it('Update array items', ()=>{
@@ -333,7 +333,7 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, context
           div.appendChild(document.createElement('b'));
           return div;
         },
-        rerender: (v, vc)=>{ vc[1](v[0], vc, 0, 1); }
+        rerender: (v, vc)=>{ vc[1](v[0], vc, 0, 1, 2); }
       };
 
       const target = renderInstance(
@@ -1015,6 +1015,7 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, context
       assert.equal(Node.prototype.removeChild.count, 3);
       spyOn.resetSpyCounts();
 
+      debugger;
       rerender(target,
         createInstance(null, PARENT_SPEC, [
           [

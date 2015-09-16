@@ -1,7 +1,7 @@
 import assert                         from 'assert';
 import {setDynamicProp, rerenderProp} from '../src/index.js';
 
-describe('rerenderProp - attr, value, valueAndContext, valueIndex, contextIndex', ()=>{
+describe('rerenderProp - attr, value, valueAndContext, valueIndex, rerenderIndex, rerenderContextIndex', ()=>{
   let node, valueContext;
 
   beforeEach(()=>{
@@ -12,8 +12,8 @@ describe('rerenderProp - attr, value, valueAndContext, valueIndex, contextIndex'
       null
     ];
 
-    setDynamicProp(node, 'className', valueContext, 0, 1);
-    valueContext[1]('className', 'new value', valueContext, 0, 1);
+    setDynamicProp(node, 'className', valueContext, 0, 1, 2);
+    valueContext[1]('className', 'new value', valueContext, 0, 1, 2);
   });
 
   it('updates node property', ()=>{

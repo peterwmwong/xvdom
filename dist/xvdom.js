@@ -50,6 +50,25 @@ var xvdom =
 
 /***/ },
 /* 1 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	exports.__esModule = true;
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
+
+	var _renderJs = __webpack_require__(2);
+
+	var xvdom = _interopRequireWildcard(_renderJs);
+
+	exports['default'] = xvdom;
+
+	window.xvdom = xvdom;
+	module.exports = exports['default'];
+
+/***/ },
+/* 2 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -65,95 +84,99 @@ var xvdom =
 	exports.rerenderArray = rerenderArray;
 	exports.rerender = rerender;
 	exports.createDynamic = createDynamic;
+	exports.unmount = unmount;
+	var RECYCLED = {};
 
-	function rerenderProp(attr, value, valuesAndContext, valueIndex, contextIndex) {
-	  valuesAndContext[valueIndex] = value;
-	  valuesAndContext[contextIndex + 1][attr] = value;
+	function recycle(key, node) {
+	  var stash = RECYCLED[key];
+	  if (stash) stash.push(node);else RECYCLED[key] = [node];
 	}
 
-	function setDynamicProp(node, attr, valueContext, valueIndex, contextIndex) {
+	function getRecycled(key) {
+	  var stash = RECYCLED[key];
+	  if (stash) return stash.pop();
+	}
+
+	function rerenderProp(attr, value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex) {
+	  valuesAndContext[valueIndex] = value;
+	  valuesAndContext[rerenderContextIndex][attr] = value;
+	}
+
+	function setDynamicProp(node, attr, valueContext, valueIndex, rerenderIndex, rerenderContextIndex) {
 	  node[attr] = valueContext[valueIndex];
-	  valueContext[contextIndex] = rerenderProp;
-	  valueContext[contextIndex + 1] = node;
+	  valueContext[rerenderIndex] = rerenderProp;
+	  valueContext[rerenderContextIndex] = node;
 	}
 
 	function renderArray(frag, array) {
 	  var length = array.length;
-	  var markerNode = document.createTextNode('');
 	  var item = undefined;
-	  frag.appendChild(markerNode);
 
 	  for (var i = 0; i < length; ++i) {
 	    item = array[i];
 	    frag.appendChild(item._node = renderInstance(item));
 	  }
-	  return markerNode;
+	  return frag.appendChild(document.createTextNode(''));
 	}
 
-	function rerenderText(value, valuesAndContext, valueIndex, contextIndex) {
+	function rerenderText(value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex) {
 	  if (value == null || value.constructor === String) {
 	    valuesAndContext[valueIndex] = value;
-	    valuesAndContext[contextIndex + 1].nodeValue = value || '';
+	    valuesAndContext[rerenderContextIndex].nodeValue = value || '';
 	  } else {
-	    rerenderDynamic(value, valuesAndContext, valueIndex, contextIndex);
+	    rerenderDynamic(value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex);
 	  }
 	}
 
-	function rerenderDynamic(value, valuesAndContext, valueIndex, contextIndex) {
-	  var prevNode = valuesAndContext[contextIndex + 1];
+	function rerenderDynamic(value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex) {
+	  var prevNode = valuesAndContext[rerenderContextIndex];
 	  valuesAndContext[valueIndex] = value;
-	  prevNode.parentNode.replaceChild(createDynamic(valuesAndContext, valueIndex, contextIndex), prevNode);
+	  prevNode.parentNode.replaceChild(createDynamic(valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex), prevNode);
 	}
 
-	function rerenderInstance(value, valuesAndContext, valueIndex, contextIndex) {
-	  var node = valuesAndContext[contextIndex + 1];
+	function rerenderInstance(value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex) {
+	  var node = valuesAndContext[rerenderContextIndex];
 	  var prevSpec = node.xvdom.spec;
 
 	  if (prevSpec === (value && value.spec)) {
 	    prevSpec.rerender(value.values, node.xvdom.values);
 	    valuesAndContext[valueIndex] = node.xvdom = value;
 	  } else {
-	    rerenderDynamic(value, valuesAndContext, valueIndex, contextIndex);
+	    rerenderDynamic(value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex);
 	  }
 	}
 
-	function renderInstance(value) {
-	  var node = value.spec.render(value.values);
-	  node.xvdom = value;
+	function renderInstance(instance) {
+	  var spec = instance.spec;
+	  var values = instance.values;
+
+	  var node = undefined;
+	  if (spec.recycleKey && (node = getRecycled(spec.recycleKey))) {
+	    spec.rerender(values, node.xvdom.values);
+	    return node;
+	  }
+
+	  node = spec.render(values);
+	  node.xvdom = instance;
 	  return node;
 	}
 
-	// export function rerenderArray(value, valuesAndContext, valueIndex, contextIndex){
-	//   const keyMap = valuesAndContext[contextIndex + 1].xvdomKeymap;
-	//   const length = value.length;
-	//   let i = 0;
-	//   let item, node, itemInstance;
-	//
-	//   while(i < length){
-	//     item         = value[i++];
-	//     node         = keyMap[item.key];
-	//     itemInstance = node.xvdom;
-	//
-	//     itemInstance.spec.rerender(item.values, itemInstance.values);
-	//   }
-	//
-	//   valuesAndContext[valueIndex] = value;
-	// }
-
 	function removeArrayNodes(list, parentNode) {
-	  var length = list.length;
-	  for (var i = 0; i < length; ++i) {
-	    parentNode.removeChild(list[i]._node);
+	  var item = undefined,
+	      node = undefined;
+	  while (item = list.pop()) {
+	    recycle(item.spec.recycleKey, node = item._node);
+	    parentNode.removeChild(node);
 	  }
 	}
 
-	function rerenderArray(list, valuesAndContext, valueIndex, contextIndex) {
-	  var markerNode = valuesAndContext[contextIndex + 1];
+	function rerenderArray(list, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex) {
+	  var markerNode = valuesAndContext[rerenderContextIndex];
 	  var parentNode = markerNode.parentNode;
 
 	  if (!list || list.constructor !== Array) {
 	    removeArrayNodes(valuesAndContext[valueIndex], parentNode);
-	    rerenderDynamic(list, valuesAndContext, valueIndex, contextIndex);
+	    rerenderDynamic(list, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex);
 	    return;
 	  }
 
@@ -161,29 +184,26 @@ var xvdom =
 	  var oldList = valuesAndContext[valueIndex];
 	  var oldLength = oldList.length;
 	  var i = undefined,
-	      key = undefined,
 	      node = undefined,
 	      value = undefined,
 	      insertBeforeNode = undefined;
 
 	  valuesAndContext[valueIndex] = list;
-
 	  if (length === 0) {
 	    removeArrayNodes(oldList, parentNode);
 	    return;
 	  }
 
 	  if (oldLength === 0) {
-	    insertBeforeNode = markerNode.nextSibling;
 	    i = 0;
 	    while (i < length) {
 	      value = list[i++];
-	      parentNode.insertBefore(value._node = renderInstance(value), insertBeforeNode);
+	      value._node = node = renderInstance(value);
+	      parentNode.insertBefore(node, markerNode);
 	    }
 	    return;
 	  }
 
-	  var afterLastNode = oldLength ? oldList[oldLength - 1]._node.nextSibling : null;
 	  var oldEndIndex = oldLength - 1;
 	  var endIndex = length - 1;
 	  var oldStartIndex = 0;
@@ -192,7 +212,8 @@ var xvdom =
 	  var oldStartItem = undefined,
 	      oldEndItem = undefined,
 	      startItem = undefined,
-	      endItem = undefined;
+	      endItem = undefined,
+	      nextItem = undefined;
 
 	  outer: while (successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex) {
 	    successful = false;
@@ -201,9 +222,9 @@ var xvdom =
 	    startItem = list[startIndex];
 	    while (oldStartItem.key === startItem.key) {
 	      node = oldStartItem._node;
-	      startItem._node = node.xvdom ? rerender(node, startItem) : node;
+	      startItem._node = rerender(node, startItem);
 
-	      ++oldStartIndex;++startIndex;
+	      oldStartIndex++;startIndex++;
 	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
 	        break outer;
 	      }
@@ -216,9 +237,9 @@ var xvdom =
 	    endItem = list[endIndex];
 	    while (oldEndItem.key === endItem.key) {
 	      node = oldEndItem._node;
-	      endItem._node = node.xvdom ? rerender(node, endItem) : node;
+	      endItem._node = rerender(node, endItem);
 
-	      --oldEndIndex;--endIndex;
+	      oldEndIndex--;endIndex--;
 	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
 	        break outer;
 	      }
@@ -228,13 +249,13 @@ var xvdom =
 	    }
 
 	    while (oldStartItem.key === endItem.key) {
+	      nextItem = endIndex + 1 < length ? list[endIndex + 1]._node : markerNode;
 	      node = oldStartItem._node;
-	      endItem._node = node.xvdom ? rerender(node, endItem) : node;
-
+	      endItem._node = node = rerender(node, endItem);
 	      if (oldEndItem.key !== endItem.key) {
-	        parentNode.insertBefore(node, oldEndItem._node.nextSibling);
+	        parentNode.insertBefore(node, nextItem);
 	      }
-	      ++oldStartIndex;--endIndex;
+	      oldStartIndex++;endIndex--;
 	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
 	        break outer;
 	      }
@@ -245,12 +266,16 @@ var xvdom =
 
 	    while (oldEndItem.key === startItem.key) {
 	      node = oldEndItem._node;
-	      startItem._node = node.xvdom ? rerender(node, startItem) : node;
-
+	      startItem._node = node = rerender(node, startItem);
+	      nextItem = oldStartItem._node;
 	      if (oldStartItem.key !== startItem.key) {
-	        parentNode.insertBefore(node, oldStartItem._node);
+	        if (nextItem) {
+	          parentNode.insertBefore(node, nextItem);
+	        } else {
+	          parentNode.appendChild(node);
+	        }
 	      }
-	      --oldEndIndex;++startIndex;
+	      oldEndIndex--;startIndex++;
 	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
 	        break outer;
 	      }
@@ -260,38 +285,55 @@ var xvdom =
 	    }
 	  }
 	  if (oldStartIndex > oldEndIndex) {
-	    insertBeforeNode = endItem ? endItem._node : afterLastNode;
+	    insertBeforeNode = endItem ? endItem._node : markerNode;
 	    while (startIndex <= endIndex) {
 	      startItem = list[startIndex++];
-	      parentNode.insertBefore(startItem._node = renderInstance(startItem), insertBeforeNode);
+	      startItem._node = node = renderInstance(startItem);
+	      parentNode.insertBefore(node, insertBeforeNode);
 	    }
 	  } else if (startIndex > endIndex) {
 	    while (oldStartIndex <= oldEndIndex) {
 	      oldStartItem = oldList[oldStartIndex++];
-	      parentNode.removeChild(oldStartItem._node);
+	      recycle(oldStartItem.spec.recycleKey, node = oldStartItem._node);
+	      parentNode.removeChild(node);
 	    }
 	  } else {
 	    var oldListNodeKeyMap = {};
-	    while (oldStartItem) {
-	      oldListNodeKeyMap[oldStartItem.key] = oldStartItem._node;
-	      oldStartItem = oldList[++oldStartIndex];
+	    var saveItem = oldStartItem;
+	    var item = undefined,
+	        prevItem = undefined;
+	    i = oldStartIndex;
+
+	    if (i <= oldEndIndex) {
+	      item = oldList[i++];
+	      oldListNodeKeyMap[item.key] = prevItem = item;
+	    }
+
+	    while (i <= oldEndIndex) {
+	      prevItem.next = item = oldList[i++];
+	      oldListNodeKeyMap[item.key] = prevItem = item;
 	    }
 
 	    while (startIndex <= endIndex) {
 	      startItem = list[startIndex++];
-	      node = oldListNodeKeyMap[startItem.key];
-	      if (!node) {
+	      item = oldListNodeKeyMap[startItem.key];
+	      if (item) {
+	        node = rerender(item._node, startItem);
+	        item._node = null;
+	      } else {
 	        node = renderInstance(startItem);
-	      } else if (node.xvdom) {
-	        node = rerender(node, startItem);
 	      }
-
-	      delete oldListNodeKeyMap[startItem.key];
-	      parentNode.insertBefore(startItem._node = node, afterLastNode);
+	      startItem._node = node;
+	      parentNode.insertBefore(node, markerNode);
 	    }
 
-	    for (key in oldListNodeKeyMap) {
-	      parentNode.removeChild(oldListNodeKeyMap[key]);
+	    while (saveItem) {
+	      node = saveItem._node;
+	      if (node) {
+	        recycle(saveItem.spec.recycleKey, node);
+	        parentNode.removeChild(node);
+	      }
+	      saveItem = saveItem.next;
 	    }
 	  }
 	}
@@ -311,7 +353,7 @@ var xvdom =
 	  return newNode;
 	}
 
-	function createDynamic(valuesAndContext, valueIndex, contextIndex) {
+	function createDynamic(valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex) {
 	  var value = valuesAndContext[valueIndex] || '';
 	  var valueConstructor = value.constructor;
 	  var node = undefined,
@@ -330,9 +372,16 @@ var xvdom =
 	    context = renderArray(node, value);
 	  }
 
-	  valuesAndContext[contextIndex] = rerenderFunc;
-	  valuesAndContext[contextIndex + 1] = context;
+	  valuesAndContext[rerenderIndex] = rerenderFunc;
+	  valuesAndContext[rerenderContextIndex] = context;
 	  return node;
+	}
+
+	function unmount(node) {
+	  if (node.xvdom) {
+	    recycle(node.xvdom.spec.recycleKey, node);
+	  }
+	  if (node.parentNode) node.parentNode.removeChild(node);
 	}
 
 /***/ }

@@ -1,7 +1,7 @@
 import assert         from 'assert';
 import {rerenderText} from '../src/index.js';
 
-describe('rerenderText - newValue, previousValueAndContext, valueIndex, contextIndex', ()=>{
+describe('rerenderText - newValue, previousValueAndContext, valueIndex, rerenderIndex, rerenderContextIndex', ()=>{
   let textNode, valueContext;
 
   beforeEach(()=>{
@@ -16,7 +16,7 @@ describe('rerenderText - newValue, previousValueAndContext, valueIndex, contextI
 
   describe('When `newValue` is a string', ()=>{
     beforeEach(()=>{
-      rerenderText('new text', valueContext, 0, 1);
+      rerenderText('new text', valueContext, 0, 1, 2);
     });
 
     it('updates text node value', ()=>{
@@ -38,7 +38,7 @@ describe('rerenderText - newValue, previousValueAndContext, valueIndex, contextI
 
   describe('When `newValue` is null', ()=>{
     beforeEach(()=>{
-      rerenderText(null, valueContext, 0, 1);
+      rerenderText(null, valueContext, 0, 1, 2);
     });
 
     it('updates text node value', ()=>{
@@ -60,7 +60,7 @@ describe('rerenderText - newValue, previousValueAndContext, valueIndex, contextI
 
   describe('When `newValue` is undefined', ()=>{
     beforeEach(()=>{
-      rerenderText(undefined, valueContext, 0, 1);
+      rerenderText(undefined, valueContext, 0, 1, 2);
     });
 
     it('updates text node value', ()=>{

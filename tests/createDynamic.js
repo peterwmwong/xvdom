@@ -7,7 +7,7 @@ import {
   rerenderArray
 } from '../src/index.js';
 
-describe('createDynamic - valuesAndContext, valueIndex, contextIndex', ()=>{
+describe('createDynamic - valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex', ()=>{
   let parentNode, resultNode;
 
   beforeEach(()=>{
@@ -23,7 +23,7 @@ describe('createDynamic - valuesAndContext, valueIndex, contextIndex', ()=>{
         null/* rerender function */,
         null/* rerender argument */
       ];
-      resultNode = createDynamic(valuesAndContext, 0, 1);
+      resultNode = createDynamic(valuesAndContext, 0, 1, 2);
       parentNode.appendChild(resultNode);
     });
 
@@ -53,7 +53,7 @@ describe('createDynamic - valuesAndContext, valueIndex, contextIndex', ()=>{
         null/* rerender function */,
         null/* rerender argument */
       ];
-      resultNode = createDynamic(valuesAndContext, 0, 1);
+      resultNode = createDynamic(valuesAndContext, 0, 1, 2);
       parentNode.appendChild(resultNode);
     });
 
@@ -95,7 +95,7 @@ describe('createDynamic - valuesAndContext, valueIndex, contextIndex', ()=>{
         null/* rerender function */,
         null/* rerender argument */
       ];
-      resultNode = createDynamic(valuesAndContext, 0, 1);
+      resultNode = createDynamic(valuesAndContext, 0, 1, 2);
       parentNode.appendChild(resultNode);
     });
 
@@ -110,7 +110,7 @@ describe('createDynamic - valuesAndContext, valueIndex, contextIndex', ()=>{
 
     it('sets rerender function and context', ()=>{
       assert.equal(valuesAndContext[1], rerenderArray);
-      assert.equal(valuesAndContext[2], parentNode.firstChild);
+      assert.equal(valuesAndContext[2], parentNode.lastChild);
     });
   });
 });
