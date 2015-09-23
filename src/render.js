@@ -1,13 +1,8 @@
-const RECYCLED = {};
-
-function recycle(key, node){
-  const stash = RECYCLED[key];
+function recycle(stash, node){
   if(stash) stash.push(node);
-  else RECYCLED[key] = [node];
 }
 
-function getRecycled(key){
-  const stash = RECYCLED[key];
+function getRecycled(stash){
   if(stash) return stash.pop();
 }
 
@@ -67,8 +62,8 @@ export function rerenderInstance(value, valuesAndContext, valueIndex, rerenderIn
 
 export function renderInstance(instance){
   const {spec, values} = instance;
-  let node;
-  if(spec.recycleKey && (node = getRecycled(spec.recycleKey))){
+  let node = getRecycled(spec.recycled);
+  if(node){
     spec.rerender(values, node.xvdom.values);
     return node;
   }
@@ -81,7 +76,7 @@ export function renderInstance(instance){
 function removeArrayNodes(list, parentNode){
   let item, node;
   while(item = list.pop()){
-    recycle(item.spec.recycleKey, node = item._node);
+    recycle(item.spec.recycled, node = item._node);
     parentNode.removeChild(node);
   }
 }
@@ -205,7 +200,7 @@ export function rerenderArray(list, valuesAndContext, valueIndex, rerenderIndex,
   else if(startIndex > endIndex){
     while(oldStartIndex <= oldEndIndex){
       oldStartItem = oldList[oldStartIndex++];
-      recycle(oldStartItem.spec.recycleKey, node = oldStartItem._node);
+      recycle(oldStartItem.spec.recycled, node = oldStartItem._node);
       parentNode.removeChild(node);
     }
   }
@@ -243,7 +238,7 @@ export function rerenderArray(list, valuesAndContext, valueIndex, rerenderIndex,
     while(saveItem){
       node = saveItem._node;
       if(node){
-        recycle(saveItem.spec.recycleKey, node);
+        recycle(saveItem.spec.recycled, node);
         parentNode.removeChild(node);
       }
       saveItem = saveItem.next;
@@ -290,7 +285,7 @@ export function createDynamic(valuesAndContext, valueIndex, rerenderIndex, reren
 
 export function unmount(node){
   if(node.xvdom){
-    recycle(node.xvdom.spec.recycleKey, node);
+    recycle(node.xvdom.spec.recycled, node);
   }
   if(node.parentNode) node.parentNode.removeChild(node);
 }

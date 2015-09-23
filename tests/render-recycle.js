@@ -10,9 +10,9 @@ import {
   unmount
 } from '../src/index.js';
 
-describe('rerender - node, renderInstance (recycle)', ()=>{
+describe('rerender recycled - node, renderInstance', ()=>{
   const SPEC = {
-    recycleKey: 'render-recycle-spec',
+    recycled: [],
     render: vc=>{
       const div = document.createElement('div');
       setDynamicProp(div, 'className', vc, 0, 1, 2);
@@ -63,7 +63,7 @@ describe('rerender - node, renderInstance (recycle)', ()=>{
 
   describe('Arrays', ()=>{
     const PARENT_SPEC = {
-      recycleKey: 'render-recycle-parent-spec',
+      recycled: [],
       render: vc=>{
         const div = document.createElement('div');
         div.appendChild(createDynamic(vc, 0, 1, 2));
@@ -72,7 +72,7 @@ describe('rerender - node, renderInstance (recycle)', ()=>{
       rerender: (v, vc)=>{ vc[1](v[0], vc, 0, 1, 2); }
     };
     const CHILD_SPEC = {
-      recycleKey: 'render-recycle-child-spec',
+      recycled: [],
       render: vc=>{
         const div = document.createElement('div');
         setDynamicProp(div, 'className', vc, 0, 1, 2);
@@ -86,7 +86,8 @@ describe('rerender - node, renderInstance (recycle)', ()=>{
         createInstance(null, PARENT_SPEC, [
           [
             createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1'])
+            createInstance(1, CHILD_SPEC, ['_1']),
+            createInstance(2, CHILD_SPEC, ['_2'])
           ]
         ])
       );
@@ -95,20 +96,24 @@ describe('rerender - node, renderInstance (recycle)', ()=>{
         '<div>'+
           '<div class="_0"></div>'+
           '<div class="_1"></div>'+
+          '<div class="_2"></div>'+
         '</div>'
       );
-      assert.equal(document.createElement.count, 3);
+      assert.equal(document.createElement.count, 4);
       assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
       rerender(target,
         createInstance(null, PARENT_SPEC, [
-          []
+          [
+            createInstance(0, CHILD_SPEC, ['_0'])
+          ]
         ])
       );
 
       assert.equal(getHTMLString(target),
         '<div>'+
+          '<div class="_0"></div>'+
         '</div>'
       );
       assert.equal(document.createElement.count , 0);
@@ -119,7 +124,8 @@ describe('rerender - node, renderInstance (recycle)', ()=>{
         createInstance(null, PARENT_SPEC, [
           [
             createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1'])
+            createInstance(1, CHILD_SPEC, ['_1']),
+            createInstance(2, CHILD_SPEC, ['_2'])
           ]
         ])
       );
@@ -128,6 +134,46 @@ describe('rerender - node, renderInstance (recycle)', ()=>{
         '<div>'+
           '<div class="_0"></div>'+
           '<div class="_1"></div>'+
+          '<div class="_2"></div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 0);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
+
+      rerender(target,
+        createInstance(null, PARENT_SPEC, [
+          [
+            createInstance(0, CHILD_SPEC, ['_0'])
+          ]
+        ])
+      );
+
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div class="_0"></div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count , 0);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
+
+
+      rerender(target,
+        createInstance(null, PARENT_SPEC, [
+          [
+            createInstance(0, CHILD_SPEC, ['_0']),
+            createInstance(1, CHILD_SPEC, ['_1']),
+            createInstance(2, CHILD_SPEC, ['_2'])
+          ]
+        ])
+      );
+
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div class="_0"></div>'+
+          '<div class="_1"></div>'+
+          '<div class="_2"></div>'+
         '</div>'
       );
       assert.equal(document.createElement.count, 0);

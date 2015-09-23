@@ -85,15 +85,11 @@ var xvdom =
 	exports.rerender = rerender;
 	exports.createDynamic = createDynamic;
 	exports.unmount = unmount;
-	var RECYCLED = {};
-
-	function recycle(key, node) {
-	  var stash = RECYCLED[key];
-	  if (stash) stash.push(node);else RECYCLED[key] = [node];
+	function recycle(stash, node) {
+	  if (stash) stash.push(node);
 	}
 
-	function getRecycled(key) {
-	  var stash = RECYCLED[key];
+	function getRecycled(stash) {
 	  if (stash) return stash.pop();
 	}
 
@@ -150,8 +146,8 @@ var xvdom =
 	  var spec = instance.spec;
 	  var values = instance.values;
 
-	  var node = undefined;
-	  if (spec.recycleKey && (node = getRecycled(spec.recycleKey))) {
+	  var node = getRecycled(spec.recycled);
+	  if (node) {
 	    spec.rerender(values, node.xvdom.values);
 	    return node;
 	  }
@@ -165,7 +161,7 @@ var xvdom =
 	  var item = undefined,
 	      node = undefined;
 	  while (item = list.pop()) {
-	    recycle(item.spec.recycleKey, node = item._node);
+	    recycle(item.spec.recycled, node = item._node);
 	    parentNode.removeChild(node);
 	  }
 	}
@@ -294,7 +290,7 @@ var xvdom =
 	  } else if (startIndex > endIndex) {
 	    while (oldStartIndex <= oldEndIndex) {
 	      oldStartItem = oldList[oldStartIndex++];
-	      recycle(oldStartItem.spec.recycleKey, node = oldStartItem._node);
+	      recycle(oldStartItem.spec.recycled, node = oldStartItem._node);
 	      parentNode.removeChild(node);
 	    }
 	  } else {
@@ -330,7 +326,7 @@ var xvdom =
 	    while (saveItem) {
 	      node = saveItem._node;
 	      if (node) {
-	        recycle(saveItem.spec.recycleKey, node);
+	        recycle(saveItem.spec.recycled, node);
 	        parentNode.removeChild(node);
 	      }
 	      saveItem = saveItem.next;
@@ -379,7 +375,7 @@ var xvdom =
 
 	function unmount(node) {
 	  if (node.xvdom) {
-	    recycle(node.xvdom.spec.recycleKey, node);
+	    recycle(node.xvdom.spec.recycled, node);
 	  }
 	  if (node.parentNode) node.parentNode.removeChild(node);
 	}
