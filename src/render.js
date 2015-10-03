@@ -70,7 +70,6 @@ function removeArrayNodes(list, parentNode){
     recycle(item.spec.recycled, node = item._node);
     parentNode.removeChild(node);
   }
-  list.length = 0;
 }
 
 export function rerenderArray(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode){
