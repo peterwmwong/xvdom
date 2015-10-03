@@ -69,24 +69,31 @@ describe('rerender recycled - node, renderInstance', ()=>{
     );
   });
 
-  xdescribe('Arrays', ()=>{
+  describe('Arrays', ()=>{
     const PARENT_SPEC = {
       recycled: [],
-      render: vc=>{
+      render: inst=>{
         const div = document.createElement('div');
-        div.appendChild(createDynamic(vc, 0, 1, 2));
+        // div.appendChild(createDynamic(vc, 0, 1, 2));
+        div.appendChild(createDynamic(inst.v0, inst, 'r0', 'c0'));
         return div;
       },
-      rerender: (v, vc)=>{ vc[1](v[0], vc, 0, 1, 2); }
+      rerender(inst, pInst){
+        if(inst.v0 !== pInst.v0){
+          pInst.r0(inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
+          pInst.v0 = inst.v0;
+        }
+      }
     };
     const CHILD_SPEC = {
       recycled: [],
-      render: vc=>{
+      render: inst=>{
         const div = document.createElement('div');
-        setDynamicProp(div, 'className', vc, 0, 1, 2);
+        div.className = inst.v0;
+        inst.c0 = div;
         return div;
       },
-      rerender: (v, vc)=>{ vc[1]('className', v[0], vc, 0, 1, 2); }
+      rerender: (inst, pInst)=>{ pInst.c0.className = inst.v0; }
     };
 
     it('Remove from the end', ()=>{

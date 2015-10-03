@@ -42,17 +42,15 @@ export function rerenderDynamic(value, oldValue, contextNode, instance, rerender
   );
 }
 
-export function rerenderInstance(value, valuesAndContext, valueIndex, rerenderFuncProp, rerenderContextNode){
-  const node     = valuesAndContext[rerenderContextNode];
-  const prevSpec = node.xvdom.spec;
+export function rerenderInstance(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode){
+  const prevSpec = prevValue.spec;
 
   if(prevSpec === (value && value.spec)){
-    prevSpec.rerender(value.values, node.xvdom.values);
-    valuesAndContext[valueIndex] = node.xvdom = value;
+    prevSpec.rerender(value, prevValue);
     return;
   }
 
-  rerenderDynamic(value, valuesAndContext, valueIndex, rerenderFuncProp, rerenderContextNode);
+  rerenderDynamic(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode);
 }
 
 export function renderInstance(instance){

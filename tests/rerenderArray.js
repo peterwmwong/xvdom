@@ -6,8 +6,7 @@ import {
   createDynamic,
   rerender,
   rerenderArray,
-  renderInstance,
-  setDynamicProp
+  renderInstance
 } from '../src/index.js';
 
 describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerenderIndex, rerenderContextIndex', ()=>{
@@ -116,11 +115,9 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     const PARENT_SPEC = {
       render: inst=>{
         const div = document.createElement('div');
-        // div.appendChild(createDynamic(vc, 0, 1, 2));
         div.appendChild(createDynamic(inst.v0, inst, 'r0', 'c0'));
         return div;
       },
-      // rerender: (v, vc)=>{ vc[1](v[0], vc, 0, 1, 2); }
       rerender(inst, pInst){
         if(inst.v0 !== pInst.v0){
           pInst.r0(inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
@@ -132,14 +129,12 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     const CHILD_SPEC = {
       render: inst=>{
         const div = document.createElement('div');
-        // setDynamicProp(div, 'className', vc, 0, 1, 2);
         inst.c0 = div;
         div.className = inst.v0;
         return div;
       },
       rerender: (inst, pInst)=>{
         if(inst.v0 !== pInst.v0){
-          // pInst.r0('className', inst.v0, pInst.c0);
           pInst.c0.className = inst.v0;
           pInst.v0 = inst.v0;
         }
@@ -341,14 +336,19 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
 
     it('Reordering in the middle of statics', ()=>{
       const parentWithStaticsSpec = {
-        render: vc=>{
+        render: inst=>{
           const div = document.createElement('div');
           div.appendChild(document.createElement('a'));
-          div.appendChild(createDynamic(vc, 0, 1));
+          div.appendChild(createDynamic(inst.v0, inst, 'r0', 'c0'));
           div.appendChild(document.createElement('b'));
           return div;
         },
-        rerender: (v, vc)=>{ vc[1](v[0], vc, 0, 1, 2); }
+        rerender(inst, pInst){
+          if(inst.v0 !== pInst.v0){
+            pInst.r0(inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
+            pInst.v0 = inst.v0;
+          }
+        }
       };
 
       const target = renderInstance(
@@ -1356,14 +1356,19 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
 
     describe('In the middle of statics', ()=>{
       const parentWithStaticsSpec = {
-        render: vc=>{
+        render: inst=>{
           const div = document.createElement('div');
           div.appendChild(document.createElement('a'));
-          div.appendChild(createDynamic(vc, 0, 1));
+          div.appendChild(createDynamic(inst.v0, inst, 'r0', 'c0'));
           div.appendChild(document.createElement('b'));
           return div;
         },
-        rerender: (v, vc)=>{ vc[1](v[0], vc, 0, 1); }
+        rerender(inst, pInst){
+          if(inst.v0 !== pInst.v0){
+            pInst.r0(inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
+            pInst.v0 = inst.v0;
+          }
+        }
       };
       let target;
 
@@ -1528,12 +1533,15 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
 
     it('Update array items (item changes spec)', ()=>{
       const childSpec2 = {
-        render: vc=>{
+        render: inst=>{
           const a = document.createElement('a');
-          setDynamicProp(a, 'id', vc, 0, 1);
+          a.id = inst.v0;
+          inst.c0 = a;
           return a;
         },
-        rerender: (v, vc)=>{ vc[1]('id', v[0], vc, 0, 1); }
+        rerender: (inst, pInst)=>{
+          pInst.c0.id = inst.v0;
+        }
       };
 
       const target = renderInstance(

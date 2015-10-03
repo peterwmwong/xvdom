@@ -1,8 +1,8 @@
 import assert             from 'assert';
 import {rerenderInstance} from '../src/index.js';
 
-describe('rerenderInstance - newValue, previousValueAndContext, valueIndex, rerenderIndex, rerenderContextIndex', ()=>{
-  let node, valueContext, specRerenderArgs, specRerenderCallCount;
+describe('rerenderInstance - value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode', ()=>{
+  let node, initialInstance, specRerenderArgs, specRerenderCallCount;
   const MOCK_RERENDER_VALUES = [1, 2, 3];
   const SPEC = {
     rerender: (...args)=>{
@@ -15,17 +15,15 @@ describe('rerenderInstance - newValue, previousValueAndContext, valueIndex, rere
     const initialValue = 'initial text';
     node = document.createElement('div');
 
-    valueContext = [
-      initialValue,
-      rerenderInstance,
-      node
-    ];
+    initialInstance = {
+      spec: SPEC,
+      v0: initialValue,
+      r0: rerenderInstance,
+      c0: node
+    };
 
     // Previous Render Instance
-    node.xvdom = {
-      spec: SPEC,
-      values: valueContext
-    };
+    node.xvdom = initialInstance;
 
     specRerenderArgs = null;
 
@@ -36,30 +34,26 @@ describe('rerenderInstance - newValue, previousValueAndContext, valueIndex, rere
     let instance;
 
     beforeEach(()=>{
-      instance = {spec: SPEC, values: MOCK_RERENDER_VALUES};
-      rerenderInstance(instance, valueContext, 0, 1, 2);
+      instance = {spec:SPEC, v0:MOCK_RERENDER_VALUES};
+      rerenderInstance(instance, initialInstance, node, 'r0', 'c0');
     });
 
     it('calls spec `rerender()`', ()=>{
       assert.equal(specRerenderCallCount, 1);
-      assert.equal(specRerenderArgs[0], MOCK_RERENDER_VALUES);
-      assert.equal(specRerenderArgs[1], valueContext);
+      assert.equal(specRerenderArgs[0], instance);
+      assert.equal(specRerenderArgs[1], initialInstance);
     });
 
-    it('updates `node.xvdom` with latest instance', ()=>{
-      assert.equal(node.xvdom, instance);
+    it('`node.xvdom` continues to be initial instance object', ()=>{
+      assert.equal(node.xvdom, initialInstance);
     });
 
-    it('previousValuesContext value is updated', ()=>{
-      assert.equal(valueContext[0], instance);
+    it('initial instance rerender function is `rerenderInstance`', ()=>{
+      assert.equal(initialInstance.r0, rerenderInstance);
     });
 
-    it('previousValuesContext rerender function is `rerenderInstance`', ()=>{
-      assert.equal(valueContext[1], rerenderInstance);
-    });
-
-    it('previousValuesContext context is the node', ()=>{
-      assert.equal(valueContext[2], node);
+    it('initail instance context node is the node', ()=>{
+      assert.equal(initialInstance.c0, node);
     });
   });
 });
