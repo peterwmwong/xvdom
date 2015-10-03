@@ -137,7 +137,6 @@ var xvdom =
 
 	function renderInstance(instance) {
 	  var spec = instance.spec;
-	  // TODO: Inline getRecycled
 	  var node = spec.recycled && spec.recycled.pop();
 	  if (node) {
 	    spec.rerender(instance, node.xvdom);
@@ -156,7 +155,6 @@ var xvdom =
 	    recycle(item.spec.recycled, node = item._node);
 	    parentNode.removeChild(node);
 	  }
-	  list.length = 0;
 	}
 
 	function rerenderArray(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
