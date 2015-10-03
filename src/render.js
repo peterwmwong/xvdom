@@ -53,7 +53,6 @@ export function rerenderInstance(value, prevValue, node, instance, rerenderFuncP
 
 export function renderInstance(instance){
   const spec = instance.spec;
-  // TODO: Inline getRecycled
   let node = spec.recycled && spec.recycled.pop();
   if(node){
     spec.rerender(instance, node.xvdom);
