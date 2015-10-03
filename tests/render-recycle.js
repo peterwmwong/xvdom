@@ -15,12 +15,15 @@ describe('rerender recycled - node, renderInstance', ()=>{
     recycled: [],
     render: inst=>{
       const div = document.createElement('div');
-      setDynamicProp(div, 'className', inst.v0, inst, 'r0', 'c0');
+      // setDynamicProp(div, 'className', inst.v0, inst, 'r0', 'c0');
+      inst.c0 = div;
+      div.className = inst.v0;
       return div;
     },
     rerender: (inst, pInst)=>{
       if(inst.v0 !== pInst.v0){
-        pInst.r0('className', inst.v0, pInst.c0);
+        // pInst.r0('className', inst.v0, pInst.c0);
+        pInst.c0.className = inst.v0;
         pInst.v0 = inst.v0;
       }
     }
