@@ -6,7 +6,6 @@ import {
   createDynamic,
   renderInstance,
   rerender,
-  setDynamicProp,
   unmount
 } from '../src/index.js';
 

@@ -1,9 +1,7 @@
+const EMPTY_STRING = '';
+
 function recycle(stash, node){
   if(stash) stash.push(node);
-}
-
-function getRecycled(stash){
-  if(stash) return stash.pop();
 }
 
 export function rerenderProp(attr, value, contextNode){
@@ -24,12 +22,12 @@ export function renderArray(frag, array){
     item = array[i];
     frag.appendChild(item._node = renderInstance(item));
   }
-  return frag.appendChild(document.createTextNode(''));
+  return frag.appendChild(document.createTextNode(EMPTY_STRING));
 }
 
 export function rerenderText(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode){
   if(value == null || value.constructor === String){
-    contextNode.nodeValue = value || '';
+    contextNode.nodeValue = value || EMPTY_STRING;
     return;
   }
   rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode);
@@ -56,7 +54,7 @@ export function rerenderInstance(value, prevValue, node, instance, rerenderFuncP
 export function renderInstance(instance){
   const spec = instance.spec;
   // TODO: Inline getRecycled
-  let node = getRecycled(spec.recycled);
+  let node = spec.recycled && spec.recycled.pop();
   if(node){
     spec.rerender(instance, node.xvdom);
     return node;
@@ -73,26 +71,22 @@ function removeArrayNodes(list, parentNode){
     recycle(item.spec.recycled, node = item._node);
     parentNode.removeChild(node);
   }
+  list.length = 0;
 }
 
-// pInst.r0(inst.v0, pInst.c0, pInst, 'r0', 'c0');
 export function rerenderArray(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode){
-  // const markerNode = valuesAndContext[rerenderContextNode];
   const parentNode = markerNode.parentNode;
 
   if(!list || list.constructor !== Array){
     removeArrayNodes(oldList, parentNode);
-    // rerenderDynamic(list, valuesAndContext, valueIndex, rerenderFuncProp, rerenderContextNode);
     rerenderDynamic(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
     return;
   }
 
   const length    = list.length;
-  // const oldList   = valuesAndContext[valueIndex];
   const oldLength = oldList.length;
   let i, node, value, insertBeforeNode;
 
-  // valuesAndContext[valueIndex] = list;
   if(length === 0){
     removeArrayNodes(oldList, parentNode);
     return;
@@ -222,7 +216,6 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
       if(item){
         node = rerender(item._node, startItem);
         item._node = null;
-
       }
       else{
         node = renderInstance(startItem);
@@ -256,7 +249,7 @@ export function rerender(node, instance){
 }
 
 export function createDynamic(value, instance, rerenderFuncProp, rerenderContextNode){
-  value                  = value || '';
+  value                  = value || EMPTY_STRING;
   const valueConstructor = value.constructor;
   let node, context, rerenderFunc;
 

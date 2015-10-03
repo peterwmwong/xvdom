@@ -85,23 +85,20 @@ var xvdom =
 	exports.rerender = rerender;
 	exports.createDynamic = createDynamic;
 	exports.unmount = unmount;
+	var EMPTY_STRING = '';
+
 	function recycle(stash, node) {
 	  if (stash) stash.push(node);
 	}
 
-	function getRecycled(stash) {
-	  if (stash) return stash.pop();
+	function rerenderProp(attr, value, contextNode) {
+	  contextNode[attr] = value;
 	}
 
-	function rerenderProp(attr, value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex) {
-	  valuesAndContext[valueIndex] = value;
-	  valuesAndContext[rerenderContextIndex][attr] = value;
-	}
-
-	function setDynamicProp(node, attr, valueContext, valueIndex, rerenderIndex, rerenderContextIndex) {
-	  node[attr] = valueContext[valueIndex];
-	  valueContext[rerenderIndex] = rerenderProp;
-	  valueContext[rerenderContextIndex] = node;
+	function setDynamicProp(node, attr, value, instance, rerenderFuncProp, rerenderContextNode) {
+	  node[attr] = value;
+	  instance[rerenderFuncProp] = rerenderProp;
+	  instance[rerenderContextNode] = node;
 	}
 
 	function renderArray(frag, array) {
@@ -112,47 +109,42 @@ var xvdom =
 	    item = array[i];
 	    frag.appendChild(item._node = renderInstance(item));
 	  }
-	  return frag.appendChild(document.createTextNode(''));
+	  return frag.appendChild(document.createTextNode(EMPTY_STRING));
 	}
 
-	function rerenderText(value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex) {
+	function rerenderText(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
 	  if (value == null || value.constructor === String) {
-	    valuesAndContext[valueIndex] = value;
-	    valuesAndContext[rerenderContextIndex].nodeValue = value || '';
-	  } else {
-	    rerenderDynamic(value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex);
+	    contextNode.nodeValue = value || EMPTY_STRING;
+	    return;
 	  }
+	  rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode);
 	}
 
-	function rerenderDynamic(value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex) {
-	  var prevNode = valuesAndContext[rerenderContextIndex];
-	  valuesAndContext[valueIndex] = value;
-	  prevNode.parentNode.replaceChild(createDynamic(valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex), prevNode);
+	function rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
+	  contextNode.parentNode.replaceChild(createDynamic(value, instance, rerenderFuncProp, rerenderContextNode), contextNode);
 	}
 
-	function rerenderInstance(value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex) {
-	  var node = valuesAndContext[rerenderContextIndex];
-	  var prevSpec = node.xvdom.spec;
+	function rerenderInstance(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode) {
+	  var prevSpec = prevValue.spec;
 
 	  if (prevSpec === (value && value.spec)) {
-	    prevSpec.rerender(value.values, node.xvdom.values);
-	    valuesAndContext[valueIndex] = node.xvdom = value;
-	  } else {
-	    rerenderDynamic(value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex);
+	    prevSpec.rerender(value, prevValue);
+	    return;
 	  }
+
+	  rerenderDynamic(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode);
 	}
 
 	function renderInstance(instance) {
 	  var spec = instance.spec;
-	  var values = instance.values;
-
-	  var node = getRecycled(spec.recycled);
+	  // TODO: Inline getRecycled
+	  var node = spec.recycled && spec.recycled.pop();
 	  if (node) {
-	    spec.rerender(values, node.xvdom.values);
+	    spec.rerender(instance, node.xvdom);
 	    return node;
 	  }
 
-	  node = spec.render(values);
+	  node = spec.render(instance);
 	  node.xvdom = instance;
 	  return node;
 	}
@@ -164,27 +156,25 @@ var xvdom =
 	    recycle(item.spec.recycled, node = item._node);
 	    parentNode.removeChild(node);
 	  }
+	  list.length = 0;
 	}
 
-	function rerenderArray(list, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex) {
-	  var markerNode = valuesAndContext[rerenderContextIndex];
+	function rerenderArray(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
 	  var parentNode = markerNode.parentNode;
 
 	  if (!list || list.constructor !== Array) {
-	    removeArrayNodes(valuesAndContext[valueIndex], parentNode);
-	    rerenderDynamic(list, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex);
+	    removeArrayNodes(oldList, parentNode);
+	    rerenderDynamic(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
 	    return;
 	  }
 
 	  var length = list.length;
-	  var oldList = valuesAndContext[valueIndex];
 	  var oldLength = oldList.length;
 	  var i = undefined,
 	      node = undefined,
 	      value = undefined,
 	      insertBeforeNode = undefined;
 
-	  valuesAndContext[valueIndex] = list;
 	  if (length === 0) {
 	    removeArrayNodes(oldList, parentNode);
 	    return;
@@ -337,10 +327,8 @@ var xvdom =
 	function rerender(node, instance) {
 	  var prevInstance = node.xvdom;
 	  var spec = instance.spec;
-	  var values = instance.values;
-
 	  if (spec === prevInstance.spec) {
-	    spec.rerender(values, prevInstance.values);
+	    spec.rerender(instance, prevInstance);
 	    return node;
 	  }
 
@@ -349,8 +337,8 @@ var xvdom =
 	  return newNode;
 	}
 
-	function createDynamic(valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex) {
-	  var value = valuesAndContext[valueIndex] || '';
+	function createDynamic(value, instance, rerenderFuncProp, rerenderContextNode) {
+	  value = value || EMPTY_STRING;
 	  var valueConstructor = value.constructor;
 	  var node = undefined,
 	      context = undefined,
@@ -368,15 +356,13 @@ var xvdom =
 	    context = renderArray(node, value);
 	  }
 
-	  valuesAndContext[rerenderIndex] = rerenderFunc;
-	  valuesAndContext[rerenderContextIndex] = context;
+	  instance[rerenderFuncProp] = rerenderFunc;
+	  instance[rerenderContextNode] = context;
 	  return node;
 	}
 
 	function unmount(node) {
-	  if (node.xvdom) {
-	    recycle(node.xvdom.spec.recycled, node);
-	  }
+	  if (node.xvdom) recycle(node.xvdom.spec.recycled, node);
 	  if (node.parentNode) node.parentNode.removeChild(node);
 	}
 
