@@ -10,7 +10,7 @@ import {
   setDynamicProp
 } from '../src/index.js';
 
-describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerenderIndex, rerenderContextIndex', ()=>{
+xdescribe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerenderIndex, rerenderContextIndex', ()=>{
 
   beforeEach(()=>{
     spyOn.uninstall();

@@ -1,82 +1,32 @@
 import assert         from 'assert';
 import {rerenderText} from '../src/index.js';
 
-describe('rerenderText - newValue, previousValueAndContext, valueIndex, rerenderIndex, rerenderContextIndex', ()=>{
-  let textNode, valueContext;
+describe('rerenderText - value, contextNode, instance, rerenderIndex, rerenderContextIndex', ()=>{
+  let textNode, instance;
 
   beforeEach(()=>{
     const initialValue = 'initial text';
     textNode = document.createTextNode(initialValue);
-    valueContext = [
-      initialValue,
-      rerenderText,
-      textNode
-    ];
+    instance = {spec:null}
   });
 
   describe('When `newValue` is a string', ()=>{
     beforeEach(()=>{
-      rerenderText('new text', valueContext, 0, 1, 2);
+      rerenderText('new text', textNode, instance, 'r0', 'c0');
     });
 
     it('updates text node value', ()=>{
       assert.equal(textNode.nodeValue, 'new text');
     });
-
-    it('previousValuesContext value is updated', ()=>{
-      assert.equal(valueContext[0], 'new text');
-    });
-
-    it('previousValuesContext rerender function is `rerenderText`', ()=>{
-      assert.equal(valueContext[1], rerenderText);
-    });
-
-    it('previousValuesContext context is the node', ()=>{
-      assert.equal(valueContext[2], textNode);
-    });
   });
 
-  describe('When `newValue` is null', ()=>{
-    beforeEach(()=>{
-      rerenderText(null, valueContext, 0, 1, 2);
-    });
-
-    it('updates text node value', ()=>{
+  describe('When `newValue` is null or undefined', ()=>{
+    it('updates text node value to ""', ()=>{
+      rerenderText(null, textNode, instance, 'r0', 'c0');
       assert.equal(textNode.nodeValue, '');
-    });
 
-    it('previousValuesContext value is updated', ()=>{
-      assert.equal(valueContext[0], null);
-    });
-
-    it('previousValuesContext rerender function is `rerenderText`', ()=>{
-      assert.equal(valueContext[1], rerenderText);
-    });
-
-    it('previousValuesContext context is the node', ()=>{
-      assert.equal(valueContext[2], textNode);
-    });
-  });
-
-  describe('When `newValue` is undefined', ()=>{
-    beforeEach(()=>{
-      rerenderText(undefined, valueContext, 0, 1, 2);
-    });
-
-    it('updates text node value', ()=>{
+      rerenderText(undefined, textNode, instance, 'r0', 'c0');
       assert.equal(textNode.nodeValue, '');
-    });
-
-    it('previousValuesContext value is updated', ()=>{
-      assert.equal(valueContext[0], undefined);
-    });
-
-    it('previousValuesContext rerender function is `rerenderText`', ()=>{
-      assert.equal(valueContext[1], rerenderText);
-    });
-
-    it('previousValuesContext context is the node', ()=>{
-      assert.equal(valueContext[2], textNode);
     });
   });
 });

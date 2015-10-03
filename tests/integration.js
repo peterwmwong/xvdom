@@ -8,13 +8,16 @@ import {
 
 describe('Integration', ()=>{
   const SPEC = {
-    render: vc=>{
+    render: inst=>{
       const node = document.createElement('div');
-      node.appendChild(createDynamic(vc, 0, 1));
+      node.appendChild(createDynamic(inst.v0, inst, 'r0', 'c0'));
       return node;
     },
-    rerender: (v, vc)=>{
-      if(v[0] !== vc[0]) vc[1](v[0], vc, 0, 1);
+    rerender: (inst, pInst)=>{
+      if(inst.v0 !== pInst.v0){
+        pInst.r0(inst.v0, pInst.c0, pInst, 'r0', 'c0');
+        pInst.v0 = inst.v0;
+      }
     }
   };
   let node;
@@ -22,7 +25,7 @@ describe('Integration', ()=>{
   describe('Dynamic changing type', ()=>{
     describe('From String', ()=>{
       beforeEach(()=>{
-        node = renderInstance({spec: SPEC, values: ['hello world']});
+        node = renderInstance({spec:SPEC, v0:'hello world'});
       });
 
       it('renders', ()=>{
@@ -39,7 +42,7 @@ describe('Integration', ()=>{
         };
 
         beforeEach(()=>{
-          rerender(node, {spec:SPEC, values: [renderInstance]});
+          rerender(node, {spec:SPEC, v0:renderInstance});
         });
 
         it('rerenders', ()=>{

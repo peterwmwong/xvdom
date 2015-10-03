@@ -6,15 +6,14 @@ function getRecycled(stash){
   if(stash) return stash.pop();
 }
 
-export function rerenderProp(attr, value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex){
-  valuesAndContext[valueIndex] = value;
-  valuesAndContext[rerenderContextIndex][attr] = value;
+export function rerenderProp(attr, value, contextNode){
+  contextNode[attr] = value;
 }
 
-export function setDynamicProp(node, attr, valueContext, valueIndex, rerenderIndex, rerenderContextIndex){
-  node[attr] = valueContext[valueIndex];
-  valueContext[rerenderIndex] = rerenderProp;
-  valueContext[rerenderContextIndex] = node;
+export function setDynamicProp(node, attr, value, instance, rerenderFuncProp, rerenderContextNode){
+  node[attr] = value;
+  instance[rerenderFuncProp] = rerenderProp;
+  instance[rerenderContextNode] = node;
 }
 
 export function renderArray(frag, array){
@@ -28,47 +27,44 @@ export function renderArray(frag, array){
   return frag.appendChild(document.createTextNode(''));
 }
 
-export function rerenderText(value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex){
+export function rerenderText(value, contextNode, instance, rerenderFuncProp, rerenderContextNode){
   if(value == null || value.constructor === String){
-    valuesAndContext[valueIndex] = value;
-    valuesAndContext[rerenderContextIndex].nodeValue = value || '';
+    contextNode.nodeValue = value || '';
+    return;
   }
-  else{
-    rerenderDynamic(value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex);
-  }
+  rerenderDynamic(value, contextNode, instance, rerenderFuncProp, rerenderContextNode);
 }
 
-export function rerenderDynamic(value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex){
-  const prevNode = valuesAndContext[rerenderContextIndex];
-  valuesAndContext[valueIndex] = value;
-  prevNode.parentNode.replaceChild(
-    createDynamic(valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex),
-    prevNode
+export function rerenderDynamic(value, contextNode, instance, rerenderFuncProp, rerenderContextNode){
+  contextNode.parentNode.replaceChild(
+    createDynamic(value, instance, rerenderFuncProp, rerenderContextNode),
+    contextNode
   );
 }
 
-export function rerenderInstance(value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex){
-  const node     = valuesAndContext[rerenderContextIndex];
+export function rerenderInstance(value, valuesAndContext, valueIndex, rerenderFuncProp, rerenderContextNode){
+  const node     = valuesAndContext[rerenderContextNode];
   const prevSpec = node.xvdom.spec;
 
   if(prevSpec === (value && value.spec)){
     prevSpec.rerender(value.values, node.xvdom.values);
     valuesAndContext[valueIndex] = node.xvdom = value;
+    return;
   }
-  else{
-    rerenderDynamic(value, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex);
-  }
+
+  rerenderDynamic(value, valuesAndContext, valueIndex, rerenderFuncProp, rerenderContextNode);
 }
 
 export function renderInstance(instance){
-  const {spec, values} = instance;
+  const spec = instance.spec;
+  // TODO: Inline getRecycled
   let node = getRecycled(spec.recycled);
   if(node){
-    spec.rerender(values, node.xvdom.values);
+    spec.rerender(instance, node.xvdom);
     return node;
   }
 
-  node       = spec.render(values);
+  node       = spec.render(instance);
   node.xvdom = instance;
   return node;
 }
@@ -81,13 +77,13 @@ function removeArrayNodes(list, parentNode){
   }
 }
 
-export function rerenderArray(list, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex){
-  const markerNode = valuesAndContext[rerenderContextIndex];
+export function rerenderArray(list, valuesAndContext, valueIndex, rerenderFuncProp, rerenderContextNode){
+  const markerNode = valuesAndContext[rerenderContextNode];
   const parentNode = markerNode.parentNode;
 
   if(!list || list.constructor !== Array){
     removeArrayNodes(valuesAndContext[valueIndex], parentNode);
-    rerenderDynamic(list, valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex);
+    rerenderDynamic(list, valuesAndContext, valueIndex, rerenderFuncProp, rerenderContextNode);
     return;
   }
 
@@ -248,9 +244,9 @@ export function rerenderArray(list, valuesAndContext, valueIndex, rerenderIndex,
 
 export function rerender(node, instance){
   const prevInstance   = node.xvdom;
-  const {spec, values} = instance;
+  const spec = instance.spec;
   if(spec === prevInstance.spec){
-    spec.rerender(values, prevInstance.values);
+    spec.rerender(instance, prevInstance);
     return node;
   }
 
@@ -259,8 +255,8 @@ export function rerender(node, instance){
   return newNode;
 }
 
-export function createDynamic(valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex){
-  const value            = valuesAndContext[valueIndex] || '';
+export function createDynamic(value, instance, rerenderFuncProp, rerenderContextNode){
+  value                  = value || '';
   const valueConstructor = value.constructor;
   let node, context, rerenderFunc;
 
@@ -278,14 +274,12 @@ export function createDynamic(valuesAndContext, valueIndex, rerenderIndex, reren
     context = renderArray(node, value);
   }
 
-  valuesAndContext[rerenderIndex]     = rerenderFunc;
-  valuesAndContext[rerenderContextIndex] = context;
+  instance[rerenderFuncProp]    = rerenderFunc;
+  instance[rerenderContextNode] = context;
   return node;
 }
 
 export function unmount(node){
-  if(node.xvdom){
-    recycle(node.xvdom.spec.recycled, node);
-  }
+  if(node.xvdom) recycle(node.xvdom.spec.recycled, node);
   if(node.parentNode) node.parentNode.removeChild(node);
 }

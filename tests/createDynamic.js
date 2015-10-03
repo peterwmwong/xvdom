@@ -7,7 +7,7 @@ import {
   rerenderArray
 } from '../src/index.js';
 
-describe('createDynamic - valuesAndContext, valueIndex, rerenderIndex, rerenderContextIndex', ()=>{
+describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex', ()=>{
   let parentNode, resultNode;
 
   beforeEach(()=>{
@@ -15,15 +15,11 @@ describe('createDynamic - valuesAndContext, valueIndex, rerenderIndex, rerenderC
   });
 
   describe('String - text node', ()=>{
-    let valuesAndContext;
+    let instance;
 
     beforeEach(()=>{
-      valuesAndContext = [
-        'test string',
-        null/* rerender function */,
-        null/* rerender argument */
-      ];
-      resultNode = createDynamic(valuesAndContext, 0, 1, 2);
+      instance = {spec:null, v0:'test string'};
+      resultNode = createDynamic(instance.v0, instance, 'r0', 'c0');
       parentNode.appendChild(resultNode);
     });
 
@@ -34,8 +30,8 @@ describe('createDynamic - valuesAndContext, valueIndex, rerenderIndex, rerenderC
     });
 
     it('sets rerender function and context', ()=>{
-      assert.equal(valuesAndContext[1], rerenderText);
-      assert.equal(valuesAndContext[2], parentNode.firstChild);
+      assert.equal(instance.r0, rerenderText);
+      assert.equal(instance.c0, parentNode.firstChild);
     });
   });
 
@@ -45,15 +41,11 @@ describe('createDynamic - valuesAndContext, valueIndex, rerenderIndex, rerenderC
         render:()=>document.createElement('span')
       }
     };
-    let valuesAndContext;
+    let parentInstance;
 
     beforeEach(()=>{
-      valuesAndContext = [
-        RENDER_INSTANCE,
-        null/* rerender function */,
-        null/* rerender argument */
-      ];
-      resultNode = createDynamic(valuesAndContext, 0, 1, 2);
+      parentInstance = {spec:null, v0:RENDER_INSTANCE};
+      resultNode = createDynamic(parentInstance.v0, parentInstance, 'r0', 'c0');
       parentNode.appendChild(resultNode);
     });
 
@@ -64,8 +56,8 @@ describe('createDynamic - valuesAndContext, valueIndex, rerenderIndex, rerenderC
     });
 
     it('sets rerender function and context', ()=>{
-      assert.equal(valuesAndContext[1], rerenderInstance);
-      assert.equal(valuesAndContext[2], parentNode.firstChild);
+      assert.equal(parentInstance.r0, rerenderInstance);
+      assert.equal(parentInstance.c0, parentNode.firstChild);
     });
   });
 
@@ -84,18 +76,17 @@ describe('createDynamic - valuesAndContext, valueIndex, rerenderIndex, rerenderC
         return node;
       }
     };
-    let valuesAndContext;
+    let instance;
 
     beforeEach(()=>{
-      valuesAndContext = [
-        [
+      instance = {
+        spec: null,
+        v0: [
           {key: 1, spec: ITEM_SPEC1},
           {key: 2, spec: ITEM_SPEC2}
-        ],
-        null/* rerender function */,
-        null/* rerender argument */
-      ];
-      resultNode = createDynamic(valuesAndContext, 0, 1, 2);
+        ]
+      };
+      resultNode = createDynamic(instance.v0, instance, 'r0', 'c0');
       parentNode.appendChild(resultNode);
     });
 
@@ -109,8 +100,8 @@ describe('createDynamic - valuesAndContext, valueIndex, rerenderIndex, rerenderC
     });
 
     it('sets rerender function and context', ()=>{
-      assert.equal(valuesAndContext[1], rerenderArray);
-      assert.equal(valuesAndContext[2], parentNode.lastChild);
+      assert.equal(instance.r0, rerenderArray);
+      assert.equal(instance.c0, parentNode.lastChild);
     });
   });
 });
