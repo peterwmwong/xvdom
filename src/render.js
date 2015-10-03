@@ -17,7 +17,7 @@ export function setDynamicProp(node, attr, value, instance, rerenderFuncProp, re
 }
 
 export function renderArray(frag, array){
-  const length     = array.length;
+  const length = array.length;
   let item;
 
   for(let i=0; i<length; ++i){
@@ -27,15 +27,15 @@ export function renderArray(frag, array){
   return frag.appendChild(document.createTextNode(''));
 }
 
-export function rerenderText(value, contextNode, instance, rerenderFuncProp, rerenderContextNode){
+export function rerenderText(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode){
   if(value == null || value.constructor === String){
     contextNode.nodeValue = value || '';
     return;
   }
-  rerenderDynamic(value, contextNode, instance, rerenderFuncProp, rerenderContextNode);
+  rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode);
 }
 
-export function rerenderDynamic(value, contextNode, instance, rerenderFuncProp, rerenderContextNode){
+export function rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode){
   contextNode.parentNode.replaceChild(
     createDynamic(value, instance, rerenderFuncProp, rerenderContextNode),
     contextNode
@@ -77,22 +77,24 @@ function removeArrayNodes(list, parentNode){
   }
 }
 
-export function rerenderArray(list, valuesAndContext, valueIndex, rerenderFuncProp, rerenderContextNode){
-  const markerNode = valuesAndContext[rerenderContextNode];
+// pInst.r0(inst.v0, pInst.c0, pInst, 'r0', 'c0');
+export function rerenderArray(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode){
+  // const markerNode = valuesAndContext[rerenderContextNode];
   const parentNode = markerNode.parentNode;
 
   if(!list || list.constructor !== Array){
-    removeArrayNodes(valuesAndContext[valueIndex], parentNode);
-    rerenderDynamic(list, valuesAndContext, valueIndex, rerenderFuncProp, rerenderContextNode);
+    removeArrayNodes(oldList, parentNode);
+    // rerenderDynamic(list, valuesAndContext, valueIndex, rerenderFuncProp, rerenderContextNode);
+    rerenderDynamic(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
     return;
   }
 
   const length    = list.length;
-  const oldList   = valuesAndContext[valueIndex];
+  // const oldList   = valuesAndContext[valueIndex];
   const oldLength = oldList.length;
   let i, node, value, insertBeforeNode;
 
-  valuesAndContext[valueIndex] = list;
+  // valuesAndContext[valueIndex] = list;
   if(length === 0){
     removeArrayNodes(oldList, parentNode);
     return;

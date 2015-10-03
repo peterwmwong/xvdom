@@ -10,7 +10,7 @@ import {
   setDynamicProp
 } from '../src/index.js';
 
-xdescribe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerenderIndex, rerenderContextIndex', ()=>{
+describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerenderIndex, rerenderContextIndex', ()=>{
 
   beforeEach(()=>{
     spyOn.uninstall();
@@ -27,7 +27,7 @@ xdescribe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerend
     spyOn.uninstall();
   });
 
-  describe('When `newValue` is a render instance with the same spec', ()=>{
+  xdescribe('When `newValue` is a render instance with the same spec', ()=>{
     let listNode, listValueContext, markerNode, specRerenderArgs, specRerenderCallCount;
     const LIST_SPEC = {
       render: (vc)=>{
@@ -114,21 +114,36 @@ xdescribe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerend
 
   describe('Arrays', ()=>{
     const PARENT_SPEC = {
-      render: vc=>{
+      render: inst=>{
         const div = document.createElement('div');
-        div.appendChild(createDynamic(vc, 0, 1, 2));
+        // div.appendChild(createDynamic(vc, 0, 1, 2));
+        div.appendChild(createDynamic(inst.v0, inst, 'r0', 'c0'));
         return div;
       },
-      rerender: (v, vc)=>{ vc[1](v[0], vc, 0, 1, 2); }
+      // rerender: (v, vc)=>{ vc[1](v[0], vc, 0, 1, 2); }
+      rerender(inst, pInst){
+        if(inst.v0 !== pInst.v0){
+          pInst.r0(inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
+          pInst.v0 = inst.v0;
+        }
+      }
     };
 
     const CHILD_SPEC = {
-      render: vc=>{
+      render: inst=>{
         const div = document.createElement('div');
-        setDynamicProp(div, 'className', vc, 0, 1, 2);
+        // setDynamicProp(div, 'className', vc, 0, 1, 2);
+        inst.c0 = div;
+        div.className = inst.v0;
         return div;
       },
-      rerender: (v, vc)=>{ vc[1]('className', v[0], vc, 0, 1, 2); }
+      rerender: (inst, pInst)=>{
+        if(inst.v0 !== pInst.v0){
+          // pInst.r0('className', inst.v0, pInst.c0);
+          pInst.c0.className = inst.v0;
+          pInst.v0 = inst.v0;
+        }
+      }
     };
 
     it('Update array items', ()=>{
