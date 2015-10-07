@@ -1030,7 +1030,6 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(Node.prototype.removeChild.count, 3);
       spyOn.resetSpyCounts();
 
-      debugger;
       rerender(target,
         createInstance(null, PARENT_SPEC, [
           [
