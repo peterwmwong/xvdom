@@ -4,16 +4,6 @@ function recycle(stash, node){
   if(stash) stash.push(node);
 }
 
-export function rerenderProp(attr, value, contextNode){
-  contextNode[attr] = value;
-}
-
-export function setDynamicProp(node, attr, value, instance, rerenderFuncProp, rerenderContextNode){
-  node[attr] = value;
-  instance[rerenderFuncProp] = rerenderProp;
-  instance[rerenderContextNode] = node;
-}
-
 export function renderArray(frag, array){
   const length = array.length;
   let item;

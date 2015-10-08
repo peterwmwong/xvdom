@@ -74,8 +74,6 @@ var xvdom =
 	'use strict';
 
 	exports.__esModule = true;
-	exports.rerenderProp = rerenderProp;
-	exports.setDynamicProp = setDynamicProp;
 	exports.renderArray = renderArray;
 	exports.rerenderText = rerenderText;
 	exports.rerenderDynamic = rerenderDynamic;
@@ -89,16 +87,6 @@ var xvdom =
 
 	function recycle(stash, node) {
 	  if (stash) stash.push(node);
-	}
-
-	function rerenderProp(attr, value, contextNode) {
-	  contextNode[attr] = value;
-	}
-
-	function setDynamicProp(node, attr, value, instance, rerenderFuncProp, rerenderContextNode) {
-	  node[attr] = value;
-	  instance[rerenderFuncProp] = rerenderProp;
-	  instance[rerenderContextNode] = node;
 	}
 
 	function renderArray(frag, array) {
