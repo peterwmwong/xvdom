@@ -4,6 +4,14 @@ function recycle(stash, node){
   if(stash) stash.push(node);
 }
 
+function removeArrayNodes(list, parentNode){
+  let item, node;
+  while(item = list.pop()){
+    recycle(item.spec.recycled, node = item._node);
+    parentNode.removeChild(node);
+  }
+}
+
 export function renderArray(frag, array){
   const length = array.length;
   let item;
@@ -52,14 +60,6 @@ export function renderInstance(instance){
   node       = spec.render(instance);
   node.xvdom = instance;
   return node;
-}
-
-function removeArrayNodes(list, parentNode){
-  let item, node;
-  while(item = list.pop()){
-    recycle(item.spec.recycled, node = item._node);
-    parentNode.removeChild(node);
-  }
 }
 
 export function rerenderArray(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode){

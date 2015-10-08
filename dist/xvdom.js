@@ -89,6 +89,15 @@ var xvdom =
 	  if (stash) stash.push(node);
 	}
 
+	function removeArrayNodes(list, parentNode) {
+	  var item = undefined,
+	      node = undefined;
+	  while (item = list.pop()) {
+	    recycle(item.spec.recycled, node = item._node);
+	    parentNode.removeChild(node);
+	  }
+	}
+
 	function renderArray(frag, array) {
 	  var length = array.length;
 	  var item = undefined;
@@ -134,15 +143,6 @@ var xvdom =
 	  node = spec.render(instance);
 	  node.xvdom = instance;
 	  return node;
-	}
-
-	function removeArrayNodes(list, parentNode) {
-	  var item = undefined,
-	      node = undefined;
-	  while (item = list.pop()) {
-	    recycle(item.spec.recycled, node = item._node);
-	    parentNode.removeChild(node);
-	  }
 	}
 
 	function rerenderArray(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
