@@ -1,4 +1,5 @@
 const EMPTY_STRING = '';
+const EMPTY_OBJECT = {};
 
 function recycle(stash, node){
   if(stash) stash.push(node);
@@ -10,6 +11,16 @@ function removeArrayNodes(list, parentNode){
     recycle(item.spec.recycled, node = item._node);
     parentNode.removeChild(node);
   }
+}
+
+function arePropsDifferent(a, b){
+  if(a == null || b == null) return true;
+
+  for(let prop in a){
+    if(a[prop] !== b[prop]) return true;
+  }
+
+  return Object.keys(a).length !== Object.keys(b).length;
 }
 
 export function renderArray(frag, array){
@@ -48,6 +59,30 @@ export function rerenderInstance(value, prevValue, node, instance, rerenderFuncP
 
   rerenderDynamic(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode);
 }
+
+export function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp, componentInstanceRerenderFuncProp){
+  if(!arePropsDifferent(props, prevProps)) return;
+
+  const newComponentInst = component(props || EMPTY_OBJECT);
+
+  // TODO: Create optimized rerenderComponentInstance, because...
+  //         - always an instance (don't need to check wither it's a string or array)
+  //         - rerender function never changes, always...
+  //            - spec is the same as before then `spec.render()`
+  //            - otherwise, `renderInstance()`
+  rerenderInstance(
+    newComponentInst,
+    componentInstance,
+    node,
+    instance,
+    componentInstanceRerenderFuncProp,
+    rerenderContextNode
+  );
+}
+
+// export function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp){
+//   component()
+// }
 
 export function renderInstance(instance){
   const spec = instance.spec;
@@ -234,6 +269,19 @@ export function rerender(node, instance){
   const newNode = renderInstance(instance);
   node.parentNode.replaceChild(newNode, node);
   return newNode;
+}
+
+export function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp){
+  const stateless = component.constructor === Function;
+  const inst =
+      stateless ? component(props)
+                : component.render(props, component.state.init(props), component.state);
+  const node = renderInstance(inst);
+
+  instance[rerenderFuncProp]      = rerenderComponent;
+  instance[rerenderContextNode]   = node;
+  instance[componentInstanceProp] = inst;
+  return node;
 }
 
 export function createDynamic(value, instance, rerenderFuncProp, rerenderContextNode){

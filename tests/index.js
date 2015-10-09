@@ -8,4 +8,5 @@ import './rerenderText.js';
 import './rerenderInstance.js';
 
 import './createDynamic.js';
+import './component.js';
 import './integration.js';
