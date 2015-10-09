@@ -44,15 +44,29 @@ describe('Components', ()=>{
             : {spec: COUNTER_SPEC, v0: `count: ${count}`};
   }
 
-  // const StatefulCounter = {
-  //   state: {
-  //     initial:              props=>({count: props.initialCount || 0}),
-  //     increment: (props, {count})=>({count: count + 1}),
-  //     decrement: (props, {count})=>({count: count - 1})
-  //   },
-  //   // <div>{`one: ${one}, two: ${two}`}</div>
-  //   render: (props, state, actions)=> Counter(Object.assign({}, props, actions))
-  // };
+  // <div className={"count-" + v0}>
+  //    <Counter type={v0 % 2} count={v0}/>
+  // </div>
+  const CONTAINER_SPEC = {
+    render: inst=>createComponent(Counter, inst.v0, inst, 'r0', 'c0', 'rv0'),
+    rerender: (inst, pInst)=>{
+      pInst.r0(Counter, inst.v0, pInst.v0, pInst.rv0, pInst.c0, pInst, 'c0', 'rv0');
+      pInst.v0 = inst.v0;
+    }
+  };
+
+  function Container({count}){
+    return {
+      spec: CONTAINER_SPEC,
+      v0: {count, type: count % 3}
+    };
+  }
+
+  function Counter({type, count}){
+    Counter.callCount = Counter.callCount ? Counter.callCount + 1 : 1;
+    return type === 2 ? {spec: COUNTER_SPEC2, v0: `count2: ${count}`}
+            : {spec: COUNTER_SPEC, v0: `count: ${count}`};
+  }
 
   const PARENT_SPEC = {
     render: inst=>{
@@ -65,6 +79,18 @@ describe('Components', ()=>{
         pInst.r0(Counter, inst.v0, pInst.v0, pInst.rv0, pInst.c0, pInst, 'c0', 'rv0');
         pInst.v0 = inst.v0;
       }
+    }
+  };
+
+  const PARENT2_SPEC = {
+    render: inst=>{
+      const node = document.createElement('div');
+      node.appendChild(createComponent(Container, inst.v0, inst, 'r0', 'c0', 'rv0'));
+      return node;
+    },
+    rerender: (inst, pInst)=>{
+      pInst.r0(Container, inst.v0, pInst.v0, pInst.rv0, pInst.c0, pInst, 'c0', 'rv0');
+      pInst.v0 = inst.v0;
     }
   };
 
@@ -150,19 +176,69 @@ describe('Components', ()=>{
     });
   });
 
-  // describe('Stateful', ()=>{
-  //   let node;
-  //
-  //   beforeEach(()=>{
-  //     node = renderComponent(StatefulCounter, {count: 777});
-  //   });
-  //
-  //   it('renders', ()=>{
-  //     assert.equal(getHTMLString(node),
-  //       '<div>'+
-  //         'count: 777'+
-  //       '</div>'
-  //     );
-  //   });
-  // });
+  describe('Nested Stateless', ()=>{
+    let node;
+
+    beforeEach(()=>{
+      Counter.callCount = 0;
+      node = renderInstance({spec: PARENT2_SPEC, v0: {count:0}});
+    });
+
+    it('renders', ()=>{
+      assert.equal(getHTMLString(node),
+        '<div>'+
+          '<span>'+
+            'count: 0'+
+          '</span>'+
+        '</div>'
+      );
+    });
+
+    it('rerenders', ()=>{
+      rerender(node, {spec: PARENT2_SPEC, v0: {count: 1}});
+      assert.equal(getHTMLString(node),
+        '<div>'+
+          '<span>'+
+            'count: 1'+
+          '</span>'+
+        '</div>'
+      );
+
+      rerender(node, {spec: PARENT2_SPEC, v0: {count: 0}});
+      assert.equal(getHTMLString(node),
+        '<div>'+
+          '<span>'+
+            'count: 0'+
+          '</span>'+
+        '</div>'
+      );
+
+      rerender(node, {spec: PARENT2_SPEC, v0: {count: 2}});
+      assert.equal(getHTMLString(node),
+        '<div>'+
+          '<a>'+
+            'count2: 2'+
+          '</a>'+
+        '</div>'
+      );
+
+      rerender(node, {spec: PARENT2_SPEC, v0: {count: 5}});
+      assert.equal(getHTMLString(node),
+        '<div>'+
+          '<a>'+
+            'count2: 5'+
+          '</a>'+
+        '</div>'
+      );
+
+      rerender(node, {spec: PARENT2_SPEC, v0: {count: 1}});
+      assert.equal(getHTMLString(node),
+        '<div>'+
+          '<span>'+
+            'count: 1'+
+          '</span>'+
+        '</div>'
+      );
+    });
+  });
 });
