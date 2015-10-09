@@ -253,6 +253,7 @@ export function rerender(node, instance){
 
   const newNode = renderInstance(instance);
   node.parentNode.replaceChild(newNode, node);
+  recycle(prevInstance.spec.recycled, node);
   return newNode;
 }
 
