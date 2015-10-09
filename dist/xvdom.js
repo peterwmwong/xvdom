@@ -78,12 +78,15 @@ var xvdom =
 	exports.rerenderText = rerenderText;
 	exports.rerenderDynamic = rerenderDynamic;
 	exports.rerenderInstance = rerenderInstance;
+	exports.rerenderComponent = rerenderComponent;
 	exports.renderInstance = renderInstance;
 	exports.rerenderArray = rerenderArray;
 	exports.rerender = rerender;
+	exports.createComponent = createComponent;
 	exports.createDynamic = createDynamic;
 	exports.unmount = unmount;
 	var EMPTY_STRING = '';
+	var EMPTY_OBJECT = {};
 
 	function recycle(stash, node) {
 	  if (stash) stash.push(node);
@@ -96,6 +99,16 @@ var xvdom =
 	    recycle(item.spec.recycled, node = item._node);
 	    parentNode.removeChild(node);
 	  }
+	}
+
+	function arePropsDifferent(a, b) {
+	  if (a == null || b == null) return true;
+
+	  for (var prop in a) {
+	    if (a[prop] !== b[prop]) return true;
+	  }
+
+	  return Object.keys(a).length !== Object.keys(b).length;
 	}
 
 	function renderArray(frag, array) {
@@ -130,6 +143,12 @@ var xvdom =
 	  }
 
 	  rerenderDynamic(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode);
+	}
+
+	function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
+	  if (!arePropsDifferent(props, prevProps)) return;
+
+	  instance[rerenderContextNode] = rerender(node, instance[componentInstanceProp] = component(props || EMPTY_OBJECT));
 	}
 
 	function renderInstance(instance) {
@@ -320,7 +339,19 @@ var xvdom =
 
 	  var newNode = renderInstance(instance);
 	  node.parentNode.replaceChild(newNode, node);
+	  recycle(prevInstance.spec.recycled, node);
 	  return newNode;
+	}
+
+	function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
+	  var stateless = component.constructor === Function;
+	  var inst = stateless ? component(props) : component.render(props, component.state.init(props), component.state);
+	  var node = renderInstance(inst);
+
+	  instance[rerenderFuncProp] = rerenderComponent;
+	  instance[rerenderContextNode] = node;
+	  instance[componentInstanceProp] = inst;
+	  return node;
 	}
 
 	function createDynamic(value, instance, rerenderFuncProp, rerenderContextNode) {
