@@ -60,29 +60,14 @@ export function rerenderInstance(value, prevValue, node, instance, rerenderFuncP
   rerenderDynamic(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode);
 }
 
-export function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp, componentInstanceRerenderFuncProp){
+export function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp){
   if(!arePropsDifferent(props, prevProps)) return;
 
-  const newComponentInst = component(props || EMPTY_OBJECT);
-
-  // TODO: Create optimized rerenderComponentInstance, because...
-  //         - always an instance (don't need to check wither it's a string or array)
-  //         - rerender function never changes, always...
-  //            - spec is the same as before then `spec.render()`
-  //            - otherwise, `renderInstance()`
-  rerenderInstance(
-    newComponentInst,
-    componentInstance,
+  instance[rerenderContextNode] = rerender(
     node,
-    instance,
-    componentInstanceRerenderFuncProp,
-    rerenderContextNode
+    instance[componentInstanceProp] = component(props || EMPTY_OBJECT)
   );
 }
-
-// export function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp){
-//   component()
-// }
 
 export function renderInstance(instance){
   const spec = instance.spec;
