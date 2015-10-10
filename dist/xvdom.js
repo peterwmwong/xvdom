@@ -104,11 +104,13 @@ var xvdom =
 	function arePropsDifferent(a, b) {
 	  if (a == null || b == null) return true;
 
+	  var keyCount = 0;
 	  for (var prop in a) {
 	    if (a[prop] !== b[prop]) return true;
+	    keyCount++;
 	  }
 
-	  return Object.keys(a).length !== Object.keys(b).length;
+	  return keyCount !== Object.keys(b).length;
 	}
 
 	function renderArray(frag, array) {

@@ -16,11 +16,13 @@ function removeArrayNodes(list, parentNode){
 function arePropsDifferent(a, b){
   if(a == null || b == null) return true;
 
+  let keyCount = 0;
   for(let prop in a){
     if(a[prop] !== b[prop]) return true;
+    keyCount++;
   }
 
-  return Object.keys(a).length !== Object.keys(b).length;
+  return keyCount !== Object.keys(b).length;
 }
 
 export function renderArray(frag, array){
