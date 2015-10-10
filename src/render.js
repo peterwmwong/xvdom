@@ -14,8 +14,6 @@ function removeArrayNodes(list, parentNode){
 }
 
 function arePropsDifferent(a, b){
-  if(a == null || b == null) return true;
-
   let keyCount = 0;
   for(let prop in a){
     if(a[prop] !== b[prop]) return true;
