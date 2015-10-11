@@ -9,4 +9,5 @@ import './rerenderInstance.js';
 
 import './createDynamic.js';
 import './component.js';
+import './component-stateful.js';
 import './integration.js';

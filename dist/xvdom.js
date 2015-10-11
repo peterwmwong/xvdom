@@ -78,11 +78,13 @@ var xvdom =
 	exports.rerenderText = rerenderText;
 	exports.rerenderDynamic = rerenderDynamic;
 	exports.rerenderInstance = rerenderInstance;
+	exports.rerenderStatefulComponent = rerenderStatefulComponent;
 	exports.rerenderComponent = rerenderComponent;
 	exports.renderInstance = renderInstance;
 	exports.rerenderArray = rerenderArray;
 	exports.rerender = rerender;
 	exports.createComponent = createComponent;
+	exports.createStatefulComponent = createStatefulComponent;
 	exports.createDynamic = createDynamic;
 	exports.unmount = unmount;
 	var EMPTY_STRING = '';
@@ -102,8 +104,6 @@ var xvdom =
 	}
 
 	function arePropsDifferent(a, b) {
-	  if (a == null || b == null) return true;
-
 	  var keyCount = 0;
 	  for (var prop in a) {
 	    if (a[prop] !== b[prop]) return true;
@@ -145,6 +145,15 @@ var xvdom =
 	  }
 
 	  rerenderDynamic(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode);
+	}
+
+	function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
+	  // if(!arePropsDifferent(props, prevProps)) return;
+	  //
+	  // instance[rerenderContextNode] = rerender(
+	  //   node,
+	  //   instance[componentInstanceProp] = component(props || EMPTY_OBJECT)
+	  // );
 	}
 
 	function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
@@ -345,12 +354,62 @@ var xvdom =
 	  return newNode;
 	}
 
+	function bindActions(stateActions, componentInstance) {
+	  for (var sa in stateActions) {
+	    stateActions[sa].instance = componentInstance;
+	  }
+	}
+
+	function preBoundStateActions(stateActions) {
+	  var result = {};
+	  for (var sa in stateActions) {
+	    result[sa] = (function (action) {
+	      return function wrapAction() {
+	        var inst = wrapAction.instance;
+
+	        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	          args[_key] = arguments[_key];
+	        }
+
+	        var newState = action.apply(undefined, [inst.props, inst.state].concat(args));
+	        if (inst.state !== newState) {
+	          inst.state = newState;
+	          rerender(inst._node, inst.component.render(inst.props, newState, stateActions));
+	        }
+	      };
+	    })(stateActions[sa]);
+	  }
+	  return result;
+	}
+
 	function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
-	  var stateless = component.constructor === Function;
-	  var inst = stateless ? component(props) : component.render(props, component.state.init(props), component.state);
+	  if (typeof component !== 'function') return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
+
+	  var inst = component(props);
 	  var node = renderInstance(inst);
 
 	  instance[rerenderFuncProp] = rerenderComponent;
+	  instance[componentInstanceProp] = inst;
+	  instance[rerenderContextNode] = node;
+
+	  return node;
+	}
+
+	function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp, componentStateProp, componentStateActionsProp) {
+	  var state = component.state.init(props);
+	  var actions = preBoundStateActions(component.state);
+	  var inst = component.render(props, state, actions);
+
+	  inst.props = props;
+	  inst.component = component;
+	  inst.state = state;
+	  inst.actions = actions;
+
+	  bindActions(actions, inst);
+	  var node = renderInstance(inst);
+	  inst._node = node;
+
+	  instance[rerenderFuncProp] = rerenderStatefulComponent;
 	  instance[rerenderContextNode] = node;
 	  instance[componentInstanceProp] = inst;
 	  return node;

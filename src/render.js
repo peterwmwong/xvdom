@@ -60,6 +60,15 @@ export function rerenderInstance(value, prevValue, node, instance, rerenderFuncP
   rerenderDynamic(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode);
 }
 
+export function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp){
+  // if(!arePropsDifferent(props, prevProps)) return;
+  //
+  // instance[rerenderContextNode] = rerender(
+  //   node,
+  //   instance[componentInstanceProp] = component(props || EMPTY_OBJECT)
+  // );
+}
+
 export function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp){
   if(!arePropsDifferent(props, prevProps)) return;
 
@@ -257,14 +266,60 @@ export function rerender(node, instance){
   return newNode;
 }
 
+function bindActions(stateActions, componentInstance){
+  for(let sa in stateActions){
+    stateActions[sa].instance = componentInstance;
+  }
+}
+
+function preBoundStateActions(stateActions){
+  const result = {};
+  for(let sa in stateActions){
+    result[sa] = (action=>
+      function wrapAction(...args){
+        const inst     = wrapAction.instance;
+        const newState = action(inst.props, inst.state, ...args);
+        if(inst.state !== newState){
+          inst.state = newState;
+          rerender(
+            inst._node,
+            inst.component.render(inst.props, newState, stateActions)
+          );
+        }
+      }
+    )(stateActions[sa]);
+  }
+  return result;
+}
+
 export function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp){
-  const stateless = component.constructor === Function;
-  const inst =
-      stateless ? component(props)
-                : component.render(props, component.state.init(props), component.state);
+  if(typeof component !== 'function') return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
+
+  const inst = component(props);
   const node = renderInstance(inst);
 
   instance[rerenderFuncProp]      = rerenderComponent;
+  instance[componentInstanceProp] = inst;
+  instance[rerenderContextNode]   = node;
+
+  return node;
+}
+
+export function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp, componentStateProp, componentStateActionsProp){
+  const state     = component.state.init(props);
+  const actions   = preBoundStateActions(component.state);
+  const inst      = component.render(props, state, actions);
+
+  inst.props     = props;
+  inst.component = component;
+  inst.state     = state;
+  inst.actions   = actions;
+
+  bindActions(actions, inst);
+  const node = renderInstance(inst);
+  inst._node = node;
+
+  instance[rerenderFuncProp]      = rerenderStatefulComponent;
   instance[rerenderContextNode]   = node;
   instance[componentInstanceProp] = inst;
   return node;
