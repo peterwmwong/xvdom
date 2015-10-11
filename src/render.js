@@ -13,7 +13,7 @@ function removeArrayNodes(list, parentNode){
   }
 }
 
-function arePropsDifferent(a, b){
+function propsNotEqual(a, b){
   let keyCount = 0;
   for(let prop in a){
     if(a[prop] !== b[prop]) return true;
@@ -21,6 +21,26 @@ function arePropsDifferent(a, b){
   }
 
   return keyCount !== Object.keys(b).length;
+}
+
+function createStateActions(stateActions){
+  const result = {};
+  for(let sa in stateActions){
+    result[sa] = (action=>
+      function wrapAction(...args){
+        const inst     = wrapAction.instance;
+        const newState = action(inst.state, ...args);
+        if(inst.state !== newState){
+          inst.state = newState;
+          inst._node = rerender(
+            inst._node,
+            inst.component(newState, stateActions)
+          );
+        }
+      }
+    )(stateActions[sa]);
+  }
+  return result;
 }
 
 export function renderArray(frag, array){
@@ -61,21 +81,20 @@ export function rerenderInstance(value, prevValue, node, instance, rerenderFuncP
 }
 
 export function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp){
-  // if(!arePropsDifferent(props, prevProps)) return;
-  //
-  // instance[rerenderContextNode] = rerender(
-  //   node,
-  //   instance[componentInstanceProp] = component(props || EMPTY_OBJECT)
-  // );
+  const onProps = componentInstance.actions.onProps;
+
+  if(onProps && propsNotEqual(props, prevProps)){
+    onProps(props);
+  }
 }
 
 export function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp){
-  if(!arePropsDifferent(props, prevProps)) return;
-
-  instance[rerenderContextNode] = rerender(
-    node,
-    instance[componentInstanceProp] = component(props || EMPTY_OBJECT)
-  );
+  if(propsNotEqual(props, prevProps)){
+    instance[rerenderContextNode] = rerender(
+      node,
+      instance[componentInstanceProp] = component(props || EMPTY_OBJECT)
+    );
+  }
 }
 
 export function renderInstance(instance){
@@ -266,32 +285,6 @@ export function rerender(node, instance){
   return newNode;
 }
 
-function bindActions(stateActions, componentInstance){
-  for(let sa in stateActions){
-    stateActions[sa].instance = componentInstance;
-  }
-}
-
-function preBoundStateActions(stateActions){
-  const result = {};
-  for(let sa in stateActions){
-    result[sa] = (action=>
-      function wrapAction(...args){
-        const inst     = wrapAction.instance;
-        const newState = action(inst.props, inst.state, ...args);
-        if(inst.state !== newState){
-          inst.state = newState;
-          rerender(
-            inst._node,
-            inst.component(inst.props, newState, stateActions)
-          );
-        }
-      }
-    )(stateActions[sa]);
-  }
-  return result;
-}
-
 export function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp){
   if(component.state) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
 
@@ -306,18 +299,19 @@ export function createComponent(component, props, instance, rerenderFuncProp, re
 }
 
 export function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp, componentStateProp, componentStateActionsProp){
-  const state     = component.state.init(props);
-  const actions   = preBoundStateActions(component.state);
-  const inst      = component(props, state, actions);
+  const state   = component.state.onInit(props);
+  const actions = createStateActions(component.state);
+  const inst    = component(state, actions);
+  const node    = renderInstance(inst);
 
-  inst.props     = props;
+  for(let sa in actions){
+    actions[sa].instance = inst;
+  }
+
   inst.component = component;
   inst.state     = state;
   inst.actions   = actions;
-
-  bindActions(actions, inst);
-  const node = renderInstance(inst);
-  inst._node = node;
+  inst._node     = node;
 
   instance[rerenderFuncProp]      = rerenderStatefulComponent;
   instance[rerenderContextNode]   = node;
