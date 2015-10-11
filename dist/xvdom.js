@@ -388,7 +388,7 @@ var xvdom =
 	  return node;
 	}
 
-	function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp, componentStateProp, componentStateActionsProp) {
+	function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
 	  var state = component.state.onInit(props);
 	  var actions = createStateActions(component.state);
 	  var inst = component(state, actions);

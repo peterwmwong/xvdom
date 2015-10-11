@@ -298,7 +298,7 @@ export function createComponent(component, props, instance, rerenderFuncProp, re
   return node;
 }
 
-export function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp, componentStateProp, componentStateActionsProp){
+export function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp){
   const state   = component.state.onInit(props);
   const actions = createStateActions(component.state);
   const inst    = component(state, actions);
