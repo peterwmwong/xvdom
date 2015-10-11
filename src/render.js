@@ -283,7 +283,7 @@ function preBoundStateActions(stateActions){
           inst.state = newState;
           rerender(
             inst._node,
-            inst.component.render(inst.props, newState, stateActions)
+            inst.component(inst.props, newState, stateActions)
           );
         }
       }
@@ -293,7 +293,7 @@ function preBoundStateActions(stateActions){
 }
 
 export function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp){
-  if(typeof component !== 'function') return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
+  if(component.state) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
 
   const inst = component(props);
   const node = renderInstance(inst);
@@ -308,7 +308,7 @@ export function createComponent(component, props, instance, rerenderFuncProp, re
 export function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp, componentStateProp, componentStateActionsProp){
   const state     = component.state.init(props);
   const actions   = preBoundStateActions(component.state);
-  const inst      = component.render(props, state, actions);
+  const inst      = component(props, state, actions);
 
   inst.props     = props;
   inst.component = component;

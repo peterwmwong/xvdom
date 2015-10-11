@@ -22,20 +22,19 @@ describe('Stateful Components', ()=>{
     }
   };
 
-  const StatefulCounter = {
-    state: {
-      init:                 props=>({count: props.initialCount || 0}),
-      increment: (props, {count})=>({count: count + 1}),
-      decrement: (props, {count})=>({count: count - 1})
-    },
-    render: (props, state, actions)=>{
-      StatefulCounter.render.callCount = StatefulCounter.render.callCount + 1;
-      StatefulCounter.render.callsArgs.push([props, state, actions]);
-      return {
-        spec: STATEFUL_COUNTER_SPEC,
-        v0: `initialCount: ${props.initialCount}, count: ${state.count}`
-      };
-    }
+  const StatefulCounter = (props, state, actions)=>{
+    StatefulCounter.callCount = StatefulCounter.callCount + 1;
+    StatefulCounter.callsArgs.push([props, state, actions]);
+    return {
+      spec: STATEFUL_COUNTER_SPEC,
+      v0: `initialCount: ${props.initialCount}, count: ${state.count}`
+    };
+  };
+  StatefulCounter.state = {
+    init:                        props=>({count: props.initialCount || 0}),
+    incrementBy: (props, {count}, amt)=>({count: count + amt}),
+    increment:        (props, {count})=>({count: count + 1}),
+    decrement:        (props, {count})=>({count: count - 1})
   };
 
   const PARENT_SPEC = {
@@ -56,8 +55,8 @@ describe('Stateful Components', ()=>{
     let node;
 
     beforeEach(()=>{
-      StatefulCounter.render.callCount = 0;
-      StatefulCounter.render.callsArgs = [];
+      StatefulCounter.callCount = 0;
+      StatefulCounter.callsArgs = [];
       node = renderInstance({
         spec: PARENT_SPEC,
         v0: {initialCount:777}
@@ -76,7 +75,7 @@ describe('Stateful Components', ()=>{
 
     describe('calling state actions', ()=>{
       it('rerenders if action generates a new state', ()=>{
-        const [/*props*/, /*state*/, {increment, decrement}] = StatefulCounter.render.callsArgs[0];
+        const [/*props*/, /*state*/, {increment, incrementBy, decrement}] = StatefulCounter.callsArgs[0];
         increment();
 
         assert.equal(getHTMLString(node),
@@ -87,12 +86,12 @@ describe('Stateful Components', ()=>{
           '</div>'
         );
 
-        increment();
+        incrementBy(5);
 
         assert.equal(getHTMLString(node),
           '<div>'+
             '<span>'+
-              'initialCount: 777, count: 779'+
+              'initialCount: 777, count: 783'+
             '</span>'+
           '</div>'
         );
@@ -102,7 +101,7 @@ describe('Stateful Components', ()=>{
         assert.equal(getHTMLString(node),
           '<div>'+
             '<span>'+
-              'initialCount: 777, count: 778'+
+              'initialCount: 777, count: 782'+
             '</span>'+
           '</div>'
         );
