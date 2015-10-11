@@ -191,7 +191,7 @@ var xvdom =
 	    return node;
 	  }
 
-	  node = spec.render(instance);
+	  instance._node = node = spec.render(instance);
 	  node.xvdom = instance;
 	  return node;
 	}
