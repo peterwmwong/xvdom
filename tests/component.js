@@ -176,6 +176,41 @@ describe('Components', ()=>{
     });
   });
 
+  it('handles null props (no props)', ()=>{
+    const NO_PROPS_COMP_SPEC = {
+      render: ()=>{
+        const node = document.createElement('span');
+        node.appendChild(document.createTextNode('test'));
+        return node;
+      }
+    };
+
+    function NoPropsComp(props){
+      NoPropsComp.callArgs.push(props);
+      return {spec: NO_PROPS_COMP_SPEC};
+    }
+    NoPropsComp.callArgs = [];
+
+    const PARENT_SPEC2 = {
+      render: inst=>{
+        const node = document.createElement('div');
+        node.appendChild(createComponent(NoPropsComp, null, inst, 'r0', 'c0', 'rv0'));
+        return node;
+      }
+    };
+
+    const node = renderInstance({spec: PARENT_SPEC2});
+
+    assert.deepEqual(NoPropsComp.callArgs[0], {});
+    assert.equal(getHTMLString(node),
+      '<div>'+
+        '<span>'+
+          'test'+
+        '</span>'+
+      '</div>'
+    );
+  });
+
   describe('Nested Stateless', ()=>{
     let node;
 

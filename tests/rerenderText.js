@@ -20,6 +20,16 @@ describe('rerenderText - value, contextNode, instance, rerenderIndex, rerenderCo
     });
   });
 
+  describe('When `newValue` is a number', ()=>{
+    beforeEach(()=>{
+      rerenderText(0, initialValue, textNode, instance, 'r0', 'c0');
+    });
+
+    it('updates text node value', ()=>{
+      assert.equal(textNode.nodeValue, '0');
+    });
+  });
+
   describe('When `newValue` is null or undefined', ()=>{
     it('updates text node value to ""', ()=>{
       rerenderText(null, initialValue, textNode, instance, 'r0', 'c0');

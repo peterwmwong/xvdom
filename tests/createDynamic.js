@@ -35,6 +35,27 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
     });
   });
 
+  describe('Number - text node', ()=>{
+    let instance;
+
+    beforeEach(()=>{
+      instance = {spec:null, v0:0};
+      resultNode = createDynamic(instance.v0, instance, 'r0', 'c0');
+      parentNode.appendChild(resultNode);
+    });
+
+    it('renders text node with string', ()=>{
+      assert.equal(getHTMLString(parentNode),
+        '<div>0</div>'
+      );
+    });
+
+    it('sets rerender function and context', ()=>{
+      assert.equal(instance.r0, rerenderText);
+      assert.equal(instance.c0, parentNode.firstChild);
+    });
+  });
+
   describe('Object - render instance', ()=>{
     const RENDER_INSTANCE = {
       spec: {

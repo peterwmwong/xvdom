@@ -147,8 +147,11 @@ var xvdom =
 	}
 
 	function rerenderText(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
-	  if (value == null || value.constructor === String) {
-	    contextNode.nodeValue = value || EMPTY_STRING;
+	  if (value == null) {
+	    contextNode.nodeValue = EMPTY_STRING;
+	    return;
+	  } else if (value.constructor === String || value.constructor === Number) {
+	    contextNode.nodeValue = value;
 	    return;
 	  }
 	  rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode);
@@ -378,7 +381,7 @@ var xvdom =
 	function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
 	  if (component.state) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
 
-	  var inst = component(props);
+	  var inst = component(props || EMPTY_OBJECT);
 	  var node = renderInstance(inst);
 
 	  instance[rerenderFuncProp] = rerenderComponent;
@@ -389,7 +392,7 @@ var xvdom =
 	}
 
 	function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
-	  var state = component.state.onInit(props);
+	  var state = component.state.onInit(props || EMPTY_OBJECT);
 	  var actions = createStateActions(component.state);
 	  var inst = component(state, actions);
 	  var node = renderInstance(inst);
@@ -410,16 +413,20 @@ var xvdom =
 	}
 
 	function createDynamic(value, instance, rerenderFuncProp, rerenderContextNode) {
-	  value = value || EMPTY_STRING;
-	  var valueConstructor = value.constructor;
 	  var node = undefined,
 	      context = undefined,
 	      rerenderFunc = undefined;
+	  if (value == null) {
+	    instance[rerenderFuncProp] = rerenderText;
+	    return instance[rerenderContextNode] = document.createTextNode(EMPTY_STRING);
+	  }
+
+	  var valueConstructor = value.constructor;
 
 	  if (valueConstructor === Object) {
 	    rerenderFunc = rerenderInstance;
 	    context = node = renderInstance(value);
-	  } else if (valueConstructor === String) {
+	  } else if (valueConstructor === String || valueConstructor === Number) {
 	    rerenderFunc = rerenderText;
 	    context = node = document.createTextNode(value);
 	  } else if (valueConstructor === Array) {
