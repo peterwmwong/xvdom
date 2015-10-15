@@ -127,7 +127,7 @@ var xvdom =
 	        var newState = action.apply(undefined, [inst.state].concat(args));
 	        if (inst.state !== newState) {
 	          inst.state = newState;
-	          inst._node = rerender(inst._node, inst.component(newState, stateActions));
+	          inst._node = rerender(inst._node, inst.component(newState, result));
 	        }
 	      };
 	    })(stateActions[sa]);
