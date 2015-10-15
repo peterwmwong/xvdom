@@ -168,18 +168,5 @@ describe('Stateful Components', ()=>{
         '</div>'
       );
     });
-
-    it('does not rerender if component props are the same', ()=>{
-      assert.equal(StatefulCounter.callCount, 1);
-      rerender(node, {spec: PARENT_SPEC, v0: {initialCount: 777}});
-      assert.equal(StatefulCounter.callCount, 1);
-      assert.equal(getHTMLString(node),
-        '<div>'+
-          '<a>'+
-            'initialCount2: 777, count2: 777'+
-          '</a>'+
-        '</div>'
-      );
-    });
   });
 });

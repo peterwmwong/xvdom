@@ -13,16 +13,6 @@ function removeArrayNodes(list, parentNode){
   }
 }
 
-function propsNotEqual(a, b){
-  let keyCount = 0;
-  for(let prop in a){
-    if(a[prop] !== b[prop]) return true;
-    keyCount++;
-  }
-
-  return keyCount !== Object.keys(b).length;
-}
-
 function createStateActions(stateActions){
   const result = {};
   for(let sa in stateActions){
@@ -86,18 +76,14 @@ export function rerenderInstance(value, prevValue, node, instance, rerenderFuncP
 export function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp){
   const onProps = componentInstance.actions.onProps;
 
-  if(onProps && propsNotEqual(props, prevProps)){
-    onProps(props);
-  }
+  if(onProps) onProps(props);
 }
 
 export function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp){
-  if(propsNotEqual(props, prevProps)){
-    instance[rerenderContextNode] = rerender(
-      node,
-      instance[componentInstanceProp] = component(props || EMPTY_OBJECT)
-    );
-  }
+  instance[rerenderContextNode] = rerender(
+    node,
+    instance[componentInstanceProp] = component(props || EMPTY_OBJECT)
+  );
 }
 
 export function renderInstance(instance){

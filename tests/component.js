@@ -161,19 +161,6 @@ describe('Components', ()=>{
         '</div>'
       );
     });
-
-    it('does not rerender if component props are the same', ()=>{
-      assert.equal(Counter.callCount, 1);
-      rerender(node, {spec: PARENT_SPEC, v0: {count: 777}});
-      assert.equal(Counter.callCount, 1);
-      assert.equal(getHTMLString(node),
-        '<div>'+
-          '<span>'+
-            'count: 777'+
-          '</span>'+
-        '</div>'
-      );
-    });
   });
 
   it('handles null props (no props)', ()=>{
