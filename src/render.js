@@ -34,7 +34,7 @@ function createStateActions(stateActions){
           inst.state = newState;
           inst._node = rerender(
             inst._node,
-            inst.component(newState, stateActions)
+            inst.component(newState, result)
           );
         }
       }

@@ -89,7 +89,7 @@ describe('Stateful Components', ()=>{
 
     describe('calling state actions', ()=>{
       it('rerenders if action generates a new state', ()=>{
-        const [/*state*/, {increment, incrementBy, decrement}] = StatefulCounter.callsArgs[0];
+        let [/*state*/, {increment}] = StatefulCounter.callsArgs[0];
         increment();
 
         assert.equal(getHTMLString(node),
@@ -100,6 +100,8 @@ describe('Stateful Components', ()=>{
           '</div>'
         );
 
+        let [/*state*/, {incrementBy}] = StatefulCounter.callsArgs[1];
+
         incrementBy(5);
 
         assert.equal(getHTMLString(node),
@@ -109,6 +111,8 @@ describe('Stateful Components', ()=>{
             '</a>'+
           '</div>'
         );
+
+        let [/*state*/, {decrement}] = StatefulCounter.callsArgs[2];
 
         decrement();
 
