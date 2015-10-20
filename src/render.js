@@ -13,19 +13,36 @@ function removeArrayNodes(list, parentNode){
   }
 }
 
-function createStateActions(stateActions){
+function createStateActions(stateActions, parentInst, componentInstanceProp){
   const result = {};
   for(let sa in stateActions){
     result[sa] = (action=>
       function wrapAction(...args){
-        const inst     = wrapAction.instance;
-        const newState = action(inst.state, ...args);
+        const inst     = result.$$instance;
+        const newState = action(inst.props, inst.state, ...args);
         if(inst.state !== newState){
           inst.state = newState;
-          inst._node = rerender(
-            inst._node,
-            inst.component(newState, result)
-          );
+          let newInst = inst.component(inst.props, newState, result);
+          if(inst.spec === newInst.spec){
+            inst.spec.rerender(newInst, inst);
+          }
+          else{
+            const node    = parentInst._node;
+            const newNode = renderInstance(newInst);
+
+            newInst.component = inst.component;
+            newInst.state     = inst.state;
+            newInst.actions   = inst.actions;
+            newInst.props     = inst.props;
+            result.$$instance = newInst;
+
+            parentInst._node = newNode;
+            parentInst[componentInstanceProp] = newInst;
+            newNode.xvdom = parentInst;
+
+            node.parentNode.replaceChild(newNode, node);
+            recycle(inst.spec.recycled, node);
+          }
         }
       }
     )(stateActions[sa]);
@@ -47,8 +64,9 @@ export function renderArray(frag, array){
 export function rerenderText(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode){
   if(value == null){
     contextNode.nodeValue = EMPTY_STRING;
-    return
-  }else if(value.constructor === String || value.constructor === Number){
+    return;
+  }
+  else if(value.constructor === String || value.constructor === Number){
     contextNode.nodeValue = value;
     return;
   }
@@ -75,8 +93,9 @@ export function rerenderInstance(value, prevValue, node, instance, rerenderFuncP
 
 export function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp){
   const onProps = componentInstance.actions.onProps;
+  componentInstance.props = props;
 
-  if(onProps) onProps(props);
+  if(onProps) onProps();
 }
 
 export function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp){
@@ -289,18 +308,16 @@ export function createComponent(component, props, instance, rerenderFuncProp, re
 
 export function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp){
   const state   = component.state.onInit(props || EMPTY_OBJECT);
-  const actions = createStateActions(component.state);
-  const inst    = component(state, actions);
+  const actions = createStateActions(component.state, instance, componentInstanceProp);
+  const inst    = component(props, state, actions);
   const node    = renderInstance(inst);
 
-  for(let sa in actions){
-    actions[sa].instance = inst;
-  }
+  actions.$$instance = inst;
 
   inst.component = component;
   inst.state     = state;
   inst.actions   = actions;
-  inst._node     = node;
+  inst.props     = props;
 
   instance[rerenderFuncProp]      = rerenderStatefulComponent;
   instance[rerenderContextNode]   = node;

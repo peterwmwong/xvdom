@@ -103,31 +103,40 @@ var xvdom =
 	  }
 	}
 
-	function propsNotEqual(a, b) {
-	  var keyCount = 0;
-	  for (var prop in a) {
-	    if (a[prop] !== b[prop]) return true;
-	    keyCount++;
-	  }
-
-	  return keyCount !== Object.keys(b).length;
-	}
-
-	function createStateActions(stateActions) {
+	function createStateActions(stateActions, parentInst, componentInstanceProp) {
 	  var result = {};
 	  for (var sa in stateActions) {
 	    result[sa] = (function (action) {
 	      return function wrapAction() {
-	        var inst = wrapAction.instance;
+	        var inst = result.$$instance;
 
 	        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
 	          args[_key] = arguments[_key];
 	        }
 
-	        var newState = action.apply(undefined, [inst.state].concat(args));
+	        var newState = action.apply(undefined, [inst.props, inst.state].concat(args));
 	        if (inst.state !== newState) {
 	          inst.state = newState;
-	          inst._node = rerender(inst._node, inst.component(newState, result));
+	          var newInst = inst.component(inst.props, newState, result);
+	          if (inst.spec === newInst.spec) {
+	            inst.spec.rerender(newInst, inst);
+	          } else {
+	            var node = parentInst._node;
+	            var newNode = renderInstance(newInst);
+
+	            newInst.component = inst.component;
+	            newInst.state = inst.state;
+	            newInst.actions = inst.actions;
+	            newInst.props = inst.props;
+	            result.$$instance = newInst;
+
+	            parentInst._node = newNode;
+	            parentInst[componentInstanceProp] = newInst;
+	            newNode.xvdom = parentInst;
+
+	            node.parentNode.replaceChild(newNode, node);
+	            recycle(inst.spec.recycled, node);
+	          }
 	        }
 	      };
 	    })(stateActions[sa]);
@@ -174,16 +183,13 @@ var xvdom =
 
 	function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
 	  var onProps = componentInstance.actions.onProps;
+	  componentInstance.props = props;
 
-	  if (onProps && propsNotEqual(props, prevProps)) {
-	    onProps(props);
-	  }
+	  if (onProps) onProps();
 	}
 
 	function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
-	  if (propsNotEqual(props, prevProps)) {
-	    instance[rerenderContextNode] = rerender(node, instance[componentInstanceProp] = component(props || EMPTY_OBJECT));
-	  }
+	  instance[rerenderContextNode] = rerender(node, instance[componentInstanceProp] = component(props || EMPTY_OBJECT));
 	}
 
 	function renderInstance(instance) {
@@ -393,18 +399,16 @@ var xvdom =
 
 	function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
 	  var state = component.state.onInit(props || EMPTY_OBJECT);
-	  var actions = createStateActions(component.state);
-	  var inst = component(state, actions);
+	  var actions = createStateActions(component.state, instance, componentInstanceProp);
+	  var inst = component(props, state, actions);
 	  var node = renderInstance(inst);
 
-	  for (var sa in actions) {
-	    actions[sa].instance = inst;
-	  }
+	  actions.$$instance = inst;
 
 	  inst.component = component;
 	  inst.state = state;
 	  inst.actions = actions;
-	  inst._node = node;
+	  inst.props = props;
 
 	  instance[rerenderFuncProp] = rerenderStatefulComponent;
 	  instance[rerenderContextNode] = node;

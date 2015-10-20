@@ -8,9 +8,12 @@ import {
 } from '../src/index.js';
 
 describe('Stateful Components', ()=>{
+  let renderCountSpec1, renderCountSpec2;
+
   // <span>{v0}</span>
   const STATEFUL_COUNTER_SPEC = {
     render: inst=>{
+      renderCountSpec1++;
       const node = document.createElement('span');
       node.appendChild(createDynamic(inst.v0, inst, 'r0', 'c0'));
       return node;
@@ -25,6 +28,7 @@ describe('Stateful Components', ()=>{
 
   const STATEFUL_COUNTER_SPEC2 = {
     render: inst=>{
+      renderCountSpec2++;
       const node = document.createElement('a');
       node.appendChild(createDynamic(inst.v0, inst, 'r0', 'c0'));
       return node;
@@ -37,28 +41,26 @@ describe('Stateful Components', ()=>{
     }
   };
 
-  const StatefulCounter = (state, actions)=>{
+  const StatefulCounter = (props, state, actions)=>{
     StatefulCounter.callCount = StatefulCounter.callCount + 1;
-    StatefulCounter.callsArgs.push([state, actions]);
+    StatefulCounter.callsArgs.push([props, state, actions]);
     return (
-        (!state.forceFirst && state.count % 2) ? {spec: STATEFUL_COUNTER_SPEC2, v0: `initialCount2: ${state.initialCount}, count2: ${state.count}`}
-      : {spec: STATEFUL_COUNTER_SPEC, v0: `initialCount: ${state.initialCount}, count: ${state.count}`}
+        (!state.forceFirst && state.count % 2) ? {spec: STATEFUL_COUNTER_SPEC2, v0: `initialCount2: ${props.initialCount}, count2: ${state.count}`}
+      : {spec: STATEFUL_COUNTER_SPEC, v0: `initialCount: ${props.initialCount}, count: ${state.count}`}
     );
   };
   StatefulCounter.state = {
-    onInit:             props=>({...props, count: props.initialCount || 0}),
-    onProps:   (state, props)=>({...state, initialCount: props.initialCount, forceFirst: props.forceFirst}),
-    incrementBy: (state, amt)=>({...state, count: state.count + amt}),
-    increment:        (state)=>({...state, count: state.count + 1}),
-    decrement:        (state)=>({...state, count: state.count - 1}),
-    noop:             (state)=>state
+    onInit:       props=>({count: props.initialCount || 0}),
+    onProps:     (props, state)=>({...state, forceFirst: props.forceFirst}),
+    incrementBy: (props, state, amt)=>({count: state.count + amt}),
+    increment:   (props, state)=>({count: state.count + 1}),
+    decrement:   (props, state)=>({count: state.count - 1}),
+    noop:        (props, state)=>state
   };
 
   const PARENT_SPEC = {
     render: inst=>{
-      const node = document.createElement('div');
-      node.appendChild(createComponent(StatefulCounter, inst.v0, inst, 'r0', 'c0', 'rv0'));
-      return node;
+      return createComponent(StatefulCounter, inst.v0, inst, 'r0', 'c0', 'rv0');
     },
     rerender: (inst, pInst)=>{
       if(inst.v0 !== pInst.v0){
@@ -69,16 +71,19 @@ describe('Stateful Components', ()=>{
   };
 
   describe('Stateful', ()=>{
-    let node;
+    let node, parentNode;
 
     beforeEach(()=>{
+      renderCountSpec1 = renderCountSpec2 = 0;
       StatefulCounter.callCount = 0;
       StatefulCounter.callsArgs = [];
+      parentNode = document.createElement('div');
       node = renderInstance({spec: PARENT_SPEC, v0: {initialCount:777}});
+      parentNode.appendChild(node);
     });
 
     it('renders', ()=>{
-      assert.equal(getHTMLString(node),
+      assert.equal(getHTMLString(parentNode),
         '<div>'+
           '<a>'+
             'initialCount2: 777, count2: 777'+
@@ -89,10 +94,10 @@ describe('Stateful Components', ()=>{
 
     describe('calling state actions', ()=>{
       it('rerenders if action generates a new state', ()=>{
-        let [/*state*/, {increment}] = StatefulCounter.callsArgs[0];
+        let [/*props*/, /*state*/, {increment}] = StatefulCounter.callsArgs[0];
         increment();
 
-        assert.equal(getHTMLString(node),
+        assert.equal(getHTMLString(parentNode),
           '<div>'+
             '<span>'+
               'initialCount: 777, count: 778'+
@@ -100,11 +105,11 @@ describe('Stateful Components', ()=>{
           '</div>'
         );
 
-        let [/*state*/, {incrementBy}] = StatefulCounter.callsArgs[1];
+        let [/*props*/, /*state*/, {incrementBy}] = StatefulCounter.callsArgs[1];
 
         incrementBy(5);
 
-        assert.equal(getHTMLString(node),
+        assert.equal(getHTMLString(parentNode),
           '<div>'+
             '<a>'+
               'initialCount2: 777, count2: 783'+
@@ -112,11 +117,11 @@ describe('Stateful Components', ()=>{
           '</div>'
         );
 
-        let [/*state*/, {decrement}] = StatefulCounter.callsArgs[2];
+        let [/*props*/, /*state*/, {decrement}] = StatefulCounter.callsArgs[2];
 
         decrement();
 
-        assert.equal(getHTMLString(node),
+        assert.equal(getHTMLString(parentNode),
           '<div>'+
             '<span>'+
               'initialCount: 777, count: 782'+
@@ -126,11 +131,11 @@ describe('Stateful Components', ()=>{
       });
 
       it('does not rerender if action yields the same state', ()=>{
-        const [/*state*/, {noop}] = StatefulCounter.callsArgs[0];
+        const [/*props*/, /*state*/, {noop}] = StatefulCounter.callsArgs[0];
         assert.equal(StatefulCounter.callCount, 1);
         noop();
         assert.equal(StatefulCounter.callCount, 1);
-        assert.equal(getHTMLString(node),
+        assert.equal(getHTMLString(parentNode),
           '<div>'+
             '<a>'+
               'initialCount2: 777, count2: 777'+
@@ -141,8 +146,11 @@ describe('Stateful Components', ()=>{
     });
 
     it('rerenders', ()=>{
-      rerender(node, {spec: PARENT_SPEC, v0: {initialCount: 10}});
-      assert.equal(getHTMLString(node),
+      assert.equal(renderCountSpec2, 1);
+      rerender(parentNode.firstChild, {spec: PARENT_SPEC, v0: {initialCount: 10}});
+      assert.equal(renderCountSpec1, 0);
+      assert.equal(renderCountSpec2, 1);
+      assert.equal(getHTMLString(parentNode),
         '<div>'+
           '<a>'+
             'initialCount2: 10, count2: 777'+
@@ -150,8 +158,10 @@ describe('Stateful Components', ()=>{
         '</div>'
       );
 
-      rerender(node, {spec: PARENT_SPEC, v0: {initialCount: 11, forceFirst: true}});
-      assert.equal(getHTMLString(node),
+      rerender(parentNode.firstChild, {spec: PARENT_SPEC, v0: {initialCount: 11, forceFirst: true}});
+      assert.equal(renderCountSpec1, 1);
+      assert.equal(renderCountSpec2, 1);
+      assert.equal(getHTMLString(parentNode),
         '<div>'+
           '<span>'+
             'initialCount: 11, count: 777'+
@@ -159,14 +169,17 @@ describe('Stateful Components', ()=>{
         '</div>'
       );
 
-      rerender(node, {spec: PARENT_SPEC, v0: {initialCount: 11}});
-      assert.equal(getHTMLString(node),
+      rerender(parentNode.firstChild, {spec: PARENT_SPEC, v0: {initialCount: 12}});
+      assert.equal(renderCountSpec1, 1);
+      assert.equal(renderCountSpec2, 2);
+      assert.equal(getHTMLString(parentNode),
         '<div>'+
           '<a>'+
-            'initialCount2: 11, count2: 777'+
+            'initialCount2: 12, count2: 777'+
           '</a>'+
         '</div>'
       );
+
     });
   });
 });
