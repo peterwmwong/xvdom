@@ -13,6 +13,30 @@ function removeArrayNodes(list, parentNode){
   }
 }
 
+function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentInst, componentInstanceProp){
+  if(prevInst.spec === inst.spec){
+    inst.spec.rerender(inst, prevInst);
+    return;
+  }
+
+  const newNode = renderInstance(inst);
+  const node    = parentInst._node;
+
+  stateActions.$$instance = inst;
+
+  inst.component = prevInst.component;
+  inst.state     = prevInst.state;
+  inst.actions   = prevInst.actions;
+  inst.props     = prevInst.props;
+
+  parentInst._node = newNode;
+  parentInst[componentInstanceProp] = inst;
+  newNode.xvdom = parentInst;
+
+  node.parentNode.replaceChild(newNode, node);
+  recycle(inst.spec.recycled, node);
+}
+
 function createStateActions(stateActions, parentInst, componentInstanceProp){
   const result = {};
   for(let sa in stateActions){
@@ -20,30 +44,16 @@ function createStateActions(stateActions, parentInst, componentInstanceProp){
       function wrapAction(...args){
         const inst     = result.$$instance;
         const newState = action(inst.props, inst.state, ...args);
-        if(inst.state !== newState){
-          inst.state = newState;
-          let newInst = inst.component(inst.props, newState, result);
-          if(inst.spec === newInst.spec){
-            inst.spec.rerender(newInst, inst);
-          }
-          else{
-            const node    = parentInst._node;
-            const newNode = renderInstance(newInst);
+        if(inst.state === newState) return;
 
-            newInst.component = inst.component;
-            newInst.state     = inst.state;
-            newInst.actions   = inst.actions;
-            newInst.props     = inst.props;
-            result.$$instance = newInst;
-
-            parentInst._node = newNode;
-            parentInst[componentInstanceProp] = newInst;
-            newNode.xvdom = parentInst;
-
-            node.parentNode.replaceChild(newNode, node);
-            recycle(inst.spec.recycled, node);
-          }
-        }
+        inst.state = newState;
+        internalRerenderStatefulComponent(
+          result,
+          inst.component(inst.props, newState, result),
+          inst,
+          parentInst,
+          componentInstanceProp
+        );
       }
     )(stateActions[sa]);
   }
