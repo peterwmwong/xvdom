@@ -337,12 +337,11 @@ export function createStatefulComponent(component, props, instance, rerenderFunc
 
 export function createDynamic(value, instance, rerenderFuncProp, rerenderContextNode){
   let node, context, rerenderFunc;
-  if(value == null){
-    instance[rerenderFuncProp] = rerenderText;
+  let valueConstructor;
+  if(value == null || ((valueConstructor = value.constructor) === Boolean)){
+    instance[rerenderFuncProp] = rerenderDynamic;
     return instance[rerenderContextNode] = document.createTextNode(EMPTY_STRING);
   }
-
-  const valueConstructor = value.constructor;
 
   if(valueConstructor === Object){
     rerenderFunc = rerenderInstance;

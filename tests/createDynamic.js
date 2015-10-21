@@ -2,6 +2,7 @@ import assert             from 'assert';
 import getHTMLString      from './utils/getHTMLString.js';
 import {
   createDynamic,
+  rerenderDynamic,
   rerenderText,
   rerenderInstance,
   rerenderArray
@@ -12,6 +13,30 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
 
   beforeEach(()=>{
     parentNode = document.createElement('div');
+  });
+
+  [null, undefined, true, false].forEach(value=>{
+    describe(`${value} - empty text node`, ()=>{
+      let instance;
+
+      beforeEach(()=>{
+        instance = {spec:null, v0:value};
+        resultNode = createDynamic(instance.v0, instance, 'r0', 'c0');
+        parentNode.appendChild(resultNode);
+      });
+
+      it('renders text node with string', ()=>{
+        assert.ok(resultNode instanceof Text);
+        assert.equal(getHTMLString(parentNode),
+          '<div></div>'
+        );
+      });
+
+      it('sets rerender function and context', ()=>{
+        assert.equal(instance.r0, rerenderDynamic);
+        assert.equal(instance.c0, parentNode.firstChild);
+      });
+    });
   });
 
   describe('String - text node', ()=>{
