@@ -6,6 +6,7 @@ import './rerender.js';
 import './rerenderArray.js';
 import './rerenderText.js';
 import './rerenderInstance.js';
+import './rerenderDynamic.js';
 
 import './createDynamic.js';
 import './component.js';

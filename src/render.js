@@ -84,10 +84,13 @@ export function rerenderText(value, oldValue, contextNode, instance, rerenderFun
 }
 
 export function rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode){
-  contextNode.parentNode.replaceChild(
-    createDynamic(value, instance, rerenderFuncProp, rerenderContextNode),
-    contextNode
-  );
+  const parentNode = contextNode.parentNode;
+  if(parentNode){
+    parentNode.replaceChild(
+      createDynamic(value, instance, rerenderFuncProp, rerenderContextNode),
+      contextNode
+    );
+  }
 }
 
 export function rerenderInstance(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode){

@@ -172,7 +172,10 @@ var xvdom =
 	}
 
 	function rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
-	  contextNode.parentNode.replaceChild(createDynamic(value, instance, rerenderFuncProp, rerenderContextNode), contextNode);
+	  var parentNode = contextNode.parentNode;
+	  if (parentNode) {
+	    parentNode.replaceChild(createDynamic(value, instance, rerenderFuncProp, rerenderContextNode), contextNode);
+	  }
 	}
 
 	function rerenderInstance(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode) {
@@ -425,12 +428,11 @@ var xvdom =
 	  var node = undefined,
 	      context = undefined,
 	      rerenderFunc = undefined;
-	  if (value == null) {
-	    instance[rerenderFuncProp] = rerenderText;
+	  var valueConstructor = undefined;
+	  if (value == null || (valueConstructor = value.constructor) === Boolean) {
+	    instance[rerenderFuncProp] = rerenderDynamic;
 	    return instance[rerenderContextNode] = document.createTextNode(EMPTY_STRING);
 	  }
-
-	  var valueConstructor = value.constructor;
 
 	  if (valueConstructor === Object) {
 	    rerenderFunc = rerenderInstance;
