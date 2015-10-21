@@ -10,4 +10,5 @@ import './rerenderInstance.js';
 import './createDynamic.js';
 import './component.js';
 import './component-stateful.js';
+import './component-stateful-nested.js';
 import './integration.js';
