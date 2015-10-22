@@ -139,7 +139,7 @@ var xvdom =
 	        }
 
 	        var newState = action.apply(undefined, [inst.props, inst.state].concat(args));
-	        if (inst.state === newState) return;
+	        if (!newState || inst.state === newState) return;
 
 	        inst.state = newState;
 	        internalRerenderStatefulComponent(result, inst.component(inst.props, newState, result), inst, parentInst, componentInstanceProp);

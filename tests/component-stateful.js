@@ -55,7 +55,8 @@ describe('Stateful Components', ()=>{
     incrementBy: (props, state, amt)=>({count: state.count + amt}),
     increment:   (props, state)=>({count: state.count + 1}),
     decrement:   (props, state)=>({count: state.count - 1}),
-    noop:        (props, state)=>state
+    noop:        (props, state)=>state,
+    noopUndef:   (props, state)=>undefined,
   };
 
   const PARENT_SPEC = {
@@ -131,9 +132,19 @@ describe('Stateful Components', ()=>{
       });
 
       it('does not rerender if action yields the same state', ()=>{
-        const [/*props*/, /*state*/, {noop}] = StatefulCounter.callsArgs[0];
+        const [/*props*/, /*state*/, {noop, noopUndef}] = StatefulCounter.callsArgs[0];
         assert.equal(StatefulCounter.callCount, 1);
         noop();
+        assert.equal(StatefulCounter.callCount, 1);
+        assert.equal(getHTMLString(parentNode),
+          '<div>'+
+            '<a>'+
+              'initialCount2: 777, count2: 777'+
+            '</a>'+
+          '</div>'
+        );
+
+        noopUndef();
         assert.equal(StatefulCounter.callCount, 1);
         assert.equal(getHTMLString(parentNode),
           '<div>'+

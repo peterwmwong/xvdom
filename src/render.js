@@ -44,7 +44,7 @@ function createStateActions(stateActions, parentInst, componentInstanceProp){
       function wrapAction(...args){
         const inst     = result.$$instance;
         const newState = action(inst.props, inst.state, ...args);
-        if(inst.state === newState) return;
+        if(!newState || inst.state === newState) return;
 
         inst.state = newState;
         internalRerenderStatefulComponent(
