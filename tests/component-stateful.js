@@ -51,12 +51,13 @@ describe('Stateful Components', ()=>{
   };
   StatefulCounter.state = {
     onInit:       props=>({count: props.initialCount || 0}),
-    onProps:     (props, state)=>({...state, forceFirst: props.forceFirst}),
-    incrementBy: (props, state, amt)=>({count: state.count + amt}),
-    increment:   (props, state)=>({count: state.count + 1}),
-    decrement:   (props, state)=>({count: state.count - 1}),
-    noop:        (props, state)=>state,
-    noopUndef:   (props, state)=>undefined,
+    onProps:     (props, state, actions)=>({...state, forceFirst: props.forceFirst}),
+    incrementBy: (props, state, actions, amt)=>({count: state.count + amt}),
+    increment:   (props, state, actions)=>({count: state.count + 1}),
+    decrement:   (props, state, actions)=>({count: state.count - 1}),
+    noop:        (props, state, actions)=>state,
+    noopUndef:   (props, state, actions)=>undefined,
+    redirect:    (props, state, actions)=>actions.increment()
   };
 
   const PARENT_SPEC = {
@@ -108,7 +109,7 @@ describe('Stateful Components', ()=>{
 
         let [/*props*/, /*state*/, {incrementBy}] = StatefulCounter.callsArgs[1];
 
-        incrementBy(5);
+        assert.deepEqual(incrementBy(5), {count: 783});
 
         assert.equal(getHTMLString(parentNode),
           '<div>'+
@@ -120,13 +121,25 @@ describe('Stateful Components', ()=>{
 
         let [/*props*/, /*state*/, {decrement}] = StatefulCounter.callsArgs[2];
 
-        decrement();
+        assert.deepEqual(decrement(), {count: 782});
 
         assert.equal(getHTMLString(parentNode),
           '<div>'+
             '<span>'+
               'initialCount: 777, count: 782'+
             '</span>'+
+          '</div>'
+        );
+
+        let [/*props*/, /*state*/, {redirect}] = StatefulCounter.callsArgs[2];
+
+        assert.deepEqual(redirect(), {count: 783});
+
+        assert.equal(getHTMLString(parentNode),
+          '<div>'+
+            '<a>'+
+              'initialCount2: 777, count2: 783'+
+            '</a>'+
           '</div>'
         );
       });

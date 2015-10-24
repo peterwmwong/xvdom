@@ -127,22 +127,29 @@ var xvdom =
 	  recycle(inst.spec.recycled, node);
 	}
 
+	function callAction(stateActions, action, parentInst, componentInstanceProp, args) {
+	  var inst = stateActions.$$instance;
+	  var props = inst.props;
+	  var state = inst.state;
+
+	  var newState = action.apply(undefined, [props, state, stateActions].concat(args)) || state;
+	  if (state !== newState) {
+	    inst.state = newState;
+	    internalRerenderStatefulComponent(stateActions, inst.component(props, newState, stateActions), inst, parentInst, componentInstanceProp);
+	  }
+	  return newState;
+	}
+
 	function createStateActions(stateActions, parentInst, componentInstanceProp) {
 	  var result = {};
 	  for (var sa in stateActions) {
 	    result[sa] = (function (action) {
-	      return function wrapAction() {
-	        var inst = result.$$instance;
-
+	      return function () {
 	        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
 	          args[_key] = arguments[_key];
 	        }
 
-	        var newState = action.apply(undefined, [inst.props, inst.state].concat(args));
-	        if (!newState || inst.state === newState) return;
-
-	        inst.state = newState;
-	        internalRerenderStatefulComponent(result, inst.component(inst.props, newState, result), inst, parentInst, componentInstanceProp);
+	        return callAction(result, action, parentInst, componentInstanceProp, args);
 	      };
 	    })(stateActions[sa]);
 	  }
@@ -406,8 +413,8 @@ var xvdom =
 	}
 
 	function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
-	  var state = component.state.onInit(props || EMPTY_OBJECT);
 	  var actions = createStateActions(component.state, instance, componentInstanceProp);
+	  var state = component.state.onInit(props || EMPTY_OBJECT, undefined, actions);
 	  var inst = component(props, state, actions);
 	  var node = renderInstance(inst);
 
