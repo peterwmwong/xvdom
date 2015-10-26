@@ -38,24 +38,29 @@ function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentI
 }
 
 function callAction(stateActions, action, parentInst, componentInstanceProp, args){
-  const inst           = stateActions.$$instance;
-  const {props, state} = inst;
-  const newState       = action(props, state, stateActions, ...args) || state;
+  const inst               = stateActions.$$instance;
+  const {props, state}     = inst;
+  const shouldRerender     = stateActions.$$doRerender;
+  stateActions.$$doRerender = false;
+  const newState           = action(props, state, stateActions, ...args) || state;
+  stateActions.$$doRerender = shouldRerender;
   if(state !== newState){
     inst.state = newState;
-    internalRerenderStatefulComponent(
-      stateActions,
-      inst.component(props, newState, stateActions),
-      inst,
-      parentInst,
-      componentInstanceProp
-    );
+    if(shouldRerender){
+      internalRerenderStatefulComponent(
+        stateActions,
+        inst.component(props, newState, stateActions),
+        inst,
+        parentInst,
+        componentInstanceProp
+      );
+    }
   }
   return newState;
 }
 
-function createStateActions(stateActions, parentInst, componentInstanceProp){
-  const result = {};
+function createStateActions(stateActions, parentInst, componentInstanceProp, preInstance){
+  const result = {$$doRerender: false, $$instance: preInstance};
   for(let sa in stateActions){
     result[sa] = (action=>
       (...args)=>callAction(result, action, parentInst, componentInstanceProp, args)
@@ -323,11 +328,17 @@ export function createComponent(component, props, instance, rerenderFuncProp, re
   return node;
 }
 
+const preInstance = {props: undefined, component: undefined, state: undefined};
+
 export function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp){
-  const actions = createStateActions(component.state, instance, componentInstanceProp);
-  const state   = component.state.onInit(props || EMPTY_OBJECT, undefined, actions);
-  const inst    = component(props, state, actions);
-  const node    = renderInstance(inst);
+  preInstance.props     = props;
+  preInstance.component = component;
+  const rawActions      = component.state;
+  const actions         = createStateActions(rawActions, instance, componentInstanceProp, preInstance);
+  const state           = rawActions.onInit(props || EMPTY_OBJECT, undefined, actions);
+  actions.$$doRerender  = true;
+  const inst            = component(props, state, actions);
+  const node            = renderInstance(inst);
 
   actions.$$instance = inst;
 

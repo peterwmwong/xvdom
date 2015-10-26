@@ -50,7 +50,8 @@ describe('Stateful Components', ()=>{
     );
   };
   StatefulCounter.state = {
-    onInit:       props=>({count: props.initialCount || 0}),
+    onInit:      (props, state, actions)=>actions.onInit2(),
+    onInit2:      props=>({count: props.initialCount || 0}),
     onProps:     (props, state, actions)=>({...state, forceFirst: props.forceFirst}),
     incrementBy: (props, state, actions, amt)=>({count: state.count + amt}),
     increment:   (props, state, actions)=>({count: state.count + 1}),
@@ -133,7 +134,9 @@ describe('Stateful Components', ()=>{
 
         let [/*props*/, /*state*/, {redirect}] = StatefulCounter.callsArgs[2];
 
+        assert.equal(StatefulCounter.callCount, 4);
         assert.deepEqual(redirect(), {count: 783});
+        assert.equal(StatefulCounter.callCount, 5);
 
         assert.equal(getHTMLString(parentNode),
           '<div>'+
