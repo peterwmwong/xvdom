@@ -132,6 +132,7 @@ export function renderInstance(instance){
   let node = spec.recycled && spec.recycled.pop();
   if(node){
     spec.rerender(instance, node.xvdom);
+    instance._node = node;
     return node;
   }
 
@@ -162,7 +163,7 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
     i = 0;
     while(i < length){
       value = list[i++];
-      value._node = node = renderInstance(value);
+      node = renderInstance(value);
       parentNode.insertBefore(node, markerNode);
     }
     return;
@@ -249,7 +250,7 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
     insertBeforeNode = endItem ? endItem._node : markerNode;
     while(startIndex <= endIndex){
       startItem = list[startIndex++];
-      startItem._node = node = renderInstance(startItem);
+      node = renderInstance(startItem);
       parentNode.insertBefore(node, insertBeforeNode);
     }
   }

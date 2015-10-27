@@ -132,16 +132,21 @@ var xvdom =
 	  var props = inst.props;
 	  var state = inst.state;
 
+	  var shouldRerender = stateActions.$$doRerender;
+	  stateActions.$$doRerender = false;
 	  var newState = action.apply(undefined, [props, state, stateActions].concat(args)) || state;
+	  stateActions.$$doRerender = shouldRerender;
 	  if (state !== newState) {
 	    inst.state = newState;
-	    internalRerenderStatefulComponent(stateActions, inst.component(props, newState, stateActions), inst, parentInst, componentInstanceProp);
+	    if (shouldRerender) {
+	      internalRerenderStatefulComponent(stateActions, inst.component(props, newState, stateActions), inst, parentInst, componentInstanceProp);
+	    }
 	  }
 	  return newState;
 	}
 
-	function createStateActions(stateActions, parentInst, componentInstanceProp) {
-	  var result = {};
+	function createStateActions(stateActions, parentInst, componentInstanceProp, preInstance) {
+	  var result = { $$doRerender: false, $$instance: preInstance };
 	  for (var sa in stateActions) {
 	    result[sa] = (function (action) {
 	      return function () {
@@ -212,6 +217,7 @@ var xvdom =
 	  var node = spec.recycled && spec.recycled.pop();
 	  if (node) {
 	    spec.rerender(instance, node.xvdom);
+	    instance._node = node;
 	    return node;
 	  }
 
@@ -245,7 +251,7 @@ var xvdom =
 	    i = 0;
 	    while (i < length) {
 	      value = list[i++];
-	      value._node = node = renderInstance(value);
+	      node = renderInstance(value);
 	      parentNode.insertBefore(node, markerNode);
 	    }
 	    return;
@@ -335,7 +341,7 @@ var xvdom =
 	    insertBeforeNode = endItem ? endItem._node : markerNode;
 	    while (startIndex <= endIndex) {
 	      startItem = list[startIndex++];
-	      startItem._node = node = renderInstance(startItem);
+	      node = renderInstance(startItem);
 	      parentNode.insertBefore(node, insertBeforeNode);
 	    }
 	  } else if (startIndex > endIndex) {
@@ -412,9 +418,15 @@ var xvdom =
 	  return node;
 	}
 
+	var preInstance = { props: undefined, component: undefined, state: undefined };
+
 	function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
-	  var actions = createStateActions(component.state, instance, componentInstanceProp);
-	  var state = component.state.onInit(props || EMPTY_OBJECT, undefined, actions);
+	  preInstance.props = props;
+	  preInstance.component = component;
+	  var rawActions = component.state;
+	  var actions = createStateActions(rawActions, instance, componentInstanceProp, preInstance);
+	  var state = rawActions.onInit(props || EMPTY_OBJECT, undefined, actions);
+	  actions.$$doRerender = true;
 	  var inst = component(props, state, actions);
 	  var node = renderInstance(inst);
 
