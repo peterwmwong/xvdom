@@ -175,12 +175,12 @@ var xvdom =
 	function rerenderText(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
 	  if (value == null) {
 	    contextNode.nodeValue = EMPTY_STRING;
-	    return;
 	  } else if (value.constructor === String || value.constructor === Number) {
 	    contextNode.nodeValue = value;
-	    return;
+	  } else {
+	    rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode);
 	  }
-	  rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode);
+	  return value;
 	}
 
 	function rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
@@ -188,6 +188,7 @@ var xvdom =
 	  if (parentNode) {
 	    parentNode.replaceChild(createDynamic(value, instance, rerenderFuncProp, rerenderContextNode), contextNode);
 	  }
+	  return value;
 	}
 
 	function rerenderInstance(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode) {
@@ -195,10 +196,11 @@ var xvdom =
 
 	  if (prevSpec === (value && value.spec)) {
 	    prevSpec.rerender(value, prevValue);
-	    return;
+	    return prevValue;
 	  }
 
 	  rerenderDynamic(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode);
+	  return value;
 	}
 
 	function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
@@ -232,7 +234,7 @@ var xvdom =
 	  if (!list || list.constructor !== Array) {
 	    removeArrayNodes(oldList, parentNode);
 	    rerenderDynamic(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
-	    return;
+	    return list;
 	  }
 
 	  var length = list.length;
@@ -244,7 +246,7 @@ var xvdom =
 
 	  if (length === 0) {
 	    removeArrayNodes(oldList, parentNode);
-	    return;
+	    return list;
 	  }
 
 	  if (oldLength === 0) {
@@ -254,7 +256,7 @@ var xvdom =
 	      node = renderInstance(value);
 	      parentNode.insertBefore(node, markerNode);
 	    }
-	    return;
+	    return list;
 	  }
 
 	  var oldEndIndex = oldLength - 1;
@@ -389,6 +391,7 @@ var xvdom =
 	      saveItem = saveItem.next;
 	    }
 	  }
+	  return list;
 	}
 
 	function rerender(node, instance) {

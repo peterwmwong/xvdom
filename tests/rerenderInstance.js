@@ -30,12 +30,29 @@ describe('rerenderInstance - value, prevValue, node, instance, rerenderFuncProp,
     specRerenderCallCount = 0;
   });
 
+
+  describe('When `newValue` is not the same spec', ()=>{
+    let returnValue;
+
+    beforeEach(()=>{
+      returnValue = rerenderInstance('yolo', initialInstance, node, 'r0', 'c0');
+    });
+
+    it('calls spec `rerender()`', ()=>{
+      assert.equal(specRerenderCallCount, 0);
+    });
+
+    it('returns `newValue`', ()=>{
+      assert.equal(returnValue, 'yolo');
+    });
+  });
+
   describe('When `newValue` is a render instance with the same spec', ()=>{
-    let instance;
+    let instance, returnValue;
 
     beforeEach(()=>{
       instance = {spec:SPEC, v0:MOCK_RERENDER_VALUES};
-      rerenderInstance(instance, initialInstance, node, 'r0', 'c0');
+      returnValue = rerenderInstance(instance, initialInstance, node, 'r0', 'c0');
     });
 
     it('calls spec `rerender()`', ()=>{
@@ -52,8 +69,12 @@ describe('rerenderInstance - value, prevValue, node, instance, rerenderFuncProp,
       assert.equal(initialInstance.r0, rerenderInstance);
     });
 
-    it('initail instance context node is the node', ()=>{
+    it('initial instance context node is the node', ()=>{
       assert.equal(initialInstance.c0, node);
+    });
+
+    it('returns old instance', ()=>{
+      assert.equal(returnValue, initialInstance);
     });
   });
 });

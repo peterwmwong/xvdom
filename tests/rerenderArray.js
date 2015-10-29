@@ -26,91 +26,6 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     spyOn.uninstall();
   });
 
-  xdescribe('When `newValue` is a render instance with the same spec', ()=>{
-    let listNode, listValueContext, markerNode, specRerenderArgs, specRerenderCallCount;
-    const LIST_SPEC = {
-      render: (vc)=>{
-        const div = document.createElement('div');
-        div.appendChild(createDynamic(vc, 0, 1, 2));
-        return div;
-      }
-    };
-
-    const ITEM_SPEC = {
-      render: (vc)=>document.createElement('span'),
-      rerender: (...args)=>{
-        specRerenderArgs.push(args);
-        specRerenderCallCount++;
-      }
-    };
-    const INITIAL_ARRAY = [
-      {
-        key: 'one',
-        spec: ITEM_SPEC,
-        values: [1]
-      },
-      {
-        key: 'two',
-        spec: ITEM_SPEC,
-        values: [2]
-      }
-    ];
-
-    const NEXT_ARRAY = [
-      {
-        key: 'one',
-        spec: ITEM_SPEC,
-        values: [11]
-      },
-      {
-        key: 'two',
-        spec: ITEM_SPEC,
-        values: [12]
-      }
-    ];
-
-    beforeEach(()=>{
-      listValueContext = [
-        INITIAL_ARRAY,
-        null,
-        null
-      ];
-      listNode = renderInstance(
-        createInstance(null, LIST_SPEC, listValueContext)
-      );
-
-      markerNode = listNode.lastChild;
-
-      specRerenderArgs = [];
-      specRerenderCallCount = 0;
-
-      rerenderArray(NEXT_ARRAY, listValueContext, 0, 1, 2);
-    });
-
-    describe('For each item', ()=>{
-      it('calls spec `rerender()`', ()=>{
-        assert.equal(specRerenderCallCount, 2);
-        assert.equal(specRerenderArgs[0][0], NEXT_ARRAY[0].values);
-        assert.equal(specRerenderArgs[0][1], INITIAL_ARRAY[0].values);
-
-        assert.equal(specRerenderArgs[1][0], NEXT_ARRAY[1].values);
-        assert.equal(specRerenderArgs[1][1], INITIAL_ARRAY[1].values);
-      });
-
-      it('previousValuesContext value is updated', ()=>{
-        assert.equal(listValueContext[0], NEXT_ARRAY);
-      });
-
-      it('previousValuesContext rerender function is `rerenderInstance`', ()=>{
-        assert.equal(listValueContext[1], rerenderArray);
-      });
-
-      it('previousValuesContext context is the node', ()=>{
-        assert.equal(listValueContext[2], markerNode);
-      });
-    });
-  });
-
   describe('Arrays', ()=>{
     const PARENT_SPEC = {
       render: inst=>{
@@ -120,8 +35,7 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       },
       rerender(inst, pInst){
         if(inst.v0 !== pInst.v0){
-          pInst.r0(inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
-          pInst.v0 = inst.v0;
+          pInst.v0 = pInst.r0(inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
         }
       }
     };

@@ -83,13 +83,14 @@ export function renderArray(frag, array){
 export function rerenderText(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode){
   if(value == null){
     contextNode.nodeValue = EMPTY_STRING;
-    return;
   }
   else if(value.constructor === String || value.constructor === Number){
     contextNode.nodeValue = value;
-    return;
   }
-  rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode);
+  else{
+    rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode);
+  }
+  return value;
 }
 
 export function rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode){
@@ -100,6 +101,7 @@ export function rerenderDynamic(value, oldValue, contextNode, instance, rerender
       contextNode
     );
   }
+  return value;
 }
 
 export function rerenderInstance(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode){
@@ -107,10 +109,11 @@ export function rerenderInstance(value, prevValue, node, instance, rerenderFuncP
 
   if(prevSpec === (value && value.spec)){
     prevSpec.rerender(value, prevValue);
-    return;
+    return prevValue;
   }
 
   rerenderDynamic(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode);
+  return value;
 }
 
 export function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp){
@@ -147,7 +150,7 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
   if(!list || list.constructor !== Array){
     removeArrayNodes(oldList, parentNode);
     rerenderDynamic(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
-    return;
+    return list;
   }
 
   const length    = list.length;
@@ -156,8 +159,9 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
 
   if(length === 0){
     removeArrayNodes(oldList, parentNode);
-    return;
+    return list;
   }
+
 
   if (oldLength === 0){
     i = 0;
@@ -166,7 +170,7 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
       node = renderInstance(value);
       parentNode.insertBefore(node, markerNode);
     }
-    return;
+    return list;
   }
 
   let oldEndIndex     = oldLength - 1;
@@ -300,6 +304,7 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
       saveItem = saveItem.next;
     }
   }
+  return list;
 }
 
 export function rerender(node, instance){
