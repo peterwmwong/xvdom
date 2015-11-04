@@ -211,7 +211,17 @@ var xvdom =
 	}
 
 	function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
-	  instance[rerenderContextNode] = rerender(node, instance[componentInstanceProp] = component(props || EMPTY_OBJECT));
+	  var newCompInstance = component(props || EMPTY_OBJECT);
+	  if (componentInstance.spec === newCompInstance.spec) {
+	    componentInstance.spec.rerender(newCompInstance, componentInstance);
+	    return;
+	  }
+
+	  var newNode = renderInstance(newCompInstance);
+	  instance[componentInstanceProp] = newCompInstance;
+	  instance[rerenderContextNode] = newNode;
+	  newNode.xvdom = instance;
+	  node.parentNode.replaceChild(newNode, node);
 	}
 
 	function renderInstance(instance) {
