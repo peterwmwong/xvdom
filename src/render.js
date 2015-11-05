@@ -13,7 +13,7 @@ function removeArrayNodes(list, parentNode){
   }
 }
 
-function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentInst, componentInstanceProp){
+function internalRerenderStatefulComponent(dispatch, inst, prevInst, parentInst, componentInstanceProp){
   if(prevInst.spec === inst.spec){
     inst.spec.rerender(inst, prevInst);
     return;
@@ -22,12 +22,12 @@ function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentI
   const newNode = renderInstance(inst);
   const node    = parentInst._node;
 
-  stateActions.$$instance = inst;
+  dispatch.instance = inst;
 
   inst.component = prevInst.component;
   inst.state     = prevInst.state;
-  inst.actions   = prevInst.actions;
   inst.props     = prevInst.props;
+  inst.dispatch  = dispatch;
 
   parentInst._node = newNode;
   parentInst[componentInstanceProp] = inst;
@@ -35,38 +35,6 @@ function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentI
 
   node.parentNode.replaceChild(newNode, node);
   recycle(inst.spec.recycled, node);
-}
-
-function callAction(stateActions, action, parentInst, componentInstanceProp, args){
-  const inst               = stateActions.$$instance;
-  const {props, state}     = inst;
-  const shouldRerender     = stateActions.$$doRerender;
-  stateActions.$$doRerender = false;
-  const newState           = action(props, state, stateActions, ...args) || state;
-  stateActions.$$doRerender = shouldRerender;
-  if(state !== newState){
-    inst.state = newState;
-    if(shouldRerender){
-      internalRerenderStatefulComponent(
-        stateActions,
-        inst.component(props, newState, stateActions),
-        inst,
-        parentInst,
-        componentInstanceProp
-      );
-    }
-  }
-  return newState;
-}
-
-function createStateActions(stateActions, parentInst, componentInstanceProp, preInstance){
-  const result = {$$doRerender: false, $$instance: preInstance};
-  for(let sa in stateActions){
-    result[sa] = (action=>
-      (...args)=>callAction(result, action, parentInst, componentInstanceProp, args)
-    )(stateActions[sa]);
-  }
-  return result;
 }
 
 export function renderArray(frag, array){
@@ -117,10 +85,8 @@ export function rerenderInstance(value, prevValue, node, instance, rerenderFuncP
 }
 
 export function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp){
-  const onProps = componentInstance.actions.onProps;
   componentInstance.props = props;
-
-  if(onProps) onProps();
+  doDispatch(componentInstance.dispatch, component.onProps, [], instance, componentInstanceProp, true);
 }
 
 export function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp){
@@ -329,7 +295,9 @@ export function rerender(node, instance){
 }
 
 export function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp){
-  if(component.state) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
+  if(component.getInitialState){
+    return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
+  }
 
   const inst = component(props || EMPTY_OBJECT);
   const node = renderInstance(inst);
@@ -341,23 +309,50 @@ export function createComponent(component, props, instance, rerenderFuncProp, re
   return node;
 }
 
+function doDispatch(dispatch, action, args, parentInst, componentInstanceProp, forceRerender){
+  const shouldRerender  = dispatch.$$doRerender;
+  dispatch.$$doRerender = false;
+  const inst            = dispatch.instance;
+  const {props, state}  = inst;
+  const newState        = action(props, state, dispatch, ...args);
+  inst.state            = newState;
+  dispatch.$$doRerender = shouldRerender;
+  if(forceRerender || (state !== newState && shouldRerender)){
+    internalRerenderStatefulComponent(
+      dispatch,
+      inst.component(props, newState, dispatch),
+      inst,
+      parentInst,
+      componentInstanceProp
+    );
+  }
+  return newState;
+}
+
 const preInstance = {props: undefined, component: undefined, state: undefined};
+const DEFAULT_ON_PROPS = (props, state, dispatch)=>state;
 
 export function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp){
+  component.onProps     = component.onProps || DEFAULT_ON_PROPS;
   preInstance.props     = props;
   preInstance.component = component;
-  const rawActions      = component.state;
-  const actions         = createStateActions(rawActions, instance, componentInstanceProp, preInstance);
-  const state           = rawActions.onInit(props || EMPTY_OBJECT, undefined, actions);
-  actions.$$doRerender  = true;
-  const inst            = component(props, state, actions);
-  const node            = renderInstance(inst);
 
-  actions.$$instance = inst;
+  const dispatch = (action, ...args)=>
+    doDispatch(dispatch, action, args, instance, componentInstanceProp, false);
+
+  dispatch.instance = preInstance;
+  dispatch.$$doRerender = false;
+  const state = component.getInitialState((props || EMPTY_OBJECT), undefined, dispatch);
+  dispatch.$$doRerender = true;
+
+  const inst     = component(props, state, dispatch);
+  const node     = renderInstance(inst);
+
+  dispatch.instance = inst;
 
   inst.component = component;
   inst.state     = state;
-  inst.actions   = actions;
+  inst.dispatch  = dispatch;
   inst.props     = props;
 
   instance[rerenderFuncProp]      = rerenderStatefulComponent;

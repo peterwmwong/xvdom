@@ -41,25 +41,23 @@ describe('Stateful Components', ()=>{
     }
   };
 
-  const StatefulCounter = (props, state, actions)=>{
+  const StatefulCounter = (props, state, dispatch)=>{
     StatefulCounter.callCount = StatefulCounter.callCount + 1;
-    StatefulCounter.callsArgs.push([props, state, actions]);
+    StatefulCounter.callsArgs.push([props, state, dispatch]);
     return (
         (!state.forceFirst && state.count % 2) ? {spec: STATEFUL_COUNTER_SPEC2, v0: `initialCount2: ${props.initialCount}, count2: ${state.count}`}
       : {spec: STATEFUL_COUNTER_SPEC, v0: `initialCount: ${props.initialCount}, count: ${state.count}`}
     );
   };
-  StatefulCounter.state = {
-    onInit:      (props, state, actions)=>actions.onInit2(),
-    onInit2:      props=>({count: props.initialCount || 0}),
-    onProps:     (props, state, actions)=>({...state, forceFirst: props.forceFirst}),
-    incrementBy: (props, state, actions, amt)=>({count: state.count + amt}),
-    increment:   (props, state, actions)=>({count: state.count + 1}),
-    decrement:   (props, state, actions)=>({count: state.count - 1}),
-    noop:        (props, state, actions)=>state,
-    noopUndef:   (props, state, actions)=>undefined,
-    redirect:    (props, state, actions)=>actions.increment()
-  };
+
+  const getInitialState = (props, state, dispatch)      => ({count: props.initialCount || 0});
+  const incrementBy     = (props, state, dispatch, amt) => ({count: state.count + amt});
+  const increment       = (props, state, dispatch)      => ({count: state.count + 1});
+  const decrement       = (props, state, dispatch)      => ({count: state.count - 1});
+  const noop            = (props, state, dispatch)      => state;
+  const redirect        = (props, state, dispatch)      => dispatch(increment);
+  StatefulCounter.getInitialState = (props, state, dispatch)=>dispatch(getInitialState);
+  StatefulCounter.onProps = (props, state, dispatch)=>({...state, forceFirst: props.forceFirst});
 
   const PARENT_SPEC = {
     render: inst=>{
@@ -97,8 +95,8 @@ describe('Stateful Components', ()=>{
 
     describe('calling state actions', ()=>{
       it('rerenders if action generates a new state', ()=>{
-        let [/*props*/, /*state*/, {increment}] = StatefulCounter.callsArgs[0];
-        increment();
+        let [/*props*/, /*state*/, dispatch] = StatefulCounter.callsArgs[0];
+        dispatch(increment);
 
         assert.equal(getHTMLString(parentNode),
           '<div>'+
@@ -108,9 +106,7 @@ describe('Stateful Components', ()=>{
           '</div>'
         );
 
-        let [/*props*/, /*state*/, {incrementBy}] = StatefulCounter.callsArgs[1];
-
-        assert.deepEqual(incrementBy(5), {count: 783});
+        assert.deepEqual(dispatch(incrementBy, 5), {count: 783});
 
         assert.equal(getHTMLString(parentNode),
           '<div>'+
@@ -120,9 +116,7 @@ describe('Stateful Components', ()=>{
           '</div>'
         );
 
-        let [/*props*/, /*state*/, {decrement}] = StatefulCounter.callsArgs[2];
-
-        assert.deepEqual(decrement(), {count: 782});
+        assert.deepEqual(dispatch(decrement), {count: 782});
 
         assert.equal(getHTMLString(parentNode),
           '<div>'+
@@ -132,10 +126,8 @@ describe('Stateful Components', ()=>{
           '</div>'
         );
 
-        let [/*props*/, /*state*/, {redirect}] = StatefulCounter.callsArgs[2];
-
         assert.equal(StatefulCounter.callCount, 4);
-        assert.deepEqual(redirect(), {count: 783});
+        assert.deepEqual(dispatch(redirect), {count: 783});
         assert.equal(StatefulCounter.callCount, 5);
 
         assert.equal(getHTMLString(parentNode),
@@ -148,19 +140,9 @@ describe('Stateful Components', ()=>{
       });
 
       it('does not rerender if action yields the same state', ()=>{
-        const [/*props*/, /*state*/, {noop, noopUndef}] = StatefulCounter.callsArgs[0];
+        const [/*props*/, /*state*/, dispatch] = StatefulCounter.callsArgs[0];
         assert.equal(StatefulCounter.callCount, 1);
-        noop();
-        assert.equal(StatefulCounter.callCount, 1);
-        assert.equal(getHTMLString(parentNode),
-          '<div>'+
-            '<a>'+
-              'initialCount2: 777, count2: 777'+
-            '</a>'+
-          '</div>'
-        );
-
-        noopUndef();
+        dispatch(noop);
         assert.equal(StatefulCounter.callCount, 1);
         assert.equal(getHTMLString(parentNode),
           '<div>'+
