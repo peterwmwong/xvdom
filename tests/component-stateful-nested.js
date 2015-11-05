@@ -95,9 +95,11 @@ describe('Stateful Components Nested', ()=>{
       }
     };
 
-    let leafDispatch;
-    var LeafNode = function LeafNode(props, state, dispatch) {
-      leafDispatch = dispatch;
+    let leafNodeToggle;
+    var LeafNode = function LeafNode(props, state, _ref) {
+      var toggle = _ref.toggle;
+
+      leafNodeToggle = toggle;
       return state.spec ? {
         spec: _xvdomSpec,
         _node: null,
@@ -112,13 +114,17 @@ describe('Stateful Components Nested', ()=>{
         c0: null
       };
     };
-    LeafNode.getInitialState = props=>({spec: false});
-    const onProps = (props, state)=>({...state});
-    const toggle =  (props, state)=>({spec: !state.spec});
+    LeafNode.state = {
+      onInit:             props=>({spec: false}),
+      onProps:   (props, state)=>({...state}),
+      toggle: (props, state)=>({spec: !state.spec})
+    };
 
-    let nodeDispatch;
-    var Node = function Node(props, state, dispatch) {
-      nodeDispatch = dispatch;
+    let nodeIncrement;
+    var Node = function Node(props, state, _ref2) {
+      var increment = _ref2.increment;
+
+      nodeIncrement = increment;
       return {
         spec: _xvdomSpec3,
         _node: null,
@@ -128,8 +134,10 @@ describe('Stateful Components Nested', ()=>{
         p0count: state.count
       };
     };
-    Node.getInitialState = props=>({count: 0});
-    const increment = (props, state)=>({count: state.count + 1})
+    Node.state = {
+      onInit:             props=>({count: 0}),
+      increment: (props, state)=>({count: state.count + 1})
+    };
 
     const parentNode = document.createElement('div');
     parentNode.appendChild(renderInstance({
@@ -148,7 +156,7 @@ describe('Stateful Components Nested', ()=>{
       '</div>'
     );
 
-    leafDispatch(toggle);
+    leafNodeToggle();
 
     assert.equal(getHTMLString(parentNode),
       '<div>'+
@@ -158,7 +166,7 @@ describe('Stateful Components Nested', ()=>{
       '</div>'
     );
 
-    nodeDispatch(increment);
+    nodeIncrement();
 
     assert.equal(getHTMLString(parentNode),
       '<div>'+
@@ -168,8 +176,9 @@ describe('Stateful Components Nested', ()=>{
       '</div>'
     );
 
-    leafDispatch(toggle);
-    
+
+    leafNodeToggle();
+
     assert.equal(getHTMLString(parentNode),
       '<div>'+
         '<span class="spec2">'+

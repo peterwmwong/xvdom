@@ -103,7 +103,7 @@ var xvdom =
 	  }
 	}
 
-	function internalRerenderStatefulComponent(dispatch, inst, prevInst, parentInst, componentInstanceProp) {
+	function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentInst, componentInstanceProp) {
 	  if (prevInst.spec === inst.spec) {
 	    inst.spec.rerender(inst, prevInst);
 	    return;
@@ -112,12 +112,12 @@ var xvdom =
 	  var newNode = renderInstance(inst);
 	  var node = parentInst._node;
 
-	  dispatch.instance = inst;
+	  stateActions.$$instance = inst;
 
 	  inst.component = prevInst.component;
 	  inst.state = prevInst.state;
+	  inst.actions = prevInst.actions;
 	  inst.props = prevInst.props;
-	  inst.dispatch = dispatch;
 
 	  parentInst._node = newNode;
 	  parentInst[componentInstanceProp] = inst;
@@ -125,6 +125,40 @@ var xvdom =
 
 	  node.parentNode.replaceChild(newNode, node);
 	  recycle(inst.spec.recycled, node);
+	}
+
+	function callAction(stateActions, action, parentInst, componentInstanceProp, args) {
+	  var inst = stateActions.$$instance;
+	  var props = inst.props;
+	  var state = inst.state;
+
+	  var shouldRerender = stateActions.$$doRerender;
+	  stateActions.$$doRerender = false;
+	  var newState = action.apply(undefined, [props, state, stateActions].concat(args)) || state;
+	  stateActions.$$doRerender = shouldRerender;
+	  if (state !== newState) {
+	    inst.state = newState;
+	    if (shouldRerender) {
+	      internalRerenderStatefulComponent(stateActions, inst.component(props, newState, stateActions), inst, parentInst, componentInstanceProp);
+	    }
+	  }
+	  return newState;
+	}
+
+	function createStateActions(stateActions, parentInst, componentInstanceProp, preInstance) {
+	  var result = { $$doRerender: false, $$instance: preInstance };
+	  for (var sa in stateActions) {
+	    result[sa] = (function (action) {
+	      return function () {
+	        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	          args[_key] = arguments[_key];
+	        }
+
+	        return callAction(result, action, parentInst, componentInstanceProp, args);
+	      };
+	    })(stateActions[sa]);
+	  }
+	  return result;
 	}
 
 	function renderArray(frag, array) {
@@ -170,8 +204,10 @@ var xvdom =
 	}
 
 	function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
+	  var onProps = componentInstance.actions.onProps;
 	  componentInstance.props = props;
-	  doDispatch(componentInstance.dispatch, component.onProps, [], instance, componentInstanceProp, true);
+
+	  if (onProps) onProps();
 	}
 
 	function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
@@ -383,9 +419,7 @@ var xvdom =
 	}
 
 	function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
-	  if (component.getInitialState) {
-	    return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
-	  }
+	  if (component.state) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
 
 	  var inst = component(props || EMPTY_OBJECT);
 	  var node = renderInstance(inst);
@@ -397,53 +431,23 @@ var xvdom =
 	  return node;
 	}
 
-	function doDispatch(dispatch, action, args, parentInst, componentInstanceProp, forceRerender) {
-	  var shouldRerender = dispatch.$$doRerender;
-	  dispatch.$$doRerender = false;
-	  var inst = dispatch.instance;
-	  var props = inst.props;
-	  var state = inst.state;
-
-	  var newState = action.apply(undefined, [props, state, dispatch].concat(args));
-	  inst.state = newState;
-	  dispatch.$$doRerender = shouldRerender;
-	  if (forceRerender || state !== newState && shouldRerender) {
-	    internalRerenderStatefulComponent(dispatch, inst.component(props, newState, dispatch), inst, parentInst, componentInstanceProp);
-	  }
-	  return newState;
-	}
-
 	var preInstance = { props: undefined, component: undefined, state: undefined };
-	var DEFAULT_ON_PROPS = function DEFAULT_ON_PROPS(props, state, dispatch) {
-	  return state;
-	};
 
 	function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
-	  component.onProps = component.onProps || DEFAULT_ON_PROPS;
 	  preInstance.props = props;
 	  preInstance.component = component;
-
-	  var dispatch = function dispatch(action) {
-	    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-	      args[_key - 1] = arguments[_key];
-	    }
-
-	    return doDispatch(dispatch, action, args, instance, componentInstanceProp, false);
-	  };
-
-	  dispatch.instance = preInstance;
-	  dispatch.$$doRerender = false;
-	  var state = component.getInitialState(props || EMPTY_OBJECT, undefined, dispatch);
-	  dispatch.$$doRerender = true;
-
-	  var inst = component(props, state, dispatch);
+	  var rawActions = component.state;
+	  var actions = createStateActions(rawActions, instance, componentInstanceProp, preInstance);
+	  var state = rawActions.onInit(props || EMPTY_OBJECT, undefined, actions);
+	  actions.$$doRerender = true;
+	  var inst = component(props, state, actions);
 	  var node = renderInstance(inst);
 
-	  dispatch.instance = inst;
+	  actions.$$instance = inst;
 
 	  inst.component = component;
 	  inst.state = state;
-	  inst.dispatch = dispatch;
+	  inst.actions = actions;
 	  inst.props = props;
 
 	  instance[rerenderFuncProp] = rerenderStatefulComponent;
