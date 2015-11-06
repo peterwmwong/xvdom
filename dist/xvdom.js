@@ -103,11 +103,14 @@ var xvdom =
 	  }
 	}
 
+	function internalRerenderInstance(inst, prevInst) {
+	  if (prevInst.spec !== inst.spec) return false;
+	  inst.spec.rerender(inst, prevInst);
+	  return true;
+	}
+
 	function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentInst, componentInstanceProp) {
-	  if (prevInst.spec === inst.spec) {
-	    inst.spec.rerender(inst, prevInst);
-	    return;
-	  }
+	  if (internalRerenderInstance(inst, prevInst)) return;
 
 	  var newNode = renderInstance(inst);
 	  var node = parentInst._node;
@@ -134,31 +137,31 @@ var xvdom =
 
 	  var shouldRerender = stateActions.$$doRerender;
 	  stateActions.$$doRerender = false;
-	  var newState = action.apply(undefined, [props, state, stateActions].concat(args)) || state;
+	  var newState = action.apply(undefined, [props, state, stateActions].concat(args));
 	  stateActions.$$doRerender = shouldRerender;
-	  if (state !== newState) {
-	    inst.state = newState;
-	    if (shouldRerender) {
-	      internalRerenderStatefulComponent(stateActions, inst.component(props, newState, stateActions), inst, parentInst, componentInstanceProp);
-	    }
+	  inst.state = newState;
+	  if (state !== newState && shouldRerender) {
+	    internalRerenderStatefulComponent(stateActions, inst.component(props, newState, stateActions), inst, parentInst, componentInstanceProp);
 	  }
 	  return newState;
 	}
 
-	function createStateActions(stateActions, parentInst, componentInstanceProp, preInstance) {
-	  var result = { $$doRerender: false, $$instance: preInstance };
-	  for (var sa in stateActions) {
-	    result[sa] = (function (action) {
-	      return function () {
-	        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-	          args[_key] = arguments[_key];
-	        }
+	function createAction(stateActions, action, parentInst, componentInstanceProp) {
+	  return function () {
+	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+	      args[_key] = arguments[_key];
+	    }
 
-	        return callAction(result, action, parentInst, componentInstanceProp, args);
-	      };
-	    })(stateActions[sa]);
+	    return callAction(stateActions, action, parentInst, componentInstanceProp, args);
+	  };
+	}
+
+	function createStateActions(rawActions, parentInst, componentInstanceProp, preInstance) {
+	  var stateActions = { $$doRerender: false, $$instance: preInstance };
+	  for (var sa in rawActions) {
+	    stateActions[sa] = createAction(stateActions, rawActions[sa], parentInst, componentInstanceProp);
 	  }
-	  return result;
+	  return stateActions;
 	}
 
 	function renderArray(frag, array) {
@@ -192,15 +195,9 @@ var xvdom =
 	}
 
 	function rerenderInstance(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode) {
-	  var prevSpec = prevValue.spec;
+	  if (value && internalRerenderInstance(value, prevValue)) return prevValue;
 
-	  if (prevSpec === (value && value.spec)) {
-	    prevSpec.rerender(value, prevValue);
-	    return prevValue;
-	  }
-
-	  rerenderDynamic(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode);
-	  return value;
+	  return rerenderDynamic(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode);
 	}
 
 	function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
@@ -212,10 +209,7 @@ var xvdom =
 
 	function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
 	  var newCompInstance = component(props || EMPTY_OBJECT);
-	  if (componentInstance.spec === newCompInstance.spec) {
-	    componentInstance.spec.rerender(newCompInstance, componentInstance);
-	    return;
-	  }
+	  if (internalRerenderInstance(newCompInstance, componentInstance)) return;
 
 	  var newNode = renderInstance(newCompInstance);
 	  instance[componentInstanceProp] = newCompInstance;
@@ -406,11 +400,7 @@ var xvdom =
 
 	function rerender(node, instance) {
 	  var prevInstance = node.xvdom;
-	  var spec = instance.spec;
-	  if (spec === prevInstance.spec) {
-	    spec.rerender(instance, prevInstance);
-	    return node;
-	  }
+	  if (internalRerenderInstance(instance, prevInstance)) return node;
 
 	  var newNode = renderInstance(instance);
 	  node.parentNode.replaceChild(newNode, node);
@@ -426,9 +416,7 @@ var xvdom =
 
 	  instance[rerenderFuncProp] = rerenderComponent;
 	  instance[componentInstanceProp] = inst;
-	  instance[rerenderContextNode] = node;
-
-	  return node;
+	  return instance[rerenderContextNode] = node;
 	}
 
 	var preInstance = { props: undefined, component: undefined, state: undefined };
@@ -451,9 +439,8 @@ var xvdom =
 	  inst.props = props;
 
 	  instance[rerenderFuncProp] = rerenderStatefulComponent;
-	  instance[rerenderContextNode] = node;
 	  instance[componentInstanceProp] = inst;
-	  return node;
+	  return instance[rerenderContextNode] = node;
 	}
 
 	function createDynamic(value, instance, rerenderFuncProp, rerenderContextNode) {

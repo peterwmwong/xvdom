@@ -13,11 +13,14 @@ function removeArrayNodes(list, parentNode){
   }
 }
 
+function internalRerenderInstance(inst, prevInst){
+  if(prevInst.spec !== inst.spec) return false;
+  inst.spec.rerender(inst, prevInst);
+  return true;
+}
+
 function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentInst, componentInstanceProp){
-  if(prevInst.spec === inst.spec){
-    inst.spec.rerender(inst, prevInst);
-    return;
-  }
+  if(internalRerenderInstance(inst, prevInst)) return;
 
   const newNode = renderInstance(inst);
   const node    = parentInst._node;
@@ -38,35 +41,35 @@ function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentI
 }
 
 function callAction(stateActions, action, parentInst, componentInstanceProp, args){
-  const inst               = stateActions.$$instance;
-  const {props, state}     = inst;
-  const shouldRerender     = stateActions.$$doRerender;
+  const inst                = stateActions.$$instance;
+  const {props, state}      = inst;
+  const shouldRerender      = stateActions.$$doRerender;
   stateActions.$$doRerender = false;
-  const newState           = action(props, state, stateActions, ...args) || state;
+  const newState            = action(props, state, stateActions, ...args);
   stateActions.$$doRerender = shouldRerender;
-  if(state !== newState){
-    inst.state = newState;
-    if(shouldRerender){
-      internalRerenderStatefulComponent(
-        stateActions,
-        inst.component(props, newState, stateActions),
-        inst,
-        parentInst,
-        componentInstanceProp
-      );
-    }
+  inst.state = newState;
+  if(state !== newState && shouldRerender){
+    internalRerenderStatefulComponent(
+      stateActions,
+      inst.component(props, newState, stateActions),
+      inst,
+      parentInst,
+      componentInstanceProp
+    );
   }
   return newState;
 }
 
-function createStateActions(stateActions, parentInst, componentInstanceProp, preInstance){
-  const result = {$$doRerender: false, $$instance: preInstance};
-  for(let sa in stateActions){
-    result[sa] = (action=>
-      (...args)=>callAction(result, action, parentInst, componentInstanceProp, args)
-    )(stateActions[sa]);
+function createAction(stateActions, action, parentInst, componentInstanceProp){
+  return (...args)=>callAction(stateActions, action, parentInst, componentInstanceProp, args);
+}
+
+function createStateActions(rawActions, parentInst, componentInstanceProp, preInstance){
+  const stateActions = {$$doRerender: false, $$instance: preInstance};
+  for(let sa in rawActions){
+    stateActions[sa] = createAction(stateActions, rawActions[sa], parentInst, componentInstanceProp);
   }
-  return result;
+  return stateActions;
 }
 
 export function renderArray(frag, array){
@@ -105,15 +108,9 @@ export function rerenderDynamic(value, oldValue, contextNode, instance, rerender
 }
 
 export function rerenderInstance(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode){
-  const prevSpec = prevValue.spec;
+  if(value && internalRerenderInstance(value, prevValue)) return prevValue;
 
-  if(prevSpec === (value && value.spec)){
-    prevSpec.rerender(value, prevValue);
-    return prevValue;
-  }
-
-  rerenderDynamic(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode);
-  return value;
+  return rerenderDynamic(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode);
 }
 
 export function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp){
@@ -125,10 +122,7 @@ export function rerenderStatefulComponent(component, props, prevProps, component
 
 export function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp){
   const newCompInstance = component(props || EMPTY_OBJECT);
-  if(componentInstance.spec === newCompInstance.spec){
-    componentInstance.spec.rerender(newCompInstance, componentInstance);
-    return;
-  }
+  if(internalRerenderInstance(newCompInstance, componentInstance)) return;
 
   const newNode = renderInstance(newCompInstance);
   instance[componentInstanceProp] = newCompInstance;
@@ -315,12 +309,8 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
 }
 
 export function rerender(node, instance){
-  const prevInstance   = node.xvdom;
-  const spec = instance.spec;
-  if(spec === prevInstance.spec){
-    spec.rerender(instance, prevInstance);
-    return node;
-  }
+  const prevInstance = node.xvdom;
+  if(internalRerenderInstance(instance, prevInstance)) return node;
 
   const newNode = renderInstance(instance);
   node.parentNode.replaceChild(newNode, node);
@@ -334,11 +324,9 @@ export function createComponent(component, props, instance, rerenderFuncProp, re
   const inst = component(props || EMPTY_OBJECT);
   const node = renderInstance(inst);
 
-  instance[rerenderFuncProp]      = rerenderComponent;
-  instance[componentInstanceProp] = inst;
-  instance[rerenderContextNode]   = node;
-
-  return node;
+  instance[rerenderFuncProp]           = rerenderComponent;
+  instance[componentInstanceProp]      = inst;
+  return instance[rerenderContextNode] = node;
 }
 
 const preInstance = {props: undefined, component: undefined, state: undefined};
@@ -360,10 +348,9 @@ export function createStatefulComponent(component, props, instance, rerenderFunc
   inst.actions   = actions;
   inst.props     = props;
 
-  instance[rerenderFuncProp]      = rerenderStatefulComponent;
-  instance[rerenderContextNode]   = node;
-  instance[componentInstanceProp] = inst;
-  return node;
+  instance[rerenderFuncProp]           = rerenderStatefulComponent;
+  instance[componentInstanceProp]      = inst;
+  return instance[rerenderContextNode] = node;
 }
 
 export function createDynamic(value, instance, rerenderFuncProp, rerenderContextNode){

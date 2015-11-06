@@ -148,19 +148,9 @@ describe('Stateful Components', ()=>{
       });
 
       it('does not rerender if action yields the same state', ()=>{
-        const [/*props*/, /*state*/, {noop, noopUndef}] = StatefulCounter.callsArgs[0];
+        const [/*props*/, /*state*/, {noop}] = StatefulCounter.callsArgs[0];
         assert.equal(StatefulCounter.callCount, 1);
         noop();
-        assert.equal(StatefulCounter.callCount, 1);
-        assert.equal(getHTMLString(parentNode),
-          '<div>'+
-            '<a>'+
-              'initialCount2: 777, count2: 777'+
-            '</a>'+
-          '</div>'
-        );
-
-        noopUndef();
         assert.equal(StatefulCounter.callCount, 1);
         assert.equal(getHTMLString(parentNode),
           '<div>'+
