@@ -383,7 +383,7 @@ var xvdom =
 	        node = renderInstance(startItem);
 	      }
 	      startItem._node = node;
-	      parentNode.insertBefore(node, markerNode);
+	      parentNode.insertBefore(node, oldEndItem._node);
 	    }
 
 	    while (saveItem) {

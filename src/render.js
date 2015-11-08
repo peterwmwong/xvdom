@@ -163,7 +163,6 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
     return list;
   }
 
-
   if (oldLength === 0){
     i = 0;
     while(i < length){
@@ -293,7 +292,7 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
         node = renderInstance(startItem);
       }
       startItem._node = node;
-      parentNode.insertBefore(node, markerNode);
+      parentNode.insertBefore(node, oldEndItem._node);
     }
 
     while(saveItem){

@@ -5,7 +5,6 @@ import getHTMLString  from './utils/getHTMLString.js';
 import {
   createDynamic,
   rerender,
-  rerenderArray,
   renderInstance
 } from '../src/index.js';
 
@@ -331,7 +330,6 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(childEl0, target.querySelector('._0'));
       spyOn.resetSpyCounts();
 
-
       rerender(target,
         createInstance(null, PARENT_SPEC, [
           [
@@ -354,6 +352,109 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(Node.prototype.removeChild.count, 0);
       assert.equal(childEl0, target.querySelector('._0'));
       assert.equal(childEl1, target.querySelector('._1'));
+      spyOn.resetSpyCounts();
+    });
+
+    it('Add and change the start item', ()=>{
+      const target = renderInstance(
+        createInstance(null, PARENT_SPEC, [
+          [
+            createInstance(0, CHILD_SPEC, ['_0']),
+            createInstance(1, CHILD_SPEC, ['_1'])
+          ]
+        ])
+      );
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div class="_0"></div>'+
+          '<div class="_1"></div>'+
+        '</div>'
+      );
+
+      rerender(target,
+        createInstance(null, PARENT_SPEC, [
+          [
+            createInstance(3, CHILD_SPEC, ['_3']),
+            createInstance(1, CHILD_SPEC, ['_1'])
+          ]
+        ])
+      );
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div class="_3"></div>'+
+          '<div class="_1"></div>'+
+        '</div>'
+      );
+      spyOn.resetSpyCounts();
+    });
+
+    it('Add and change the end item', ()=>{
+      const target = renderInstance(
+        createInstance(null, PARENT_SPEC, [
+          [
+            createInstance(0, CHILD_SPEC, ['_0']),
+            createInstance(1, CHILD_SPEC, ['_1'])
+          ]
+        ])
+      );
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div class="_0"></div>'+
+          '<div class="_1"></div>'+
+        '</div>'
+      );
+
+      rerender(target,
+        createInstance(null, PARENT_SPEC, [
+          [
+            createInstance(0, CHILD_SPEC, ['_0']),
+            createInstance(3, CHILD_SPEC, ['_3'])
+          ]
+        ])
+      );
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div class="_0"></div>'+
+          '<div class="_3"></div>'+
+        '</div>'
+      );
+      spyOn.resetSpyCounts();
+    });
+
+    it('Add and change the middle item', ()=>{
+      const target = renderInstance(
+        createInstance(null, PARENT_SPEC, [
+          [
+            createInstance(0, CHILD_SPEC, ['_0']),
+            createInstance(1, CHILD_SPEC, ['_1']),
+            createInstance(1, CHILD_SPEC, ['_2'])
+          ]
+        ])
+      );
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div class="_0"></div>'+
+          '<div class="_1"></div>'+
+          '<div class="_2"></div>'+
+        '</div>'
+      );
+
+      rerender(target,
+        createInstance(null, PARENT_SPEC, [
+          [
+            createInstance(0, CHILD_SPEC, ['_0']),
+            createInstance(3, CHILD_SPEC, ['_3']),
+            createInstance(1, CHILD_SPEC, ['_2'])
+          ]
+        ])
+      );
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div class="_0"></div>'+
+          '<div class="_3"></div>'+
+          '<div class="_2"></div>'+
+        '</div>'
+      );
       spyOn.resetSpyCounts();
     });
 
@@ -1331,6 +1432,78 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
           '</div>'
         );
         assert.equal(document.createElement.count,  0);
+        assert.equal(document.createTextNode.count, 0);
+      });
+
+      it('Add and change first item', ()=>{
+        rerender(target,
+          createInstance(null, parentWithStaticsSpec, [
+            [
+              createInstance(4, CHILD_SPEC, ['_4']),
+              createInstance(2, CHILD_SPEC, ['_2']),
+              createInstance(3, CHILD_SPEC, ['_3'])
+            ]
+          ])
+        );
+
+        assert.equal(getHTMLString(target),
+          '<div>'+
+            '<a></a>'+
+            '<div class="_4"></div>'+
+            '<div class="_2"></div>'+
+            '<div class="_3"></div>'+
+            '<b></b>'+
+          '</div>'
+        );
+        assert.equal(document.createElement.count,  1);
+        assert.equal(document.createTextNode.count, 0);
+      });
+
+      it('Add and change last item', ()=>{
+        rerender(target,
+          createInstance(null, parentWithStaticsSpec, [
+            [
+              createInstance(1, CHILD_SPEC, ['_1']),
+              createInstance(2, CHILD_SPEC, ['_2']),
+              createInstance(4, CHILD_SPEC, ['_4'])
+            ]
+          ])
+        );
+
+        assert.equal(getHTMLString(target),
+          '<div>'+
+            '<a></a>'+
+            '<div class="_1"></div>'+
+            '<div class="_2"></div>'+
+            '<div class="_4"></div>'+
+            '<b></b>'+
+          '</div>'
+        );
+        assert.equal(document.createElement.count,  1);
+        assert.equal(document.createTextNode.count, 0);
+      });
+
+      it('Add and change middle item', ()=>{
+        rerender(target,
+          createInstance(null, parentWithStaticsSpec, [
+            [
+              createInstance(1, CHILD_SPEC, ['_1']),
+              createInstance(4, CHILD_SPEC, ['_4']),
+              createInstance(3, CHILD_SPEC, ['_3'])
+            ]
+          ])
+        );
+
+        assert.equal(getHTMLString(target),
+          '<div>'+
+            '<a></a>'+
+            '<div class="_1"></div>'+
+            '<div class="_4"></div>'+
+            '<div class="_3"></div>'+
+            '<b></b>'+
+          '</div>'
+        );
+        assert.equal(document.createElement.count,  1);
         assert.equal(document.createTextNode.count, 0);
       });
 
