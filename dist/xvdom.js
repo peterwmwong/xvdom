@@ -50,30 +50,13 @@ var xvdom =
 
 /***/ },
 /* 1 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	exports.__esModule = true;
-
-	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
-
-	var _renderJs = __webpack_require__(2);
-
-	var xvdom = _interopRequireWildcard(_renderJs);
-
-	exports['default'] = xvdom;
-
-	window.xvdom = xvdom;
-	module.exports = exports['default'];
-
-/***/ },
-/* 2 */
 /***/ function(module, exports) {
 
 	'use strict';
 
-	exports.__esModule = true;
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
 	exports.renderArray = renderArray;
 	exports.rerenderText = rerenderText;
 	exports.rerenderDynamic = rerenderDynamic;

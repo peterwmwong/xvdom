@@ -3,8 +3,7 @@ import getHTMLString   from './utils/getHTMLString.js';
 import {
   createDynamic,
   createComponent,
-  renderInstance,
-  rerender
+  renderInstance
 } from '../src/index.js';
 
 // let leafNodeToggle;
@@ -38,14 +37,14 @@ describe('Stateful Components Nested', ()=>{
   it('renders', ()=>{
     const _xvdomSpec4 = {
       render: function render(inst) {
-        var _n = xvdom.createComponent(Node, null, inst, "r0", "c0", "w0");
+        var _n = createComponent(Node, null, inst, "r0", "c0", "w0");
 
         return _n;
       }
     };
     const _xvdomSpec3 = {
       render: function render(inst) {
-        var _n = xvdom.createComponent(LeafNode, {
+        var _n = createComponent(LeafNode, {
           count: inst.p0count
         }, inst, "r0", "c0", "w0");
 
@@ -66,7 +65,7 @@ describe('Stateful Components Nested', ()=>{
 
         _n.className = "spec2";
 
-        _n.appendChild(xvdom.createDynamic(inst.v0, inst, "r0", "c0"));
+        _n.appendChild(createDynamic(inst.v0, inst, "r0", "c0"));
 
         return _n;
       },
@@ -83,7 +82,7 @@ describe('Stateful Components Nested', ()=>{
 
         _n.className = "spec1";
 
-        _n.appendChild(xvdom.createDynamic(inst.v0, inst, "r0", "c0"));
+        _n.appendChild(createDynamic(inst.v0, inst, "r0", "c0"));
 
         return _n;
       },
