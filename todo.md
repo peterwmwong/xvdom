@@ -1,1 +1,2 @@
-- inline environment variables `NODE_ENV` (see https://babeljs.io/docs/advanced/transformers/utility/inline-environment-variables/)
+- onProps shouldn't block rerendering
+  - currently there's no way to rerender on new props WITHOUT changing state
