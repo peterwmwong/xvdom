@@ -1,77 +1,44 @@
-import assert          from 'assert';
-import getHTMLString   from './utils/getHTMLString.js';
-import {
-  createDynamic,
-  createComponent,
-  renderInstance,
-  rerender
-} from '../src/index.js';
+import assert                  from 'assert';
+import wrapSpecRenderFunctions from './utils/wrapSpecRenderFunctions.js';
+import getHTMLString           from './utils/getHTMLString.js';
+import * as xvdom              from '../src/index.js';
+
+let renderCountSpec1, renderCountSpec2;
+
+const StatefulCounter = (props, state, actions)=>{
+  StatefulCounter.callCount = StatefulCounter.callCount + 1;
+  StatefulCounter.callsArgs.push([props, state, actions]);
+  if(!state.forceFirst && state.count % 2){
+    return wrapSpecRenderFunctions(
+      <a>{`initialCount2: ${props.initialCount}, count2: ${state.count}`}</a>,
+      ()=>renderCountSpec2++,
+      ()=>{}
+    );
+  }
+  else{
+    return wrapSpecRenderFunctions(
+      <span>{`initialCount: ${props.initialCount}, count: ${state.count}`}</span>,
+      ()=>renderCountSpec1++,
+      ()=>{}
+    );
+  }
+};
+
+StatefulCounter.state = {
+  onInit:      (props, state, actions)=>actions.onInit2(),
+  onInit2:      props=>({count: props.initialCount || 0}),
+  onProps:     (props, state, actions)=>({...state, forceFirst: props.forceFirst}),
+  incrementBy: (props, state, actions, amt)=>({count: state.count + amt}),
+  increment:   (props, state, actions)=>({count: state.count + 1}),
+  decrement:   (props, state, actions)=>({count: state.count - 1}),
+  noop:        (props, state, actions)=>state,
+  noopUndef:   (props, state, actions)=>undefined,
+  redirect:    (props, state, actions)=>actions.increment()
+};
 
 describe('Stateful Components', ()=>{
-  let renderCountSpec1, renderCountSpec2;
-
-  // <span>{v0}</span>
-  const STATEFUL_COUNTER_SPEC = {
-    render: inst=>{
-      renderCountSpec1++;
-      const node = document.createElement('span');
-      node.appendChild(createDynamic(inst.v0, inst, 'r0', 'c0'));
-      return node;
-    },
-    rerender: (inst, pInst)=>{
-      if(inst.v0 !== pInst.v0){
-        pInst.r0(inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
-        pInst.v0 = inst.v0;
-      }
-    }
-  };
-
-  const STATEFUL_COUNTER_SPEC2 = {
-    render: inst=>{
-      renderCountSpec2++;
-      const node = document.createElement('a');
-      node.appendChild(createDynamic(inst.v0, inst, 'r0', 'c0'));
-      return node;
-    },
-    rerender: (inst, pInst)=>{
-      if(inst.v0 !== pInst.v0){
-        pInst.r0(inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
-        pInst.v0 = inst.v0;
-      }
-    }
-  };
-
-  const StatefulCounter = (props, state, actions)=>{
-    StatefulCounter.callCount = StatefulCounter.callCount + 1;
-    StatefulCounter.callsArgs.push([props, state, actions]);
-    return (
-        (!state.forceFirst && state.count % 2) ? {spec: STATEFUL_COUNTER_SPEC2, v0: `initialCount2: ${props.initialCount}, count2: ${state.count}`}
-      : {spec: STATEFUL_COUNTER_SPEC, v0: `initialCount: ${props.initialCount}, count: ${state.count}`}
-    );
-  };
-  StatefulCounter.state = {
-    onInit:      (props, state, actions)=>actions.onInit2(),
-    onInit2:      props=>({count: props.initialCount || 0}),
-    onProps:     (props, state, actions)=>({...state, forceFirst: props.forceFirst}),
-    incrementBy: (props, state, actions, amt)=>({count: state.count + amt}),
-    increment:   (props, state, actions)=>({count: state.count + 1}),
-    decrement:   (props, state, actions)=>({count: state.count - 1}),
-    noop:        (props, state, actions)=>state,
-    noopUndef:   (props, state, actions)=>undefined,
-    redirect:    (props, state, actions)=>actions.increment()
-  };
-
-  const PARENT_SPEC = {
-    render: inst=>{
-      return createComponent(StatefulCounter, inst.v0, inst, 'r0', 'c0', 'rv0');
-    },
-    rerender: (inst, pInst)=>{
-      if(inst.v0 !== pInst.v0){
-        pInst.r0(StatefulCounter, inst.v0, pInst.v0, pInst.rv0, pInst.c0, pInst, 'c0', 'rv0');
-        pInst.v0 = inst.v0;
-      }
-    }
-  };
+  const render = (initialCount, forceFirst)=>
+    <StatefulCounter initialCount={initialCount} forceFirst={forceFirst} />;
 
   describe('Stateful', ()=>{
     let node, parentNode;
@@ -81,7 +48,7 @@ describe('Stateful Components', ()=>{
       StatefulCounter.callCount = 0;
       StatefulCounter.callsArgs = [];
       parentNode = document.createElement('div');
-      node = renderInstance({spec: PARENT_SPEC, v0: {initialCount:777}});
+      node = xvdom.renderInstance(render(777));
       parentNode.appendChild(node);
     });
 
@@ -147,7 +114,7 @@ describe('Stateful Components', ()=>{
         );
       });
 
-      it('does not rerender if action yields the same state', ()=>{
+      it('does not xvdom.rerender if action yields the same state', ()=>{
         const [/*props*/, /*state*/, {noop}] = StatefulCounter.callsArgs[0];
         assert.equal(StatefulCounter.callCount, 1);
         noop();
@@ -164,7 +131,7 @@ describe('Stateful Components', ()=>{
 
     it('rerenders', ()=>{
       assert.equal(renderCountSpec2, 1);
-      rerender(parentNode.firstChild, {spec: PARENT_SPEC, v0: {initialCount: 10}});
+      xvdom.rerender(parentNode.firstChild, render(10));
       assert.equal(renderCountSpec1, 0);
       assert.equal(renderCountSpec2, 1);
       assert.equal(getHTMLString(parentNode),
@@ -175,7 +142,7 @@ describe('Stateful Components', ()=>{
         '</div>'
       );
 
-      rerender(parentNode.firstChild, {spec: PARENT_SPEC, v0: {initialCount: 11, forceFirst: true}});
+      xvdom.rerender(parentNode.firstChild, render(11, true));
       assert.equal(renderCountSpec1, 1);
       assert.equal(renderCountSpec2, 1);
       assert.equal(getHTMLString(parentNode),
@@ -186,7 +153,7 @@ describe('Stateful Components', ()=>{
         '</div>'
       );
 
-      rerender(parentNode.firstChild, {spec: PARENT_SPEC, v0: {initialCount: 12}});
+      xvdom.rerender(parentNode.firstChild, render(12));
       assert.equal(renderCountSpec1, 1);
       assert.equal(renderCountSpec2, 2);
       assert.equal(getHTMLString(parentNode),

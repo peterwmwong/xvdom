@@ -9,6 +9,6 @@ import './rerenderDynamic.js';
 
 import './createDynamic.jsx';
 import './component.jsx';
-import './component-stateful.js';
+import './component-stateful.jsx';
 import './component-stateful-nested.js';
 import './integration.jsx';
