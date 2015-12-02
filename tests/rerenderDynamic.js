@@ -3,7 +3,7 @@ import {rerenderDynamic} from '../src/index.js';
 
 describe('rerenderDynamic - value, contextNode, instance, rerenderIndex, rerenderContextIndex', ()=>{
   const initialValue = 'initial text';
-  let textNode, instance, parentNode;
+  let textNode, instance, parentNode, returnValue;
 
   beforeEach(()=>{
     parentNode = document.createElement('div');
@@ -11,7 +11,6 @@ describe('rerenderDynamic - value, contextNode, instance, rerenderIndex, rerende
     parentNode.appendChild(textNode);
     instance = {spec:null};
   });
-
 
   describe('When node has been removed', ()=>{
     beforeEach(()=>{
@@ -30,9 +29,8 @@ describe('rerenderDynamic - value, contextNode, instance, rerenderIndex, rerende
   });
 
   describe('When `newValue` is a string', ()=>{
-    let result;
     beforeEach(()=>{
-      result = rerenderDynamic('new text', initialValue, textNode, instance, 'r0', 'c0');
+      returnValue = rerenderDynamic('new text', initialValue, textNode, instance, 'r0', 'c0');
     });
 
     it('updates text node value', ()=>{
@@ -40,15 +38,13 @@ describe('rerenderDynamic - value, contextNode, instance, rerenderIndex, rerende
     });
 
     it('returns `newValue`', ()=>{
-      assert.equal(result, 'new text');
+      assert.equal(returnValue, 'new text');
     });
   });
 
   describe('When `newValue` is a number', ()=>{
-    let result;
-
     beforeEach(()=>{
-      result = rerenderDynamic(0, initialValue, textNode, instance, 'r0', 'c0');
+      returnValue = rerenderDynamic(0, initialValue, textNode, instance, 'r0', 'c0');
     });
 
     it('updates text node value', ()=>{
@@ -56,7 +52,7 @@ describe('rerenderDynamic - value, contextNode, instance, rerenderIndex, rerende
     });
 
     it('returns `newValue`', ()=>{
-      assert.equal(result, 0);
+      assert.equal(returnValue, 0);
     });
   });
 

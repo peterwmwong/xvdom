@@ -11,7 +11,6 @@ describe('rerenderText - value, contextNode, instance, rerenderIndex, rerenderCo
   });
 
   describe('When `newValue` is a string', ()=>{
-
     beforeEach(()=>{
       returnValue = rerenderText('new text', initialValue, textNode, instance, 'r0', 'c0');
     });
@@ -39,15 +38,13 @@ describe('rerenderText - value, contextNode, instance, rerenderIndex, rerenderCo
     });
   });
 
-  describe('When `newValue` is null or undefined', ()=>{
-    it('updates text node value to ""', ()=>{
-      returnValue = rerenderText(null, initialValue, textNode, instance, 'r0', 'c0');
-      assert.equal(textNode.nodeValue, '');
-      assert.equal(returnValue, null);
-
-      returnValue = rerenderText(undefined, initialValue, textNode, instance, 'r0', 'c0');
-      assert.equal(textNode.nodeValue, '');
-      assert.equal(returnValue, undefined);
+  [null, undefined].forEach(value=>{
+    describe(`When newValue is ${value}`, ()=>{
+      it('updates text node value to ""', ()=>{
+        const result = rerenderText(value, initialValue, textNode, instance, 'r0', 'c0');
+        assert.equal(textNode.nodeValue, '');
+        assert.equal(result, value);
+      });
     });
   });
 });

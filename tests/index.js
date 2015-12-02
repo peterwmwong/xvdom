@@ -1,15 +1,14 @@
-import './render.js';
-import './render-recycle.js';
+import './render.jsx';
+import './render-recycle.jsx';
 import './renderArray.js';
 
-import './rerender.js';
+import './rerender.jsx';
 import './rerenderArray.js';
 import './rerenderText.js';
-import './rerenderInstance.js';
 import './rerenderDynamic.js';
 
-import './createDynamic.js';
-import './component.js';
+import './createDynamic.jsx';
+import './component.jsx';
 import './component-stateful.js';
 import './component-stateful-nested.js';
-import './integration.js';
+import './integration.jsx';

@@ -13,11 +13,8 @@ function removeArrayNodes(list, parentNode){
   }
 }
 
-function internalRerenderInstance(inst, prevInst){
-  if(prevInst.spec !== inst.spec) return false;
-  inst.spec.rerender(inst, prevInst);
-  return true;
-}
+const internalRerenderInstance = (inst, prevInst)=>
+  prevInst.spec === inst.spec && (inst.spec.rerender(inst, prevInst), true);
 
 function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentInst, componentInstanceProp){
   if(internalRerenderInstance(inst, prevInst)) return;

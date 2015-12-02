@@ -1,15 +1,9 @@
-import assert             from 'assert';
-import getHTMLString      from './utils/getHTMLString.js';
-import {
-  createDynamic,
-  rerenderDynamic,
-  rerenderText,
-  rerenderInstance,
-  rerenderArray
-} from '../src/index.js';
+import assert        from 'assert';
+import getHTMLString from './utils/getHTMLString.js';
+import * as xvdom    from '../src/index.js';
 
 describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex', ()=>{
-  let parentNode, resultNode;
+  let instance, parentNode, resultNode;
 
   beforeEach(()=>{
     parentNode = document.createElement('div');
@@ -17,11 +11,9 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
 
   [null, undefined, true, false].forEach(value=>{
     describe(`${value} - empty text node`, ()=>{
-      let instance;
-
       beforeEach(()=>{
-        instance = {spec:null, v0:value};
-        resultNode = createDynamic(instance.v0, instance, 'r0', 'c0');
+        instance = <div>{value}</div>;
+        resultNode = xvdom.createDynamic(instance.v0, instance, 'r0', 'c0');
         parentNode.appendChild(resultNode);
       });
 
@@ -33,18 +25,17 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
       });
 
       it('sets rerender function and context', ()=>{
-        assert.equal(instance.r0, rerenderDynamic);
+        assert.equal(instance.r0, xvdom.rerenderDynamic);
         assert.equal(instance.c0, parentNode.firstChild);
       });
     });
   });
 
   describe('String - text node', ()=>{
-    let instance;
-
     beforeEach(()=>{
-      instance = {spec:null, v0:'test string'};
-      resultNode = createDynamic(instance.v0, instance, 'r0', 'c0');
+      const string = 'test string';
+      instance = <div>{string}</div>;
+      resultNode = xvdom.createDynamic(instance.v0, instance, 'r0', 'c0');
       parentNode.appendChild(resultNode);
     });
 
@@ -55,17 +46,16 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
     });
 
     it('sets rerender function and context', ()=>{
-      assert.equal(instance.r0, rerenderText);
+      assert.equal(instance.r0, xvdom.rerenderText);
       assert.equal(instance.c0, parentNode.firstChild);
     });
   });
 
   describe('Number - text node', ()=>{
-    let instance;
-
     beforeEach(()=>{
-      instance = {spec:null, v0:0};
-      resultNode = createDynamic(instance.v0, instance, 'r0', 'c0');
+      const num = 0;
+      instance = <div>{num}</div>;
+      resultNode = xvdom.createDynamic(instance.v0, instance, 'r0', 'c0');
       parentNode.appendChild(resultNode);
     });
 
@@ -76,22 +66,16 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
     });
 
     it('sets rerender function and context', ()=>{
-      assert.equal(instance.r0, rerenderText);
+      assert.equal(instance.r0, xvdom.rerenderText);
       assert.equal(instance.c0, parentNode.firstChild);
     });
   });
 
   describe('Object - render instance', ()=>{
-    const RENDER_INSTANCE = {
-      spec: {
-        render:()=>document.createElement('span')
-      }
-    };
-    let parentInstance;
-
     beforeEach(()=>{
-      parentInstance = {spec:null, v0:RENDER_INSTANCE};
-      resultNode = createDynamic(parentInstance.v0, parentInstance, 'r0', 'c0');
+      const childInstance = <span></span>;
+      instance = <div>{childInstance}</div>;
+      resultNode = xvdom.createDynamic(instance.v0, instance, 'r0', 'c0');
       parentNode.appendChild(resultNode);
     });
 
@@ -102,37 +86,19 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
     });
 
     it('sets rerender function and context', ()=>{
-      assert.equal(parentInstance.r0, rerenderInstance);
-      assert.equal(parentInstance.c0, parentNode.firstChild);
+      assert.equal(instance.r0, xvdom.rerenderInstance);
+      assert.equal(instance.c0, parentNode.firstChild);
     });
   });
 
   describe('Array', ()=>{
-    const ITEM_SPEC1 = {
-      render:()=>{
-        const node = document.createElement('span');
-        node.appendChild(document.createTextNode('one'));
-        return node;
-      }
-    };
-    const ITEM_SPEC2 = {
-      render:()=>{
-        const node = document.createElement('span');
-        node.appendChild(document.createTextNode('two'));
-        return node;
-      }
-    };
-    let instance;
-
     beforeEach(()=>{
-      instance = {
-        spec: null,
-        v0: [
-          {key: 1, spec: ITEM_SPEC1},
-          {key: 2, spec: ITEM_SPEC2}
-        ]
-      };
-      resultNode = createDynamic(instance.v0, instance, 'r0', 'c0');
+      const array = [
+        <span key={1}>one</span>,
+        <span key={2}>two</span>
+      ];
+      instance = <div>{array}</div>;
+      resultNode = xvdom.createDynamic(instance.v0, instance, 'r0', 'c0');
       parentNode.appendChild(resultNode);
     });
 
@@ -146,7 +112,7 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
     });
 
     it('sets rerender function and context', ()=>{
-      assert.equal(instance.r0, rerenderArray);
+      assert.equal(instance.r0, xvdom.rerenderArray);
       assert.equal(instance.c0, parentNode.lastChild);
     });
   });
