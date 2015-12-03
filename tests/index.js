@@ -3,7 +3,7 @@ import './render-recycle.jsx';
 import './renderArray.jsx';
 
 import './rerender.jsx';
-import './rerenderArray.js';
+import './rerenderArray.jsx';
 import './rerenderText.js';
 import './rerenderDynamic.js';
 

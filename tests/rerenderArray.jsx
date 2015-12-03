@@ -1,14 +1,9 @@
 import assert         from 'assert';
-import createInstance from './utils/createInstance.js';
 import spyOn          from './utils/spyOn.js';
 import getHTMLString  from './utils/getHTMLString.js';
-import {
-  createDynamic,
-  rerender,
-  renderInstance
-} from '../src/index.js';
+import * as xvdom     from '../src/index.js';
 
-describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerenderIndex, rerenderContextIndex', ()=>{
+describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, xvdom.rerenderIndex, xvdom.rerenderContextIndex', ()=>{
 
   beforeEach(()=>{
     spyOn.uninstall();
@@ -26,42 +21,18 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
   });
 
   describe('Arrays', ()=>{
-    const PARENT_SPEC = {
-      render: inst=>{
-        const div = document.createElement('div');
-        div.appendChild(createDynamic(inst.v0, inst, 'r0', 'c0'));
-        return div;
-      },
-      rerender(inst, pInst){
-        if(inst.v0 !== pInst.v0){
-          pInst.v0 = pInst.r0(inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
-        }
-      }
-    };
+    const renderChild = (key, className)=>
+      <div key={key} className={className} />;
 
-    const CHILD_SPEC = {
-      render: inst=>{
-        const div = document.createElement('div');
-        inst.c0 = div;
-        div.className = inst.v0;
-        return div;
-      },
-      rerender: (inst, pInst)=>{
-        if(inst.v0 !== pInst.v0){
-          pInst.c0.className = inst.v0;
-          pInst.v0 = inst.v0;
-        }
-      }
-    };
+    const render = (children, key)=>
+      <div key={key}>{children}</div>;
 
     it('Update array items', ()=>{
-      const parentNode = renderInstance(
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(1, CHILD_SPEC, ['1']),
-            createInstance(2, CHILD_SPEC, ['2']),
-            createInstance(3, CHILD_SPEC, ['3'])
-          ]
+      const parentNode = xvdom.renderInstance(
+        render([
+          renderChild(1, '1'),
+          renderChild(2, '2'),
+          renderChild(3, '3')
         ])
       );
 
@@ -73,13 +44,11 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
         '</div>'
       );
 
-      rerender(parentNode,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(1, CHILD_SPEC, ['4']),
-            createInstance(2, CHILD_SPEC, ['5']),
-            createInstance(3, CHILD_SPEC, ['6'])
-          ]
+      xvdom.rerender(parentNode,
+        render([
+          renderChild(4, '4'),
+          renderChild(5, '5'),
+          renderChild(6, '6')
         ])
       );
 
@@ -92,26 +61,65 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       );
     });
 
+    it('Update array items (item changes spec)', ()=>{
+      const renderChild2 = (key, id)=>
+        <a key={key} id={id} />;
+
+      const target = xvdom.renderInstance(
+        render([
+          renderChild(1, '_1'),
+          renderChild(2, '_2'),
+          renderChild(3, '_3')
+        ])
+      );
+
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<div class="_1"></div>'+
+          '<div class="_2"></div>'+
+          '<div class="_3"></div>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 4);
+      assert.equal(document.createTextNode.count, 1);
+      spyOn.resetSpyCounts();
+
+      xvdom.rerender(target,
+        render([
+          renderChild2(1, '_1'),
+          renderChild(2, '_2'),
+          renderChild2(3, '_3')
+        ])
+      );
+
+      assert.equal(getHTMLString(target),
+        '<div>'+
+          '<a id="_1"></a>'+
+          '<div class="_2"></div>'+
+          '<a id="_3"></a>'+
+        '</div>'
+      );
+      assert.equal(document.createElement.count, 2);
+      assert.equal(document.createTextNode.count, 0);
+      spyOn.resetSpyCounts();
+    });
+
     it('Reordering', ()=>{
-      const parentNode = renderInstance(
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(1, CHILD_SPEC, ['1']),
-            createInstance(2, CHILD_SPEC, ['2']),
-            createInstance(3, CHILD_SPEC, ['3'])
-          ]
+      const parentNode = xvdom.renderInstance(
+        render([
+          renderChild(1, '1'),
+          renderChild(2, '2'),
+          renderChild(3, '3')
         ])
       );
 
       spyOn.resetSpyCounts();
 
-      rerender(parentNode,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(3, CHILD_SPEC, ['3']),
-            createInstance(2, CHILD_SPEC, ['2']),
-            createInstance(1, CHILD_SPEC, ['1'])
-          ]
+      xvdom.rerender(parentNode,
+        render([
+          renderChild(3, '3'),
+          renderChild(2, '2'),
+          renderChild(1, '1')
         ])
       );
 
@@ -128,13 +136,11 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(Node.prototype.removeChild.count, 0);
       spyOn.resetSpyCounts();
 
-      rerender(parentNode,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(1, CHILD_SPEC, ['1']),
-            createInstance(3, CHILD_SPEC, ['3']),
-            createInstance(2, CHILD_SPEC, ['2'])
-          ]
+      xvdom.rerender(parentNode,
+        render([
+          renderChild(1, '1'),
+          renderChild(3, '3'),
+          renderChild(2, '2')
         ])
       );
 
@@ -152,15 +158,11 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Reordering 2', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(1, CHILD_SPEC, ['1']),
-            createInstance(2, CHILD_SPEC, ['2']),
-            createInstance(3, CHILD_SPEC, ['3'])
-          ],
-          null,
-          null
+      const target = xvdom.renderInstance(
+        render([
+          renderChild(1, '1'),
+          renderChild(2, '2'),
+          renderChild(3, '3')
         ])
       );
 
@@ -173,13 +175,11 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       );
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(2, CHILD_SPEC, ['2']),
-            createInstance(1, CHILD_SPEC, ['1']),
-            createInstance(3, CHILD_SPEC, ['3'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(2, '2'),
+          renderChild(1, '1'),
+          renderChild(3, '3')
         ])
       );
 
@@ -198,14 +198,12 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Reordering 3', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['0']),
-            createInstance(1, CHILD_SPEC, ['1']),
-            createInstance(2, CHILD_SPEC, ['2']),
-            createInstance(3, CHILD_SPEC, ['3'])
-          ]
+      const target = xvdom.renderInstance(
+        render([
+          renderChild(0, '0'),
+          renderChild(1, '1'),
+          renderChild(2, '2'),
+          renderChild(3, '3')
         ])
       );
 
@@ -221,14 +219,12 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(2, CHILD_SPEC, ['21']),
-            createInstance(3, CHILD_SPEC, ['31']),
-            createInstance(0, CHILD_SPEC, ['01']),
-            createInstance(1, CHILD_SPEC, ['11'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(2, '21'),
+          renderChild(3, '31'),
+          renderChild(0, '01'),
+          renderChild(1, '11')
         ])
       );
 
@@ -248,29 +244,18 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Reordering in the middle of statics', ()=>{
-      const parentWithStaticsSpec = {
-        render: inst=>{
-          const div = document.createElement('div');
-          div.appendChild(document.createElement('a'));
-          div.appendChild(createDynamic(inst.v0, inst, 'r0', 'c0'));
-          div.appendChild(document.createElement('b'));
-          return div;
-        },
-        rerender(inst, pInst){
-          if(inst.v0 !== pInst.v0){
-            pInst.r0(inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
-            pInst.v0 = inst.v0;
-          }
-        }
-      };
+      const renderWithStatics = children=>
+        <div>
+          <a></a>
+          {children}
+          <b></b>
+        </div>;
 
-      const target = renderInstance(
-        createInstance(null, parentWithStaticsSpec, [
-          [
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(2, CHILD_SPEC, ['_2']),
-            createInstance(3, CHILD_SPEC, ['_3'])
-          ]
+      const target = xvdom.renderInstance(
+        renderWithStatics([
+          renderChild(1, '_1'),
+          renderChild(2, '_2'),
+          renderChild(3, '_3')
         ])
       );
 
@@ -289,11 +274,9 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Add to the start', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0'])
-          ]
+      const target = xvdom.renderInstance(
+        render([
+          renderChild(0, '_0')
         ])
       );
       const childEl0 = target.querySelector('._0');
@@ -307,12 +290,10 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(0, CHILD_SPEC, ['_0'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(1, '_1'),
+          renderChild(0, '_0')
         ])
       );
       const childEl1 = target.querySelector('._1');
@@ -330,13 +311,11 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(childEl0, target.querySelector('._0'));
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(2, CHILD_SPEC, ['_2']),
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(0, CHILD_SPEC, ['_0'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(2, '_2'),
+          renderChild(1, '_1'),
+          renderChild(0, '_0')
         ])
       );
       assert.equal(getHTMLString(target),
@@ -356,13 +335,13 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Add and change the start item', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
+      const target = xvdom.renderInstance(
+        render(
           [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1'])
+            renderChild(0, '_0'),
+            renderChild(1, '_1')
           ]
-        ])
+        )
       );
       assert.equal(getHTMLString(target),
         '<div>'+
@@ -371,13 +350,13 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
         '</div>'
       );
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
+      xvdom.rerender(target,
+        render(
           [
-            createInstance(3, CHILD_SPEC, ['_3']),
-            createInstance(1, CHILD_SPEC, ['_1'])
+            renderChild(3, '_3'),
+            renderChild(1, '_1')
           ]
-        ])
+        )
       );
       assert.equal(getHTMLString(target),
         '<div>'+
@@ -389,13 +368,13 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Add and change the end item', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
+      const target = xvdom.renderInstance(
+        render(
           [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1'])
+            renderChild(0, '_0'),
+            renderChild(1, '_1')
           ]
-        ])
+        )
       );
       assert.equal(getHTMLString(target),
         '<div>'+
@@ -404,13 +383,13 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
         '</div>'
       );
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
+      xvdom.rerender(target,
+        render(
           [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(3, CHILD_SPEC, ['_3'])
+            renderChild(0, '_0'),
+            renderChild(3, '_3')
           ]
-        ])
+        )
       );
       assert.equal(getHTMLString(target),
         '<div>'+
@@ -422,13 +401,11 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Add and change the middle item', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(1, CHILD_SPEC, ['_2'])
-          ]
+      const target = xvdom.renderInstance(
+        render([
+          renderChild(0, '_0'),
+          renderChild(1, '_1'),
+          renderChild(1, '_2')
         ])
       );
       assert.equal(getHTMLString(target),
@@ -439,13 +416,11 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
         '</div>'
       );
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(3, CHILD_SPEC, ['_3']),
-            createInstance(1, CHILD_SPEC, ['_2'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(0, '_0'),
+          renderChild(3, '_3'),
+          renderChild(1, '_2')
         ])
       );
       assert.equal(getHTMLString(target),
@@ -459,14 +434,12 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Add in the middle', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(2, CHILD_SPEC, ['_2']),
-            createInstance(3, CHILD_SPEC, ['_3'])
-          ]
+      const target = xvdom.renderInstance(
+        render([
+          renderChild(0, '_0'),
+          renderChild(1, '_1'),
+          renderChild(2, '_2'),
+          renderChild(3, '_3')
         ])
       );
       assert.equal(getHTMLString(target),
@@ -481,18 +454,16 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1']),
+      xvdom.rerender(target,
+        render([
+          renderChild(0, '_0'),
+          renderChild(1, '_1'),
 
-            createInstance(4, CHILD_SPEC, ['_New1']),
-            createInstance(5, CHILD_SPEC, ['_New2']),
+          renderChild(4, '_New1'),
+          renderChild(5, '_New2'),
 
-            createInstance(2, CHILD_SPEC, ['_2']),
-            createInstance(3, CHILD_SPEC, ['_3'])
-          ]
+          renderChild(2, '_2'),
+          renderChild(3, '_3')
         ])
       );
       assert.equal(getHTMLString(target),
@@ -511,22 +482,20 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(Node.prototype.removeChild.count, 0);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1']),
+      xvdom.rerender(target,
+        render([
+          renderChild(0, '_0'),
+          renderChild(1, '_1'),
 
-            createInstance(4, CHILD_SPEC, ['_New1']),
+          renderChild(4, '_New1'),
 
-            createInstance(6, CHILD_SPEC, ['_New1_1']),
-            createInstance(7, CHILD_SPEC, ['_New1_2']),
+          renderChild(6, '_New1_1'),
+          renderChild(7, '_New1_2'),
 
-            createInstance(5, CHILD_SPEC, ['_New2']),
+          renderChild(5, '_New2'),
 
-            createInstance(2, CHILD_SPEC, ['_2']),
-            createInstance(3, CHILD_SPEC, ['_3'])
-          ]
+          renderChild(2, '_2'),
+          renderChild(3, '_3')
         ])
       );
 
@@ -550,12 +519,10 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Add in the middle and end', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1'])
-          ]
+      const target = xvdom.renderInstance(
+        render([
+          renderChild(0, '_0'),
+          renderChild(1, '_1')
         ])
       );
       assert.equal(getHTMLString(target),
@@ -568,14 +535,12 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(2, CHILD_SPEC, ['_New_0_0']),
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(3, CHILD_SPEC, ['_New_1_0'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(0, '_0'),
+          renderChild(2, '_New_0_0'),
+          renderChild(1, '_1'),
+          renderChild(3, '_New_1_0')
         ])
       );
 
@@ -595,11 +560,9 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Add to the end', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0'])
-          ]
+      const target = xvdom.renderInstance(
+        render([
+          renderChild(0, '_0')
         ])
       );
       const childEl0 = target.querySelector('._0');
@@ -613,12 +576,10 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(0, '_0'),
+          renderChild(1, '_1')
         ])
       );
       const childEl1 = target.querySelector('._1');
@@ -637,13 +598,11 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       spyOn.resetSpyCounts();
 
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(2, CHILD_SPEC, ['_2'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(0, '_0'),
+          renderChild(1, '_1'),
+          renderChild(2, '_2')
         ])
       );
       assert.equal(getHTMLString(target),
@@ -663,13 +622,11 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Remove from the start', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(2, CHILD_SPEC, ['_2'])
-          ]
+      const target = xvdom.renderInstance(
+        render([
+          renderChild(0, '_0'),
+          renderChild(1, '_1'),
+          renderChild(2, '_2')
         ])
       );
 
@@ -684,12 +641,10 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(2, CHILD_SPEC, ['_2'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(1, '_1'),
+          renderChild(2, '_2')
         ])
       );
 
@@ -706,11 +661,9 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       spyOn.resetSpyCounts();
 
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(2, CHILD_SPEC, ['_2'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(2, '_2')
         ])
       );
       assert.equal(getHTMLString(target),
@@ -725,16 +678,14 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Remove from the middle', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(2, CHILD_SPEC, ['_2']),
-            createInstance(3, CHILD_SPEC, ['_3']),
-            createInstance(4, CHILD_SPEC, ['_4']),
-            createInstance(5, CHILD_SPEC, ['_5'])
-          ]
+      const target = xvdom.renderInstance(
+        render([
+          renderChild(0, '_0'),
+          renderChild(1, '_1'),
+          renderChild(2, '_2'),
+          renderChild(3, '_3'),
+          renderChild(4, '_4'),
+          renderChild(5, '_5')
         ])
       );
 
@@ -752,14 +703,12 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(4, CHILD_SPEC, ['_4']),
-            createInstance(5, CHILD_SPEC, ['_5'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(0, '_0'),
+          renderChild(1, '_1'),
+          renderChild(4, '_4'),
+          renderChild(5, '_5')
         ])
       );
 
@@ -778,12 +727,10 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       spyOn.resetSpyCounts();
 
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(5, CHILD_SPEC, ['_5'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(0, '_0'),
+          renderChild(5, '_5')
         ])
       );
       assert.equal(getHTMLString(target),
@@ -799,16 +746,14 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Remove from the middle and end', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(2, CHILD_SPEC, ['_2']),
-            createInstance(3, CHILD_SPEC, ['_3']),
-            createInstance(4, CHILD_SPEC, ['_4']),
-            createInstance(5, CHILD_SPEC, ['_5'])
-          ]
+      const target = xvdom.renderInstance(
+        render([
+          renderChild(0, '_0'),
+          renderChild(1, '_1'),
+          renderChild(2, '_2'),
+          renderChild(3, '_3'),
+          renderChild(4, '_4'),
+          renderChild(5, '_5')
         ])
       );
 
@@ -826,14 +771,12 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(2, CHILD_SPEC, ['_2']),
-            createInstance(3, CHILD_SPEC, ['_3']),
-            createInstance(4, CHILD_SPEC, ['_4'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(0, '_0'),
+          renderChild(2, '_2'),
+          renderChild(3, '_3'),
+          renderChild(4, '_4')
         ])
       );
 
@@ -852,12 +795,10 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       spyOn.resetSpyCounts();
 
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(3, CHILD_SPEC, ['_3'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(0, '_0'),
+          renderChild(3, '_3')
         ])
       );
       assert.equal(getHTMLString(target),
@@ -873,13 +814,11 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Remove from the end', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(2, CHILD_SPEC, ['_2'])
-          ]
+      const target = xvdom.renderInstance(
+        render([
+          renderChild(0, '_0'),
+          renderChild(1, '_1'),
+          renderChild(2, '_2')
         ])
       );
 
@@ -894,12 +833,10 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(0, '_0'),
+          renderChild(1, '_1')
         ])
       );
 
@@ -916,11 +853,9 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       spyOn.resetSpyCounts();
 
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(0, '_0')
         ])
       );
       assert.equal(getHTMLString(target),
@@ -935,16 +870,14 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Remove from the start and end', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(2, CHILD_SPEC, ['_2']),
-            createInstance(3, CHILD_SPEC, ['_3']),
-            createInstance(4, CHILD_SPEC, ['_4']),
-            createInstance(5, CHILD_SPEC, ['_5'])
-          ]
+      const target = xvdom.renderInstance(
+        render([
+          renderChild(0, '_0'),
+          renderChild(1, '_1'),
+          renderChild(2, '_2'),
+          renderChild(3, '_3'),
+          renderChild(4, '_4'),
+          renderChild(5, '_5')
         ])
       );
 
@@ -962,14 +895,12 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(2, CHILD_SPEC, ['_2']),
-            createInstance(3, CHILD_SPEC, ['_3']),
-            createInstance(4, CHILD_SPEC, ['_4'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(1, '_1'),
+          renderChild(2, '_2'),
+          renderChild(3, '_3'),
+          renderChild(4, '_4')
         ])
       );
 
@@ -987,12 +918,10 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(Node.prototype.removeChild.count, 2);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(2, CHILD_SPEC, ['_2']),
-            createInstance(3, CHILD_SPEC, ['_3'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(2, '_2'),
+          renderChild(3, '_3')
         ])
       );
       assert.equal(getHTMLString(target),
@@ -1008,13 +937,11 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('All removed', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(2, CHILD_SPEC, ['_2'])
-          ]
+      const target = xvdom.renderInstance(
+        render([
+          renderChild(0, '_0'),
+          renderChild(1, '_1'),
+          renderChild(2, '_2')
         ])
       );
 
@@ -1029,10 +956,8 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          []
-        ])
+      xvdom.rerender(target,
+        render([])
       );
 
       assert.equal(getHTMLString(target),
@@ -1045,13 +970,11 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(Node.prototype.removeChild.count, 3);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(2, CHILD_SPEC, ['_2']),
-            createInstance(3, CHILD_SPEC, ['_3'])
-          ]
+      xvdom.rerender(target,
+        render([
+          renderChild(1, '_1'),
+          renderChild(2, '_2'),
+          renderChild(3, '_3')
         ])
       );
       assert.equal(getHTMLString(target),
@@ -1068,10 +991,10 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Initially empty', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
+      const target = xvdom.renderInstance(
+        render(
           []
-        ])
+        )
       );
 
       assert.equal(getHTMLString(target),
@@ -1082,14 +1005,14 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
+      xvdom.rerender(target,
+        render(
           [
-            createInstance(0, CHILD_SPEC, ['_0']),
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(2, CHILD_SPEC, ['_2'])
+            renderChild(0, '_0'),
+            renderChild(1, '_1'),
+            renderChild(2, '_2')
           ]
-        ])
+        )
       );
 
       assert.equal(getHTMLString(target),
@@ -1106,14 +1029,17 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     it('Array of Arrays', ()=>{
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
+      const target = xvdom.renderInstance(
+        render(
           [
-            createInstance(1, PARENT_SPEC, [
-              [createInstance(1, CHILD_SPEC, ['_1_1'])]
-            ])
+            render(
+              [
+                renderChild(1, '_1_1')
+              ],
+              1
+            )
           ]
-        ])
+        )
       );
 
       assert.equal(getHTMLString(target),
@@ -1127,17 +1053,18 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(document.createTextNode.count, 2);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
+      xvdom.rerender(target,
+        render(
           [
-            createInstance(1, PARENT_SPEC, [
+            render(
               [
-                createInstance(1, CHILD_SPEC, ['_1_1']),
-                createInstance(2, CHILD_SPEC, ['_1_2'])
-              ]
-            ])
+                renderChild(1, '_1_1'),
+                renderChild(2, '_1_2')
+              ],
+              1
+            )
           ]
-        ])
+        )
       );
 
       assert.equal(getHTMLString(target),
@@ -1152,23 +1079,25 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(document.createTextNode.count, 0);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
+      xvdom.rerender(target,
+        render(
           [
-            createInstance(1, PARENT_SPEC, [
+            render(
               [
-                createInstance(1, CHILD_SPEC, ['_1_1']),
-                createInstance(2, CHILD_SPEC, ['_1_2'])
-              ]
-            ]),
-            createInstance(2, PARENT_SPEC, [
+                renderChild(1, '_1_1'),
+                renderChild(2, '_1_2')
+              ],
+              1
+            ),
+            render(
               [
-                createInstance(1, CHILD_SPEC, ['_2_1']),
-                createInstance(2, CHILD_SPEC, ['_2_2'])
-              ]
-            ])
+                renderChild(1, '_2_1'),
+                renderChild(2, '_2_2')
+              ],
+              2
+            )
           ]
-        ])
+        )
       );
 
       assert.equal(getHTMLString(target),
@@ -1187,30 +1116,33 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
+      xvdom.rerender(target,
+        render(
           [
-            createInstance(0, PARENT_SPEC, [
+            render(
               [
-                createInstance(1, CHILD_SPEC, ['_0_1']),
-                createInstance(2, CHILD_SPEC, ['_0_2']),
-                createInstance(3, CHILD_SPEC, ['_0_3'])
-              ]
-            ]),
-            createInstance(1, PARENT_SPEC, [
+                renderChild(1, '_0_1'),
+                renderChild(2, '_0_2'),
+                renderChild(3, '_0_3')
+              ],
+              0
+            ),
+            render(
               [
-                createInstance(1, CHILD_SPEC, ['_1_1']),
-                createInstance(2, CHILD_SPEC, ['_1_2'])
-              ]
-            ]),
-            createInstance(2, PARENT_SPEC, [
+                renderChild(1, '_1_1'),
+                renderChild(2, '_1_2')
+              ],
+              1
+            ),
+            render(
               [
-                createInstance(1, CHILD_SPEC, ['_2_1']),
-                createInstance(2, CHILD_SPEC, ['_2_2'])
-              ]
-            ])
+                renderChild(1, '_2_1'),
+                renderChild(2, '_2_2')
+              ],
+              2
+            )
           ]
-        ])
+        )
       );
 
       assert.equal(getHTMLString(target),
@@ -1234,24 +1166,26 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
+      xvdom.rerender(target,
+        render(
           [
-            createInstance(0, PARENT_SPEC, [
+            render(
               [
-                createInstance(1, CHILD_SPEC, ['_0_1']),
-                createInstance(2, CHILD_SPEC, ['_0_2']),
-                createInstance(3, CHILD_SPEC, ['_0_3'])
-              ]
-            ]),
-            createInstance(2, PARENT_SPEC, [
+                renderChild(1, '_0_1'),
+                renderChild(2, '_0_2'),
+                renderChild(3, '_0_3')
+              ],
+              0
+            ),
+            render(
               [
-                createInstance(1, CHILD_SPEC, ['_2_1']),
-                createInstance(2, CHILD_SPEC, ['_2_2'])
-              ]
-            ])
+                renderChild(1, '_2_1'),
+                renderChild(2, '_2_2')
+              ],
+              2
+            )
           ]
-        ])
+        )
       );
 
       assert.equal(getHTMLString(target),
@@ -1278,13 +1212,13 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
 
       function rerenderAndValidateArray(){
         spyOn.resetSpyCounts();
-        rerender(target,
-          createInstance(null, PARENT_SPEC, [
+        xvdom.rerender(target,
+          render(
             [
-              createInstance(0, CHILD_SPEC, ['_0']),
-              createInstance(2, CHILD_SPEC, ['_2'])
+              renderChild(0, '_0'),
+              renderChild(2, '_2')
             ]
-          ])
+          )
         );
 
         assert.equal(getHTMLString(target),
@@ -1299,14 +1233,14 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       }
 
       beforeEach(()=>{
-        target = renderInstance(
-          createInstance(null, PARENT_SPEC, [
+        target = xvdom.renderInstance(
+          render(
             [
-              createInstance(0, CHILD_SPEC, ['_0']),
-              createInstance(1, CHILD_SPEC, ['_1']),
-              createInstance(2, CHILD_SPEC, ['_2'])
+              renderChild(0, '_0'),
+              renderChild(1, '_1'),
+              renderChild(2, '_2')
             ]
-          ])
+          )
         );
 
         assert.equal(getHTMLString(target),
@@ -1322,10 +1256,10 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       });
 
       it('Element', ()=>{
-        rerender(target,
-          createInstance(null, PARENT_SPEC, [
-            createInstance(null, CHILD_SPEC, ['_777'])
-          ])
+        xvdom.rerender(target,
+          render(
+            renderChild(null, '_777')
+          )
         );
 
         assert.equal(getHTMLString(target),
@@ -1345,10 +1279,10 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       });
 
       it('Text', ()=>{
-        rerender(target,
-          createInstance(null, PARENT_SPEC, [
+        xvdom.rerender(target,
+          render(
             '_777'
-          ])
+          )
         );
 
         assert.equal(getHTMLString(target),
@@ -1369,31 +1303,21 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
     });
 
     describe('In the middle of statics', ()=>{
-      const parentWithStaticsSpec = {
-        render: inst=>{
-          const div = document.createElement('div');
-          div.appendChild(document.createElement('a'));
-          div.appendChild(createDynamic(inst.v0, inst, 'r0', 'c0'));
-          div.appendChild(document.createElement('b'));
-          return div;
-        },
-        rerender(inst, pInst){
-          if(inst.v0 !== pInst.v0){
-            pInst.r0(inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
-            pInst.v0 = inst.v0;
-          }
-        }
-      };
+      const renderWithStatics = children=>
+        <div>
+          <a></a>
+          {children}
+          <b></b>
+        </div>;
+
       let target;
 
       beforeEach(()=>{
-        target = renderInstance(
-          createInstance(null, parentWithStaticsSpec, [
-            [
-              createInstance(1, CHILD_SPEC, ['_1']),
-              createInstance(2, CHILD_SPEC, ['_2']),
-              createInstance(3, CHILD_SPEC, ['_3'])
-            ]
+        target = xvdom.renderInstance(
+          renderWithStatics([
+            renderChild(1, '_1'),
+            renderChild(2, '_2'),
+            renderChild(3, '_3')
           ])
         );
 
@@ -1412,13 +1336,11 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       });
 
       it('Reordering', ()=>{
-        rerender(target,
-          createInstance(null, parentWithStaticsSpec, [
-            [
-              createInstance(3, CHILD_SPEC, ['_3']),
-              createInstance(2, CHILD_SPEC, ['_2']),
-              createInstance(1, CHILD_SPEC, ['_1'])
-            ]
+        xvdom.rerender(target,
+          renderWithStatics([
+            renderChild(3, '_3'),
+            renderChild(2, '_2'),
+            renderChild(1, '_1')
           ])
         );
 
@@ -1436,13 +1358,11 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       });
 
       it('Add and change first item', ()=>{
-        rerender(target,
-          createInstance(null, parentWithStaticsSpec, [
-            [
-              createInstance(4, CHILD_SPEC, ['_4']),
-              createInstance(2, CHILD_SPEC, ['_2']),
-              createInstance(3, CHILD_SPEC, ['_3'])
-            ]
+        xvdom.rerender(target,
+          renderWithStatics([
+            renderChild(4, '_4'),
+            renderChild(2, '_2'),
+            renderChild(3, '_3')
           ])
         );
 
@@ -1460,13 +1380,11 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       });
 
       it('Add and change last item', ()=>{
-        rerender(target,
-          createInstance(null, parentWithStaticsSpec, [
-            [
-              createInstance(1, CHILD_SPEC, ['_1']),
-              createInstance(2, CHILD_SPEC, ['_2']),
-              createInstance(4, CHILD_SPEC, ['_4'])
-            ]
+        xvdom.rerender(target,
+          renderWithStatics([
+            renderChild(1, '_1'),
+            renderChild(2, '_2'),
+            renderChild(4, '_4')
           ])
         );
 
@@ -1484,13 +1402,11 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       });
 
       it('Add and change middle item', ()=>{
-        rerender(target,
-          createInstance(null, parentWithStaticsSpec, [
-            [
-              createInstance(1, CHILD_SPEC, ['_1']),
-              createInstance(4, CHILD_SPEC, ['_4']),
-              createInstance(3, CHILD_SPEC, ['_3'])
-            ]
+        xvdom.rerender(target,
+          renderWithStatics([
+            renderChild(1, '_1'),
+            renderChild(4, '_4'),
+            renderChild(3, '_3')
           ])
         );
 
@@ -1508,14 +1424,12 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       });
 
       it('Adding', ()=>{
-        rerender(target,
-          createInstance(null, parentWithStaticsSpec, [
-            [
-              createInstance(1, CHILD_SPEC, ['_1']),
-              createInstance(2, CHILD_SPEC, ['_2']),
-              createInstance(3, CHILD_SPEC, ['_3']),
-              createInstance(4, CHILD_SPEC, ['_4'])
-            ]
+        xvdom.rerender(target,
+          renderWithStatics([
+            renderChild(1, '_1'),
+            renderChild(2, '_2'),
+            renderChild(3, '_3'),
+            renderChild(4, '_4')
           ])
         );
 
@@ -1533,15 +1447,13 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
         assert.equal(document.createTextNode.count, 0);
         spyOn.resetSpyCounts();
 
-        rerender(target,
-          createInstance(null, parentWithStaticsSpec, [
-            [
-              createInstance(0, CHILD_SPEC, ['_0']),
-              createInstance(1, CHILD_SPEC, ['_1']),
-              createInstance(2, CHILD_SPEC, ['_2']),
-              createInstance(3, CHILD_SPEC, ['_3']),
-              createInstance(4, CHILD_SPEC, ['_4'])
-            ]
+        xvdom.rerender(target,
+          renderWithStatics([
+            renderChild(0, '_0'),
+            renderChild(1, '_1'),
+            renderChild(2, '_2'),
+            renderChild(3, '_3'),
+            renderChild(4, '_4')
           ])
         );
 
@@ -1561,12 +1473,10 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       });
 
       it('Removing', ()=>{
-        rerender(target,
-          createInstance(null, parentWithStaticsSpec, [
-            [
-              createInstance(1, CHILD_SPEC, ['_1']),
-              createInstance(2, CHILD_SPEC, ['_2'])
-            ]
+        xvdom.rerender(target,
+          renderWithStatics([
+            renderChild(1, '_1'),
+            renderChild(2, '_2')
           ])
         );
 
@@ -1582,11 +1492,9 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
         assert.equal(document.createTextNode.count, 0);
         spyOn.resetSpyCounts();
 
-        rerender(target,
-          createInstance(null, parentWithStaticsSpec, [
-            [
-              createInstance(2, CHILD_SPEC, ['_2'])
-            ]
+        xvdom.rerender(target,
+          renderWithStatics([
+            renderChild(2, '_2')
           ])
         );
 
@@ -1600,10 +1508,8 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
         assert.equal(document.createElement.count,  0);
         assert.equal(document.createTextNode.count, 0);
 
-        rerender(target,
-          createInstance(null, parentWithStaticsSpec, [
-            []
-          ])
+        xvdom.rerender(target,
+          renderWithStatics([])
         );
 
         assert.equal(getHTMLString(target),
@@ -1617,159 +1523,45 @@ describe('rerenderArray - newValue, previousValueAndContext, valueIndex, rerende
       });
     });
 
-    it('Update array items (item changes spec)', ()=>{
-      const childSpec2 = {
-        render: inst=>{
-          const a = document.createElement('a');
-          a.id = inst.v0;
-          inst.c0 = a;
-          return a;
-        },
-        rerender: (inst, pInst)=>{
-          pInst.c0.id = inst.v0;
-        }
-      };
-
-      const target = renderInstance(
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(1, CHILD_SPEC, ['_1']),
-            createInstance(2, CHILD_SPEC, ['_2']),
-            createInstance(3, CHILD_SPEC, ['_3'])
-          ]
+    it('Array item changes templates', ()=>{
+      const parentNode = xvdom.renderInstance(
+        render([
+          renderChild(1, '1'),
+          renderChild(2, '2'),
+          renderChild(3, '3')
         ])
       );
 
-      assert.equal(getHTMLString(target),
+      assert.equal(getHTMLString(parentNode),
         '<div>'+
-          '<div class="_1"></div>'+
-          '<div class="_2"></div>'+
-          '<div class="_3"></div>'+
+          '<div class="1"></div>'+
+          '<div class="2"></div>'+
+          '<div class="3"></div>'+
         '</div>'
       );
-      assert.equal(document.createElement.count, 4);
+      assert.equal(document.createElement.count,  4);
       assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
-      rerender(target,
-        createInstance(null, PARENT_SPEC, [
-          [
-            createInstance(1, childSpec2, ['_1']),
-            createInstance(2, CHILD_SPEC, ['_2']),
-            createInstance(3, childSpec2, ['_3'])
-          ]
+      xvdom.rerender(
+        parentNode,
+        render([
+          renderChild(1, '1'),
+          <a key={2}>hello world</a>,
+          renderChild(3, '3')
         ])
       );
 
-      assert.equal(getHTMLString(target),
+      assert.equal(getHTMLString(parentNode),
         '<div>'+
-          '<a id="_1"></a>'+
-          '<div class="_2"></div>'+
-          '<a id="_3"></a>'+
+          '<div class="1"></div>'+
+          '<a>hello world</a>'+
+          '<div class="3"></div>'+
         '</div>'
       );
-      assert.equal(document.createElement.count, 2);
-      assert.equal(document.createTextNode.count, 0);
+      assert.equal(document.createElement.count,  1);
+      assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
     });
-
-    //
-    // it('Array item changes templates', ()=>{
-    //   const TMPL2 = {el:'span', children:[0]};
-    //
-    //   patch(target, {
-    //     template: TMPL,
-    //     values: [
-    //       [
-    //         {key:0, template:TMPL2, values:['0']},
-    //         {key:1, template:TMPL2, values:['1']}
-    //       ]
-    //     ]
-    //   });
-    //   assert.equal(getHTMLString(target),
-    //     '<div>'+
-    //       '<span>0</div>'+
-    //       '<span>1</div>'+
-    //     '</div>'
-    //   );
-    //   assert.equal(document.createElement.count, 3);
-    //   assert.equal(document.createTextNode.count, 2);
-    //   spyOn.resetSpyCounts();
-    //
-    //   patch(target, {
-    //     template: TMPL,
-    //     values: [
-    //       [
-    //         {key:0, template:TMPL, values:[
-    //           [
-    //             {key:0, template:TMPL2, values:['0']},
-    //             {key:1, template:TMPL2, values:['1']}
-    //           ]
-    //         ]},
-    //         {key:1, template:TMPL, values:[
-    //           [
-    //             {key:0, template:TMPL2, values:['0']},
-    //             {key:1, template:TMPL2, values:['1']}
-    //           ]
-    //         ]}
-    //       ]
-    //     ]
-    //   });
-    //   assert.equal(getHTMLString(target),
-    //     '<div>'+
-    //       '<div>'+
-    //         '<span>0</div>'+
-    //         '<span>1</div>'+
-    //       '</div>'+
-    //       '<div>'+
-    //         '<span>0</div>'+
-    //         '<span>1</div>'+
-    //       '</div>'+
-    //     '</div>'
-    //   );
-    //   assert.equal(document.createElement.count, 6);
-    //   assert.equal(document.createTextNode.count, 4);
-    //   assert.equal(Node.prototype.insertBefore.count, 0);
-    //   assert.equal(Node.prototype.appendChild.count, 8);
-    //   assert.equal(Node.prototype.removeChild.count, 0);
-    //   spyOn.resetSpyCounts();
-    //
-    //   patch(target, {
-    //     template: TMPL,
-    //     values: [
-    //       [
-    //         {key:0, template:TMPL, values:[
-    //           [
-    //             {key:0, template:TMPL2, values:['2']},
-    //             {key:1, template:TMPL2, values:['3']}
-    //           ]
-    //         ]},
-    //         {key:1, template:TMPL, values:[
-    //           [
-    //             {key:0, template:TMPL2, values:['4']},
-    //             {key:1, template:TMPL2, values:['5']}
-    //           ]
-    //         ]}
-    //       ]
-    //     ]
-    //   });
-    //   assert.equal(getHTMLString(target),
-    //     '<div>'+
-    //       '<div>'+
-    //         '<span>2</div>'+
-    //         '<span>3</div>'+
-    //       '</div>'+
-    //       '<div>'+
-    //         '<span>4</div>'+
-    //         '<span>5</div>'+
-    //       '</div>'+
-    //     '</div>'
-    //   );
-    //   assert.equal(document.createElement.count, 0);
-    //   assert.equal(document.createTextNode.count, 0);
-    //   assert.equal(Node.prototype.insertBefore.count, 0);
-    //   assert.equal(Node.prototype.removeChild.count, 0);
-    //   spyOn.resetSpyCounts();
-    // });
   });
 });
