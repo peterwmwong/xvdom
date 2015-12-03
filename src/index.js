@@ -1,17 +1,22 @@
 const EMPTY_STRING = '';
 const EMPTY_OBJECT = {};
 
-function recycle(stash, node){
-  if(stash) stash.push(node);
-}
+const replaceNode = (oldNode, newNode)=>{
+  const parentNode = oldNode.parentNode;
+  if(parentNode) parentNode.replaceChild(newNode, oldNode);
+};
 
-function removeArrayNodes(list, parentNode){
+const recycle = (stash, node)=>{
+  if(stash) stash.push(node);
+};
+
+const removeArrayNodes = (list, parentNode)=>{
   let item, node;
   while(item = list.pop()){
     recycle(item.spec.recycled, node = item._node);
     parentNode.removeChild(node);
   }
-}
+};
 
 const internalRerenderInstance = (inst, prevInst)=>
   prevInst.spec === inst.spec && (inst.spec.rerender(inst, prevInst), true);
@@ -33,7 +38,7 @@ function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentI
   stateActions.$$instance = inst;
 
   newNode.xvdom = parentInst;
-  node.parentNode.replaceChild(newNode, node);
+  replaceNode(node, newNode);
   recycle(inst.spec.recycled, node);
 }
 
@@ -94,13 +99,10 @@ export function rerenderText(value, oldValue, contextNode, instance, rerenderFun
 }
 
 export function rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode){
-  const parentNode = contextNode.parentNode;
-  if(parentNode){
-    parentNode.replaceChild(
-      createDynamic(value, instance, rerenderFuncProp, rerenderContextNode),
-      contextNode
-    );
-  }
+  replaceNode(
+    contextNode,
+    createDynamic(value, instance, rerenderFuncProp, rerenderContextNode)
+  );
   return value;
 }
 
@@ -134,7 +136,7 @@ export function rerenderComponent(component, props, prevProps, componentInstance
   instance[componentInstanceProp] = newCompInstance;
   instance[rerenderContextNode]   = newNode;
   newNode.xvdom = instance;
-  node.parentNode.replaceChild(newNode, node);
+  replaceNode(node, newNode);
 }
 
 export function renderInstance(instance){
@@ -318,7 +320,7 @@ export function rerender(node, instance){
   if(internalRerenderInstance(instance, prevInstance)) return node;
 
   const newNode = renderInstance(instance);
-  node.parentNode.replaceChild(newNode, node);
+  replaceNode(node, newNode);
   recycle(prevInstance.spec.recycled, node);
   return newNode;
 }
@@ -329,9 +331,10 @@ export function createComponent(component, props, instance, rerenderFuncProp, re
   const inst = component(props || EMPTY_OBJECT);
   const node = renderInstance(inst);
 
-  instance[rerenderFuncProp]           = rerenderComponent;
-  instance[componentInstanceProp]      = inst;
-  return instance[rerenderContextNode] = node;
+  instance[rerenderFuncProp]      = rerenderComponent;
+  instance[componentInstanceProp] = inst;
+  instance[rerenderContextNode]   = node;
+  return node;
 }
 
 const preInstance = {props: undefined, component: undefined, state: undefined};
@@ -353,9 +356,10 @@ export function createStatefulComponent(component, props, instance, rerenderFunc
   inst.actions   = actions;
   inst.props     = props;
 
-  instance[rerenderFuncProp]           = rerenderStatefulComponent;
-  instance[componentInstanceProp]      = inst;
-  return instance[rerenderContextNode] = node;
+  instance[rerenderFuncProp]      = rerenderStatefulComponent;
+  instance[componentInstanceProp] = inst;
+  instance[rerenderContextNode]   = node;
+  return node;
 }
 
 export function createDynamic(value, instance, rerenderFuncProp, rerenderContextNode){

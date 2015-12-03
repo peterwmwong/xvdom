@@ -73,18 +73,23 @@ var xvdom =
 	var EMPTY_STRING = '';
 	var EMPTY_OBJECT = {};
 
-	function recycle(stash, node) {
-	  if (stash) stash.push(node);
-	}
+	var replaceNode = function replaceNode(oldNode, newNode) {
+	  var parentNode = oldNode.parentNode;
+	  if (parentNode) parentNode.replaceChild(newNode, oldNode);
+	};
 
-	function removeArrayNodes(list, parentNode) {
+	var recycle = function recycle(stash, node) {
+	  if (stash) stash.push(node);
+	};
+
+	var removeArrayNodes = function removeArrayNodes(list, parentNode) {
 	  var item = undefined,
 	      node = undefined;
 	  while (item = list.pop()) {
 	    recycle(item.spec.recycled, node = item._node);
 	    parentNode.removeChild(node);
 	  }
-	}
+	};
 
 	var internalRerenderInstance = function internalRerenderInstance(inst, prevInst) {
 	  return prevInst.spec === inst.spec && (inst.spec.rerender(inst, prevInst), true);
@@ -107,7 +112,7 @@ var xvdom =
 	  stateActions.$$instance = inst;
 
 	  newNode.xvdom = parentInst;
-	  node.parentNode.replaceChild(newNode, node);
+	  replaceNode(node, newNode);
 	  recycle(inst.spec.recycled, node);
 	}
 
@@ -168,10 +173,7 @@ var xvdom =
 	}
 
 	function rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
-	  var parentNode = contextNode.parentNode;
-	  if (parentNode) {
-	    parentNode.replaceChild(createDynamic(value, instance, rerenderFuncProp, rerenderContextNode), contextNode);
-	  }
+	  replaceNode(contextNode, createDynamic(value, instance, rerenderFuncProp, rerenderContextNode));
 	  return value;
 	}
 
@@ -198,7 +200,7 @@ var xvdom =
 	  instance[componentInstanceProp] = newCompInstance;
 	  instance[rerenderContextNode] = newNode;
 	  newNode.xvdom = instance;
-	  node.parentNode.replaceChild(newNode, node);
+	  replaceNode(node, newNode);
 	}
 
 	function renderInstance(instance) {
@@ -386,7 +388,7 @@ var xvdom =
 	  if (internalRerenderInstance(instance, prevInstance)) return node;
 
 	  var newNode = renderInstance(instance);
-	  node.parentNode.replaceChild(newNode, node);
+	  replaceNode(node, newNode);
 	  recycle(prevInstance.spec.recycled, node);
 	  return newNode;
 	}
@@ -399,7 +401,8 @@ var xvdom =
 
 	  instance[rerenderFuncProp] = rerenderComponent;
 	  instance[componentInstanceProp] = inst;
-	  return instance[rerenderContextNode] = node;
+	  instance[rerenderContextNode] = node;
+	  return node;
 	}
 
 	var preInstance = { props: undefined, component: undefined, state: undefined };
@@ -423,7 +426,8 @@ var xvdom =
 
 	  instance[rerenderFuncProp] = rerenderStatefulComponent;
 	  instance[componentInstanceProp] = inst;
-	  return instance[rerenderContextNode] = node;
+	  instance[rerenderContextNode] = node;
+	  return node;
 	}
 
 	function createDynamic(value, instance, rerenderFuncProp, rerenderContextNode) {

@@ -77,7 +77,7 @@ describe('Stateful Components', ()=>{
     });
   });
 
-  describe('Stateful', ()=>{
+  describe('With actions', ()=>{
     let node, parentNode;
 
     const render = (initialCount, forceFirst)=>
@@ -154,7 +154,16 @@ describe('Stateful Components', ()=>{
         );
       });
 
-      it('does not xvdom.rerender if action yields the same state', ()=>{
+      it('does not blow up if unmounted', ()=>{
+        xvdom.unmount(node);
+
+        const [/*props*/, /*state*/, {increment}] = StatefulCounter.callsArgs[0];
+        assert.equal(StatefulCounter.callCount, 1);
+        increment();
+        assert.equal(StatefulCounter.callCount, 2);
+      });
+
+      it('does not rerender if action yields the same state', ()=>{
         const [/*props*/, /*state*/, {noop}] = StatefulCounter.callsArgs[0];
         assert.equal(StatefulCounter.callCount, 1);
         noop();
