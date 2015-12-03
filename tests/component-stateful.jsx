@@ -36,12 +36,52 @@ StatefulCounter.state = {
   redirect:    (props, state, actions)=>actions.increment()
 };
 
+const NoOnPropsComp = props=>
+  props.message === 'hello' ? <h1>{props.message}</h1> : <h2>{props.message}</h2>;
+
+NoOnPropsComp.state = {
+  onInit: props=>({})
+};
+
 describe('Stateful Components', ()=>{
-  const render = (initialCount, forceFirst)=>
-    <StatefulCounter initialCount={initialCount} forceFirst={forceFirst} />;
+  describe('No `onProps`', ()=>{
+    let node, parentNode;
+    const render = message=>
+      <NoOnPropsComp message={message} />;
+
+    beforeEach(()=>{
+      parentNode = document.createElement('div');
+      node = xvdom.renderInstance(render('hello'));
+      parentNode.appendChild(node);
+    });
+
+    it('renders', ()=>{
+      assert.equal(getHTMLString(parentNode),
+        '<div>'+
+          '<h1>'+
+            'hello'+
+          '</h1>'+
+        '</div>'
+      );
+    });
+
+    it('rerenders when props change', ()=>{
+      xvdom.rerender(parentNode.firstChild, render('goodbye'));
+      assert.equal(getHTMLString(parentNode),
+        '<div>'+
+          '<h2>'+
+            'goodbye'+
+          '</h2>'+
+        '</div>'
+      );
+    });
+  });
 
   describe('Stateful', ()=>{
     let node, parentNode;
+
+    const render = (initialCount, forceFirst)=>
+      <StatefulCounter initialCount={initialCount} forceFirst={forceFirst} />;
 
     beforeEach(()=>{
       renderCountSpec1 = renderCountSpec2 = 0;

@@ -96,17 +96,17 @@ var xvdom =
 	  var newNode = renderInstance(inst);
 	  var node = parentInst._node;
 
-	  stateActions.$$instance = inst;
-
 	  inst.component = prevInst.component;
 	  inst.state = prevInst.state;
-	  inst.actions = prevInst.actions;
 	  inst.props = prevInst.props;
+	  inst.actions = stateActions;
 
 	  parentInst._node = newNode;
 	  parentInst[componentInstanceProp] = inst;
-	  newNode.xvdom = parentInst;
 
+	  stateActions.$$instance = inst;
+
+	  newNode.xvdom = parentInst;
 	  node.parentNode.replaceChild(newNode, node);
 	  recycle(inst.spec.recycled, node);
 	}
@@ -185,7 +185,9 @@ var xvdom =
 	  var onProps = componentInstance.actions.onProps;
 	  componentInstance.props = props;
 
-	  if (onProps) onProps();
+	  if (onProps) onProps();else {
+	    internalRerenderStatefulComponent(componentInstance.actions, componentInstance.component(props, componentInstance, componentInstance.actions), componentInstance, instance, componentInstanceProp);
+	  }
 	}
 
 	function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
