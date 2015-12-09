@@ -1,17 +1,16 @@
 export default (inst, onRender, onRerender)=>{
-  if(!inst.spec.isTrackingCount){
-    inst.spec.isTrackingCount = true;
+  if(!inst.$s.isTrackingCount){
+    inst.$s.isTrackingCount = true;
 
-    const origRender = inst.spec.render;
-    inst.spec.render = (...args)=>(
+    const {c, u} = inst.$s;
+    inst.$s.c = (...args)=>(
       onRender(),
-      origRender(...args)
+      c(...args)
     );
 
-    const origRerender = inst.spec.rerender;
-    inst.spec.rerender = (...args)=>(
+    inst.$s.u = (...args)=>(
       onRerender(),
-      origRerender(...args)
+      u(...args)
     );
   }
   return inst;

@@ -1,3 +1,20 @@
+/*
+
+Instance properties:
+
+$a - actions for stateful components
+$c - component for stateful components
+$p - props for components
+$t - state for stateful components
+$s - spec
+
+Spec properties:
+
+c - create (or render)
+u - update (or update)
+
+*/
+
 const EMPTY_STRING = '';
 const EMPTY_OBJECT = {};
 
@@ -13,47 +30,47 @@ const recycle = (stash, node)=>{
 const removeArrayNodes = (list, parentNode)=>{
   let item, node;
   while(item = list.pop()){
-    recycle(item.spec.recycled, node = item._node);
+    recycle(item.$s.recycled, node = item.$n);
     parentNode.removeChild(node);
   }
 };
 
 const internalRerenderInstance = (inst, prevInst)=>
-  prevInst.spec === inst.spec && (inst.spec.rerender(inst, prevInst), true);
+  prevInst.$s === inst.$s && (inst.$s.u(inst, prevInst), true);
 
 function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentInst, componentInstanceProp){
   if(internalRerenderInstance(inst, prevInst)) return;
 
   const newNode = renderInstance(inst);
-  const node    = parentInst._node;
+  const node    = parentInst.$n;
 
-  inst.component = prevInst.component;
-  inst.state     = prevInst.state;
-  inst.props     = prevInst.props;
-  inst.actions   = stateActions;
+  inst.$c = prevInst.$c;
+  inst.$t = prevInst.$t;
+  inst.$p = prevInst.$p;
+  inst.$a = stateActions;
 
-  parentInst._node                  = newNode;
+  parentInst.$n                  = newNode;
   parentInst[componentInstanceProp] = inst;
 
   stateActions.$$instance = inst;
 
   newNode.xvdom = parentInst;
   replaceNode(node, newNode);
-  recycle(inst.spec.recycled, node);
+  recycle(inst.$s.recycled, node);
 }
 
 function callAction(stateActions, action, parentInst, componentInstanceProp, args){
   const inst                = stateActions.$$instance;
-  const {props, state}      = inst;
+  const {$p:props, $t:state}= inst;
   const shouldRerender      = stateActions.$$doRerender;
   stateActions.$$doRerender = false;
   const newState            = action.apply(undefined, [props, state, stateActions].concat(args));
   stateActions.$$doRerender = shouldRerender;
-  inst.state = newState;
+  inst.$t = newState;
   if(state !== newState && shouldRerender){
     internalRerenderStatefulComponent(
       stateActions,
-      inst.component(props, newState, stateActions),
+      inst.$c(props, newState, stateActions),
       inst,
       parentInst,
       componentInstanceProp
@@ -80,7 +97,7 @@ export function renderArray(frag, array){
 
   for(let i=0; i<length; ++i){
     item = array[i];
-    frag.appendChild(item._node = renderInstance(item));
+    frag.appendChild(item.$n = renderInstance(item));
   }
   return frag.appendChild(document.createTextNode(EMPTY_STRING));
 }
@@ -113,14 +130,14 @@ export function rerenderInstance(value, prevValue, node, instance, rerenderFuncP
 }
 
 export function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp){
-  const onProps = componentInstance.actions.onProps;
-  componentInstance.props = props;
+  const onProps = componentInstance.$a.onProps;
+  componentInstance.$p = props;
 
   if(onProps) onProps();
   else{
     internalRerenderStatefulComponent(
-      componentInstance.actions,
-      componentInstance.component(props, componentInstance, componentInstance.actions),
+      componentInstance.$a,
+      componentInstance.$c(props, componentInstance, componentInstance.$a),
       componentInstance,
       instance,
       componentInstanceProp
@@ -140,15 +157,15 @@ export function rerenderComponent(component, props, prevProps, componentInstance
 }
 
 export function renderInstance(instance){
-  const spec = instance.spec;
+  const spec = instance.$s;
   let node = spec.recycled && spec.recycled.pop();
   if(node){
-    spec.rerender(instance, node.xvdom);
-    instance._node = node;
+    spec.u(instance, node.xvdom);
+    instance.$n = node;
     return node;
   }
 
-  instance._node = node = spec.render(instance);
+  instance.$n = node = spec.c(instance);
   node.xvdom = instance;
   return node;
 }
@@ -194,8 +211,8 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
     oldStartItem = oldList[oldStartIndex];
     startItem = list[startIndex];
     while (oldStartItem.key === startItem.key){
-      node = oldStartItem._node;
-      startItem._node = rerender(node, startItem);
+      node = oldStartItem.$n;
+      startItem.$n = rerender(node, startItem);
 
       oldStartIndex++; startIndex++;
       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
@@ -209,8 +226,8 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
     oldEndItem = oldList[oldEndIndex];
     endItem = list[endIndex];
     while (oldEndItem.key === endItem.key){
-      node = oldEndItem._node;
-      endItem._node = rerender(node, endItem);
+      node = oldEndItem.$n;
+      endItem.$n = rerender(node, endItem);
 
       oldEndIndex--; endIndex--;
       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
@@ -222,9 +239,9 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
     }
 
     while (oldStartItem.key === endItem.key){
-      nextItem = endIndex + 1 < length ? list[endIndex + 1]._node : markerNode;
-      node = oldStartItem._node;
-      endItem._node = node = rerender(node, endItem);
+      nextItem = endIndex + 1 < length ? list[endIndex + 1].$n : markerNode;
+      node = oldStartItem.$n;
+      endItem.$n = node = rerender(node, endItem);
       if(oldEndItem.key !== endItem.key){
         parentNode.insertBefore(node, nextItem);
       }
@@ -238,9 +255,9 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
     }
 
     while (oldEndItem.key === startItem.key){
-      node = oldEndItem._node;
-      startItem._node = node = rerender(node, startItem);
-      nextItem = oldStartItem._node;
+      node = oldEndItem.$n;
+      startItem.$n = node = rerender(node, startItem);
+      nextItem = oldStartItem.$n;
       if(oldStartItem.key !== startItem.key){
         if(nextItem){
           parentNode.insertBefore(node, nextItem);
@@ -259,7 +276,7 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
     }
   }
   if(oldStartIndex > oldEndIndex){
-    insertBeforeNode = endItem ? endItem._node : markerNode;
+    insertBeforeNode = endItem ? endItem.$n : markerNode;
     while(startIndex <= endIndex){
       startItem = list[startIndex++];
       node = renderInstance(startItem);
@@ -269,7 +286,7 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
   else if(startIndex > endIndex){
     while(oldStartIndex <= oldEndIndex){
       oldStartItem = oldList[oldStartIndex++];
-      recycle(oldStartItem.spec.recycled, node = oldStartItem._node);
+      recycle(oldStartItem.$s.recycled, node = oldStartItem.$n);
       parentNode.removeChild(node);
     }
   }
@@ -293,20 +310,20 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
       startItem = list[startIndex++];
       item = oldListNodeKeyMap[startItem.key];
       if(item){
-        node = rerender(item._node, startItem);
-        item._node = null;
+        node = rerender(item.$n, startItem);
+        item.$n = null;
       }
       else{
         node = renderInstance(startItem);
       }
-      startItem._node = node;
-      parentNode.insertBefore(node, oldEndItem._node);
+      startItem.$n = node;
+      parentNode.insertBefore(node, oldEndItem.$n);
     }
 
     while(saveItem){
-      node = saveItem._node;
+      node = saveItem.$n;
       if(node){
-        recycle(saveItem.spec.recycled, node);
+        recycle(saveItem.$s.recycled, node);
         parentNode.removeChild(node);
       }
       saveItem = saveItem.next;
@@ -321,7 +338,7 @@ export function rerender(node, instance){
 
   const newNode = renderInstance(instance);
   replaceNode(node, newNode);
-  recycle(prevInstance.spec.recycled, node);
+  recycle(prevInstance.$s.recycled, node);
   return newNode;
 }
 
@@ -337,11 +354,10 @@ export function createComponent(component, props, instance, rerenderFuncProp, re
   return node;
 }
 
-const preInstance = {props: undefined, component: undefined, state: undefined};
+const preInstance = {$p:null};
 
 export function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp){
-  preInstance.props     = props;
-  preInstance.component = component;
+  preInstance.$p        = props;
   const rawActions      = component.state;
   const actions         = createStateActions(rawActions, instance, componentInstanceProp, preInstance);
   const state           = rawActions.onInit(props || EMPTY_OBJECT, undefined, actions);
@@ -351,10 +367,10 @@ export function createStatefulComponent(component, props, instance, rerenderFunc
 
   actions.$$instance = inst;
 
-  inst.component = component;
-  inst.state     = state;
-  inst.actions   = actions;
-  inst.props     = props;
+  inst.$c = component;
+  inst.$t = state;
+  inst.$a = actions;
+  inst.$p = props;
 
   instance[rerenderFuncProp]      = rerenderStatefulComponent;
   instance[componentInstanceProp] = inst;
@@ -390,6 +406,6 @@ export function createDynamic(value, instance, rerenderFuncProp, rerenderContext
 }
 
 export function unmount(node){
-  if(node.xvdom) recycle(node.xvdom.spec.recycled, node);
+  if(node.xvdom) recycle(node.xvdom.$s.recycled, node);
   if(node.parentNode) node.parentNode.removeChild(node);
 }

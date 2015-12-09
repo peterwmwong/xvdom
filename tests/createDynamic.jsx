@@ -34,7 +34,7 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
   describe('String - text node', ()=>{
     beforeEach(()=>{
       const string = 'test string';
-      instance = <div>{string}</div>;
+      instance = {v0:string};
       resultNode = xvdom.createDynamic(instance.v0, instance, 'r0', 'c0');
       parentNode.appendChild(resultNode);
     });
@@ -54,7 +54,7 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
   describe('Number - text node', ()=>{
     beforeEach(()=>{
       const num = 0;
-      instance = <div>{num}</div>;
+      instance = {v0:num};
       resultNode = xvdom.createDynamic(instance.v0, instance, 'r0', 'c0');
       parentNode.appendChild(resultNode);
     });
@@ -74,7 +74,7 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
   describe('Object - render instance', ()=>{
     beforeEach(()=>{
       const childInstance = <span></span>;
-      instance = <div>{childInstance}</div>;
+      instance = {v0:childInstance};
       resultNode = xvdom.createDynamic(instance.v0, instance, 'r0', 'c0');
       parentNode.appendChild(resultNode);
     });
@@ -97,7 +97,7 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
         <span key={1}>one</span>,
         <span key={2}>two</span>
       ];
-      instance = <div>{array}</div>;
+      instance = {v0:array};
       resultNode = xvdom.createDynamic(instance.v0, instance, 'r0', 'c0');
       parentNode.appendChild(resultNode);
     });
