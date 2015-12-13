@@ -325,11 +325,11 @@ export function createComponent(component, props, instance, rerenderFuncProp, re
 let actionId = 0;
 
 export function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp){
-  const dispatchActionMap = {};
+  const cachedDispatchers = {};
 
-  const dispatch = (action, ...args)=>{
+  const dispatch = (action, arg)=>{
     const componentInst = dispatch.$$instance;
-    const newState = action.apply(undefined, args.concat([componentInst.$p, componentInst.$t, dispatch]));
+    const newState = action(componentInst.$p, componentInst.$t, dispatch, arg);
     if(newState !== componentInst.$t){
       componentInst.$t = newState;
       internalRerenderStatefulComponent(
@@ -343,8 +343,8 @@ export function createStatefulComponent(component, props, instance, rerenderFunc
 
   const getDispatcherForAction = action=>{
     let id = action.$$xvdomId;
-    return id ? dispatchActionMap[id] : (
-      dispatchActionMap[action.$$xvdomId = ++actionId] = dispatch.bind(action)
+    return id ? cachedDispatchers[id] : (
+      cachedDispatchers[action.$$xvdomId = ++actionId] = arg=>dispatch(action, arg)
     );
   }
 

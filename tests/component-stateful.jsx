@@ -32,7 +32,7 @@ StatefulCounter.getInitialState = (props, dispatch)=>(
 StatefulCounter.onProps = (props, state, dispatch)=>
   ({...state, forceFirst: props.forceFirst});
 
-const incrementBy = (amt, props, state, dispatch) => ({count: state.count + amt});
+const incrementBy = (props, state, dispatch, amt) => ({count: state.count + amt});
 const increment   = (props, state, dispatch)      => ({count: state.count + 1});
 const decrement   = (props, state, dispatch)      => ({count: state.count - 1});
 const noop        = (props, state, dispatch)      => state;

@@ -392,15 +392,11 @@ var xvdom =
 	var actionId = 0;
 
 	function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
-	  var dispatchActionMap = {};
+	  var cachedDispatchers = {};
 
-	  var dispatch = function dispatch(action) {
-	    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-	      args[_key - 1] = arguments[_key];
-	    }
-
+	  var dispatch = function dispatch(action, arg) {
 	    var componentInst = dispatch.$$instance;
-	    var newState = action.apply(undefined, args.concat([componentInst.$p, componentInst.$t, dispatch]));
+	    var newState = action(componentInst.$p, componentInst.$t, dispatch, arg);
 	    if (newState !== componentInst.$t) {
 	      componentInst.$t = newState;
 	      internalRerenderStatefulComponent(component(componentInst.$p, newState), componentInst, instance, componentInstanceProp);
@@ -409,7 +405,9 @@ var xvdom =
 
 	  var getDispatcherForAction = function getDispatcherForAction(action) {
 	    var id = action.$$xvdomId;
-	    return id ? dispatchActionMap[id] : dispatchActionMap[action.$$xvdomId = ++actionId] = dispatch.bind(action);
+	    return id ? cachedDispatchers[id] : cachedDispatchers[action.$$xvdomId = ++actionId] = function (arg) {
+	      return dispatch(action, arg);
+	    };
 	  };
 
 	  var state = component.getInitialState(props || EMPTY_OBJECT, dispatch);
