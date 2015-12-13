@@ -403,13 +403,6 @@ var xvdom =
 	    }
 	  };
 
-	  var getDispatcherForAction = function getDispatcherForAction(action) {
-	    var id = action.$$xvdomId;
-	    return id ? cachedDispatchers[id] : cachedDispatchers[action.$$xvdomId = ++actionId] = function (arg) {
-	      return dispatch(action, arg);
-	    };
-	  };
-
 	  var state = component.getInitialState(props || EMPTY_OBJECT, dispatch);
 	  var inst = component(props, state);
 	  var node = renderInstance(inst);
@@ -418,10 +411,17 @@ var xvdom =
 	  inst.$t = state;
 	  inst.$p = props;
 
-	  // TODO: rename to $g
-	  inst.$getDispatcherForAction = getDispatcherForAction;
 	  // TODO: rename to $d
 	  inst.$dispatch = dispatch;
+
+	  // TODO: rename to $g
+	  inst.$getDispatcherForAction = function (action) {
+	    var id = action.$$xvdomId;
+	    return id ? cachedDispatchers[id] : cachedDispatchers[action.$$xvdomId = ++actionId] = function (arg) {
+	      return dispatch(action, arg);
+	    };
+	  };
+
 	  dispatch.$$instance = inst;
 
 	  instance[rerenderFuncProp] = rerenderStatefulComponent;

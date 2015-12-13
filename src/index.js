@@ -341,25 +341,25 @@ export function createStatefulComponent(component, props, instance, rerenderFunc
     }
   };
 
-  const getDispatcherForAction = action=>{
+  const state = component.getInitialState(props || EMPTY_OBJECT, dispatch);
+  const inst  = component(props, state);
+  const node  = renderInstance(inst);
+
+  inst.$c = component;
+  inst.$t = state;
+  inst.$p = props;
+
+  // TODO: rename to $d
+  inst.$dispatch = dispatch;
+  
+  // TODO: rename to $g
+  inst.$getDispatcherForAction = action=>{
     let id = action.$$xvdomId;
     return id ? cachedDispatchers[id] : (
       cachedDispatchers[action.$$xvdomId = ++actionId] = arg=>dispatch(action, arg)
     );
   }
 
-  const state           = component.getInitialState(props || EMPTY_OBJECT, dispatch);
-  const inst            = component(props, state);
-  const node            = renderInstance(inst);
-
-  inst.$c = component;
-  inst.$t = state;
-  inst.$p = props;
-
-  // TODO: rename to $g
-  inst.$getDispatcherForAction = getDispatcherForAction;
-  // TODO: rename to $d
-  inst.$dispatch = dispatch;
   dispatch.$$instance = inst;
 
   instance[rerenderFuncProp]      = rerenderStatefulComponent;
