@@ -2,16 +2,17 @@
 
 Instance properties:
 
-$a - actions for stateful components
-$c - component for stateful components
-$p - props for components
-$t - state for stateful components
-$s - spec
+$c:Function - component for stateful components
+$p:Object - props for components
+$t:Object - state for stateful components
+$s:Spec - spec
+$dispatch:Function - updates the state of stateful components
+$getDispatcherForAction:Function - retrieves a prebound function that calls dispatch for an action
 
 Spec properties:
 
-c - create (or render)
-u - update (or update)
+c:Function - create (or render)
+u:Function - update (or update)
 
 */
 
@@ -38,7 +39,7 @@ const removeArrayNodes = (list, parentNode)=>{
 const internalRerenderInstance = (inst, prevInst)=>
   prevInst.$s === inst.$s && (inst.$s.u(inst, prevInst), true);
 
-function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentInst, componentInstanceProp){
+function internalRerenderStatefulComponent(inst, prevInst, parentInst, componentInstanceProp){
   if(internalRerenderInstance(inst, prevInst)) return;
 
   const newNode = renderInstance(inst);
@@ -47,48 +48,16 @@ function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentI
   inst.$c = prevInst.$c;
   inst.$t = prevInst.$t;
   inst.$p = prevInst.$p;
-  inst.$a = stateActions;
+  inst.$getDispatcherForAction = prevInst.$getDispatcherForAction;
+  inst.$dispatch = prevInst.$dispatch;
+  inst.$dispatch.$$instance = inst;
 
-  parentInst.$n                  = newNode;
+  parentInst.$n = newNode;
   parentInst[componentInstanceProp] = inst;
-
-  stateActions.$$instance = inst;
 
   newNode.xvdom = parentInst;
   replaceNode(node, newNode);
   recycle(inst.$s.recycled, node);
-}
-
-function callAction(stateActions, action, parentInst, componentInstanceProp, args){
-  const inst                = stateActions.$$instance;
-  const {$p:props, $t:state}= inst;
-  const shouldRerender      = stateActions.$$doRerender;
-  stateActions.$$doRerender = false;
-  const newState            = action.apply(undefined, [props, state, stateActions].concat(args));
-  stateActions.$$doRerender = shouldRerender;
-  inst.$t = newState;
-  if(state !== newState && shouldRerender){
-    internalRerenderStatefulComponent(
-      stateActions,
-      inst.$c(props, newState, stateActions),
-      inst,
-      parentInst,
-      componentInstanceProp
-    );
-  }
-  return newState;
-}
-
-function createAction(stateActions, action, parentInst, componentInstanceProp){
-  return (...args)=>callAction(stateActions, action, parentInst, componentInstanceProp, args);
-}
-
-function createStateActions(rawActions, parentInst, componentInstanceProp, preInstance){
-  const stateActions = {$$doRerender: false, $$instance: preInstance};
-  for(let sa in rawActions){
-    stateActions[sa] = createAction(stateActions, rawActions[sa], parentInst, componentInstanceProp);
-  }
-  return stateActions;
 }
 
 export function renderArray(frag, array){
@@ -130,14 +99,13 @@ export function rerenderInstance(value, prevValue, node, instance, rerenderFuncP
 }
 
 export function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp){
-  const onProps = componentInstance.$a.onProps;
+  const onProps        = component.onProps;
   componentInstance.$p = props;
 
-  if(onProps) onProps();
+  if(onProps) componentInstance.$dispatch(onProps);
   else{
     internalRerenderStatefulComponent(
-      componentInstance.$a,
-      componentInstance.$c(props, componentInstance, componentInstance.$a),
+      component(props, componentInstance),
       componentInstance,
       instance,
       componentInstanceProp
@@ -343,7 +311,7 @@ export function rerender(node, instance){
 }
 
 export function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp){
-  if(component.state) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
+  if(component.getInitialState) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
 
   const inst = component(props || EMPTY_OBJECT);
   const node = renderInstance(inst);
@@ -354,23 +322,45 @@ export function createComponent(component, props, instance, rerenderFuncProp, re
   return node;
 }
 
-const preInstance = {$p:null};
+let actionId = 0;
 
 export function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp){
-  preInstance.$p        = props;
-  const rawActions      = component.state;
-  const actions         = createStateActions(rawActions, instance, componentInstanceProp, preInstance);
-  const state           = rawActions.onInit(props || EMPTY_OBJECT, undefined, actions);
-  actions.$$doRerender  = true;
-  const inst            = component(props, state, actions);
-  const node            = renderInstance(inst);
+  const dispatchActionMap = {};
 
-  actions.$$instance = inst;
+  const dispatch = (action, ...args)=>{
+    const componentInst = dispatch.$$instance;
+    const newState = action.apply(undefined, args.concat([componentInst.$p, componentInst.$t, dispatch]));
+    if(newState !== componentInst.$t){
+      componentInst.$t = newState;
+      internalRerenderStatefulComponent(
+        component(componentInst.$p, newState),
+        componentInst,
+        instance,
+        componentInstanceProp
+      );
+    }
+  };
+
+  const getDispatcherForAction = action=>{
+    let id = action.__xvdomActionId;
+    return id ? dispatchActionMap[id] : (
+      dispatchActionMap[action.__xvdomActionId = ++actionId] = dispatch.bind(action)
+    );
+  }
+
+  const state           = component.getInitialState(props || EMPTY_OBJECT, dispatch);
+  const inst            = component(props, state);
+  const node            = renderInstance(inst);
 
   inst.$c = component;
   inst.$t = state;
-  inst.$a = actions;
   inst.$p = props;
+
+  // TODO: rename to $g
+  inst.$getDispatcherForAction = getDispatcherForAction;
+  // TODO: rename to $d
+  inst.$dispatch = dispatch;
+  dispatch.$$instance = inst;
 
   instance[rerenderFuncProp]      = rerenderStatefulComponent;
   instance[componentInstanceProp] = inst;
