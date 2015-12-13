@@ -342,9 +342,9 @@ export function createStatefulComponent(component, props, instance, rerenderFunc
   };
 
   const getDispatcherForAction = action=>{
-    let id = action.__xvdomActionId;
+    let id = action.$$xvdomId;
     return id ? dispatchActionMap[id] : (
-      dispatchActionMap[action.__xvdomActionId = ++actionId] = dispatch.bind(action)
+      dispatchActionMap[action.$$xvdomId = ++actionId] = dispatch.bind(action)
     );
   }
 
