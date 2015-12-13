@@ -2,27 +2,26 @@ import assert        from 'assert';
 import getHTMLString from './utils/getHTMLString.js';
 import * as xvdom    from '../src/index.js';
 
-let leafNodeToggle;
-const LeafNode = (props, state, {toggle})=>(
-  leafNodeToggle = toggle,
+let leafNodeDispatch;
+const LeafNode = (props, state)=>(
   state.spec ? <span className="spec1">{props.count}</span>
     : <span className="spec2">{props.count}</span>
 );
-LeafNode.state = {
-  onInit : props          => ({spec: false}),
-  onProps: (props, state) => ({...state}),
-  toggle : (props, state) => ({spec: !state.spec})
-};
-
-let nodeIncrement;
-const Node = (props, state, {increment})=>(
-  nodeIncrement = increment,
-  <LeafNode count={state.count}/>
+LeafNode.getInitialState = (props, dispatch)=>(
+  leafNodeDispatch = dispatch,
+  {spec: false}
 );
-Node.state = {
-  onInit   : props          => ({count: 0}),
-  increment: (props, state) => ({count: state.count + 1})
-};
+LeafNode.onProps = (props, state) => ({...state});
+const toggle = (props, state) => ({spec: !state.spec});
+
+let nodeDispatch;
+const Node = (props, state)=><LeafNode count={state.count}/>;
+
+Node.getInitialState = (props, dispatch)=>(
+  nodeDispatch = dispatch,
+  {count: 0}
+);
+const increment = (props, state) => ({count: state.count + 1});
 
 describe('Stateful Components Nested', ()=>{
   it('renders', ()=>{
@@ -37,7 +36,7 @@ describe('Stateful Components Nested', ()=>{
       '</div>'
     );
 
-    leafNodeToggle();
+    leafNodeDispatch(toggle);
 
     assert.equal(getHTMLString(parentNode),
       '<div>'+
@@ -47,7 +46,7 @@ describe('Stateful Components Nested', ()=>{
       '</div>'
     );
 
-    nodeIncrement();
+    nodeDispatch(increment);
 
     assert.equal(getHTMLString(parentNode),
       '<div>'+
@@ -58,7 +57,7 @@ describe('Stateful Components Nested', ()=>{
     );
 
 
-    leafNodeToggle();
+    leafNodeDispatch(toggle);
 
     assert.equal(getHTMLString(parentNode),
       '<div>'+
