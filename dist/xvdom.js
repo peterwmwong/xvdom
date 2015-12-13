@@ -432,24 +432,15 @@
 	  return isString(value) ? (rendererFunc = rerenderTextNodeValue, document.createTextNode(value)) : (rendererFunc = rerenderValue, createElementFromValue(value));
 	}
 
-	function createAndRegisterFromArrayValue(parentNode, arrayValue, values, insertBeforeNode) {
+	function createAndRegisterFromArrayValue(parentNode, arrayValue, values) {
 	  var length = arrayValue.length;
 	  var beforeFirstNode = parentNode.lastChild;
-	  var node = undefined,
-	      value = undefined,
+	  var value = undefined,
 	      i = 0;
 
-	  if (insertBeforeNode) {
-	    while (i < length) {
-	      value = arrayValue[i++];
-	      node = createElementFromValue(value);
-	      parentNode.insertBefore(value.node = node, insertBeforeNode);
-	    }
-	  } else {
-	    while (i < length) {
-	      value = arrayValue[i++];
-	      parentNode.appendChild(value.node = createElementFromValue(value));
-	    }
+	  while (i < length) {
+	    value = arrayValue[i++];
+	    parentNode.appendChild(value.node = createElementFromValue(value));
 	  }
 
 	  rendererFunc = rerenderArrayValue;
