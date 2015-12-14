@@ -105,7 +105,7 @@ export function rerenderStatefulComponent(component, props, prevProps, component
   if(onProps) componentInstance.$dispatch(onProps);
   else{
     internalRerenderStatefulComponent(
-      component(props, componentInstance),
+      component(props, componentInstance.$t),
       componentInstance,
       instance,
       componentInstanceProp
@@ -333,7 +333,7 @@ export function createStatefulComponent(component, props, instance, rerenderFunc
     if(newState !== componentInst.$t){
       componentInst.$t = newState;
       internalRerenderStatefulComponent(
-        component(componentInst.$p, newState),
+        component(componentInst.$p, newState, componentInst.$getDispatcherForAction),
         componentInst,
         instance,
         componentInstanceProp
@@ -341,8 +341,15 @@ export function createStatefulComponent(component, props, instance, rerenderFunc
     }
   };
 
+  const getDispatcherForAction = action=>{
+    let id = action.$$xvdomId;
+    return id ? cachedDispatchers[id] : (
+      cachedDispatchers[action.$$xvdomId = ++actionId] = arg=>dispatch(action, arg)
+    );
+  };
+
   const state = component.getInitialState(props || EMPTY_OBJECT, dispatch);
-  const inst  = component(props, state);
+  const inst  = component(props, state, getDispatcherForAction);
   const node  = renderInstance(inst);
 
   inst.$c = component;
@@ -351,14 +358,9 @@ export function createStatefulComponent(component, props, instance, rerenderFunc
 
   // TODO: rename to $d
   inst.$dispatch = dispatch;
-  
+
   // TODO: rename to $g
-  inst.$getDispatcherForAction = action=>{
-    let id = action.$$xvdomId;
-    return id ? cachedDispatchers[id] : (
-      cachedDispatchers[action.$$xvdomId = ++actionId] = arg=>dispatch(action, arg)
-    );
-  }
+  inst.$getDispatcherForAction = getDispatcherForAction;
 
   dispatch.$$instance = inst;
 

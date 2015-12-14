@@ -1,4 +1,4 @@
-export default (inst, onRender, onRerender)=>{
+export default (inst, onRender, onRerender=()=>{})=>{
   if(!inst.$s.isTrackingCount){
     inst.$s.isTrackingCount = true;
 

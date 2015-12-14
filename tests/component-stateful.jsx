@@ -1,24 +1,22 @@
 import assert                  from 'assert';
-import wrapSpecRenderFunctions from './utils/wrapSpecRenderFunctions.js';
-import getHTMLString           from './utils/getHTMLString.js';
-import * as xvdom              from '../src/index.js';
+import wrapSpecRenderFunctions from './utils/wrapSpecRenderFunctions';
+import getHTMLString           from './utils/getHTMLString';
+import * as xvdom              from '../src/index';
 
 let renderCountSpec1, renderCountSpec2;
 
-const StatefulCounter = (props, state)=>{
+const StatefulCounter = (props, state, dispatcher)=>{
   StatefulCounter.callCount = StatefulCounter.callCount + 1;
   if(!state.forceFirst && state.count % 2){
     return wrapSpecRenderFunctions(
       <a>{`initialCount2: ${props.initialCount}, count2: ${state.count}`}</a>,
-      ()=>renderCountSpec2++,
-      ()=>{}
+      ()=>renderCountSpec2++
     );
   }
   else{
     return wrapSpecRenderFunctions(
       <span>{`initialCount: ${props.initialCount}, count: ${state.count}`}</span>,
-      ()=>renderCountSpec1++,
-      ()=>{}
+      ()=>renderCountSpec1++
     );
   }
 };
@@ -37,12 +35,43 @@ const increment   = (props, state, dispatch)      => ({count: state.count + 1});
 const decrement   = (props, state, dispatch)      => ({count: state.count - 1});
 const noop        = (props, state, dispatch)      => state;
 
-const NoOnPropsComp = props=>
-  props.message === 'hello' ? <h1>{props.message}</h1> : <h2>{props.message}</h2>;
+const NoOnPropsComp = (props, state)=>
+  props.message === 'hello' ? <h1>{state.preamble}{props.message}</h1> : <h2>{state.preamble}{props.message}</h2>;
 
-NoOnPropsComp.getInitialState = props=>({});
+NoOnPropsComp.getInitialState = props=>({preamble:'Say '});
+
+let simpleCounterDispatcher;
+const SimpleCounter = (props, state, dispatcher)=>(
+  (simpleCounterDispatcher = dispatcher),
+  <div>{state.count}</div>
+);
+
+SimpleCounter.getInitialState = props=>({count:1});
 
 describe('Stateful Components', ()=>{
+  describe('dispatcher(func)', ()=>{
+    let node;
+    beforeEach(()=>{
+      node = xvdom.renderInstance(<SimpleCounter />);
+      assert.equal(getHTMLString(node), '<div>1</div>');
+    });
+
+    it('returns a function that calls `dispatch(func)`', ()=>{
+      const incrementByDispatcher = simpleCounterDispatcher(incrementBy);
+      incrementByDispatcher(4);
+      assert.equal(getHTMLString(node), '<div>5</div>');
+
+      incrementByDispatcher(5);
+      assert.equal(getHTMLString(node), '<div>10</div>');
+    });
+
+    it('caches and returns same function on subsequent calls', ()=>{
+      const incrementByDispatcher1 = simpleCounterDispatcher(incrementBy);
+      const incrementByDispatcher2 = simpleCounterDispatcher(incrementBy);
+      assert.strictEqual(incrementByDispatcher1, incrementByDispatcher2);
+    });
+  });
+
   describe('No `onProps`', ()=>{
     let node, parentNode;
     const render = message=>
@@ -58,7 +87,7 @@ describe('Stateful Components', ()=>{
       assert.equal(getHTMLString(parentNode),
         '<div>'+
           '<h1>'+
-            'hello'+
+            'Say hello'+
           '</h1>'+
         '</div>'
       );
@@ -69,7 +98,7 @@ describe('Stateful Components', ()=>{
       assert.equal(getHTMLString(parentNode),
         '<div>'+
           '<h2>'+
-            'goodbye'+
+            'Say goodbye'+
           '</h2>'+
         '</div>'
       );
@@ -100,7 +129,7 @@ describe('Stateful Components', ()=>{
       );
     });
 
-    describe('calling state actions', ()=>{
+    describe('dispatching actions', ()=>{
       it('rerenders if action generates a new state', ()=>{
         statefulCounterDispatch(increment);
 
