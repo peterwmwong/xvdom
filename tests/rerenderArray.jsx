@@ -243,6 +243,64 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
       spyOn.resetSpyCounts();
     });
 
+    it('Reordering 4', ()=>{
+      const parentNode = xvdom.renderInstance(
+        render([
+          renderChild(1, '1'),
+          renderChild(0, '0'),
+          renderChild(3, '3'),
+          renderChild(2, '2')
+        ])
+      );
+
+      assert.equal(getHTMLString(parentNode),
+        '<div>'+
+          '<div class="1"></div>'+
+          '<div class="0"></div>'+
+          '<div class="3"></div>'+
+          '<div class="2"></div>'+
+        '</div>'
+      );
+
+      xvdom.rerender(parentNode,
+        render([
+          renderChild(0, '0'),
+          renderChild(1, '1'),
+          renderChild(2, '2'),
+          renderChild(3, '3')
+        ])
+      );
+
+      assert.equal(getHTMLString(parentNode),
+        '<div>'+
+          '<div class="0"></div>'+
+          '<div class="1"></div>'+
+          '<div class="2"></div>'+
+          '<div class="3"></div>'+
+        '</div>'
+      );
+
+      xvdom.rerender(parentNode,
+        render([
+          renderChild(0, '0'),
+          renderChild(1, '1'),
+          renderChild(2, '2'),
+          renderChild(3, '3'),
+          renderChild(4, '4')
+        ])
+      );
+
+      assert.equal(getHTMLString(parentNode),
+        '<div>'+
+          '<div class="0"></div>'+
+          '<div class="1"></div>'+
+          '<div class="2"></div>'+
+          '<div class="3"></div>'+
+          '<div class="4"></div>'+
+        '</div>'
+      );
+    });
+
     it('Reordering in the middle of statics', ()=>{
       const renderWithStatics = children=>
         <div>

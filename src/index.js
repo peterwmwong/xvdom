@@ -294,6 +294,7 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
     const oldListNodeKeyMap = {};
     let saveItem = oldStartItem;
     let item, prevItem;
+    insertBeforeNode = oldEndItem.$n;
     i = oldStartIndex;
 
     if(i <= oldEndIndex){
@@ -309,7 +310,9 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
     while(startIndex <= endIndex){
       startItem = list[startIndex++];
       item = oldListNodeKeyMap[startItem.key];
+
       if(item){
+        if(item === oldEndItem) insertBeforeNode = insertBeforeNode.nextSibling;
         node = rerender(item.$n, startItem);
         item.$n = null;
       }
@@ -317,7 +320,7 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
         node = renderInstance(startItem);
       }
       startItem.$n = node;
-      parentNode.insertBefore(node, oldEndItem.$n);
+      parentNode.insertBefore(node, insertBeforeNode);
     }
 
     while(saveItem){
