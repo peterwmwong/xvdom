@@ -211,8 +211,7 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
     oldStartItem = oldList[oldStartIndex];
     startItem = list[startIndex];
     while (oldStartItem.key === startItem.key){
-      node = oldStartItem.$n;
-      startItem.$n = rerender(node, startItem);
+      startItem.$n = rerender(oldStartItem.$n, startItem);
 
       oldStartIndex++; startIndex++;
       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
@@ -226,8 +225,7 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
     oldEndItem = oldList[oldEndIndex];
     endItem = list[endIndex];
     while (oldEndItem.key === endItem.key){
-      node = oldEndItem.$n;
-      endItem.$n = rerender(node, endItem);
+      endItem.$n = rerender(oldEndItem.$n, endItem);
 
       oldEndIndex--; endIndex--;
       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
@@ -238,13 +236,13 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
       successful = true;
     }
 
+    nextItem = endIndex + 1 < length ? list[endIndex + 1].$n : markerNode;
     while (oldStartItem.key === endItem.key){
-      nextItem = endIndex + 1 < length ? list[endIndex + 1].$n : markerNode;
-      node = oldStartItem.$n;
-      endItem.$n = node = rerender(node, endItem);
+      endItem.$n = node = rerender(oldStartItem.$n, endItem);
       if(oldEndItem.key !== endItem.key){
-        parentNode.insertBefore(node, nextItem);
+        nextItem = parentNode.insertBefore(node, nextItem);
       }
+
       oldStartIndex++; endIndex--;
       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
         break outer;
@@ -255,17 +253,22 @@ export function rerenderArray(list, oldList, markerNode, valuesAndContext, reren
     }
 
     while (oldEndItem.key === startItem.key){
-      node = oldEndItem.$n;
-      startItem.$n = node = rerender(node, startItem);
-      nextItem = oldStartItem.$n;
-      if(oldStartItem.key !== startItem.key){
-        if(nextItem){
-          parentNode.insertBefore(node, nextItem);
-        }
-        else{
-          parentNode.appendChild(node);
-        }
-      }
+      startItem.$n = node = rerender(oldEndItem.$n, startItem);
+
+      // TODO: All tests pass but we should verify this doesn't regress performance.
+      parentNode.insertBefore(node, oldStartItem.$n);
+
+      // TODO: Does this actually help much?
+      // nextItem = oldStartItem.$n;
+      // if(oldStartItem.key !== startItem.key){
+      //   if(nextItem){
+      //     parentNode.insertBefore(node, nextItem);
+      //   }
+      //   else{
+      //     parentNode.appendChild(node);
+      //   }
+      // }
+
       oldEndIndex--; startIndex++;
       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
         break outer;
