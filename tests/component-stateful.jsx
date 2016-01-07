@@ -1,7 +1,7 @@
 import assert                  from 'assert';
 import wrapSpecRenderFunctions from './utils/wrapSpecRenderFunctions.js';
 import getHTMLString           from './utils/getHTMLString.js';
-import * as xvdom              from '../src/index.js';
+import xvdom                   from '../src/index.js';
 
 let renderCountSpec1, renderCountSpec2;
 
@@ -51,7 +51,7 @@ describe('Stateful Components', ()=>{
 
     beforeEach(()=>{
       parentNode = document.createElement('div');
-      node = xvdom.renderInstance(render('hello'));
+      node = xvdom.render(render('hello'));
       parentNode.appendChild(node);
     });
 
@@ -88,7 +88,7 @@ describe('Stateful Components', ()=>{
       StatefulCounter.callCount = 0;
       StatefulCounter.callsArgs = [];
       parentNode = document.createElement('div');
-      node = xvdom.renderInstance(render(777));
+      node = xvdom.render(render(777));
       parentNode.appendChild(node);
     });
 

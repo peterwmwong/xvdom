@@ -1,6 +1,6 @@
 import assert        from 'assert';
 import getHTMLString from './utils/getHTMLString.js';
-import * as xvdom    from '../src/index.js';
+import xvdom         from '../src/index.js';
 
 describe('Integration', ()=>{
   const render = greeting=><div>{greeting}</div>;
@@ -9,7 +9,7 @@ describe('Integration', ()=>{
   describe('Dynamic changing type', ()=>{
     describe('From String', ()=>{
       beforeEach(()=>{
-        node = xvdom.renderInstance(
+        node = xvdom.render(
           render('hello world')
         );
       });

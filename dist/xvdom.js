@@ -57,19 +57,6 @@ module.exports =
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.renderArray = renderArray;
-	exports.rerenderText = rerenderText;
-	exports.rerenderDynamic = rerenderDynamic;
-	exports.rerenderInstance = rerenderInstance;
-	exports.rerenderStatefulComponent = rerenderStatefulComponent;
-	exports.rerenderComponent = rerenderComponent;
-	exports.renderInstance = renderInstance;
-	exports.rerenderArray = rerenderArray;
-	exports.rerender = rerender;
-	exports.createComponent = createComponent;
-	exports.createStatefulComponent = createStatefulComponent;
-	exports.createDynamic = createDynamic;
-	exports.unmount = unmount;
 	/*
 
 	Instance properties:
@@ -117,7 +104,7 @@ module.exports =
 	  return prevInst.$s === inst.$s && (inst.$s.u(inst, prevInst), true);
 	};
 
-	function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentInst, componentInstanceProp) {
+	var internalRerenderStatefulComponent = function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentInst, componentInstanceProp) {
 	  if (internalRerenderInstance(inst, prevInst)) return;
 
 	  var newNode = renderInstance(inst);
@@ -136,9 +123,9 @@ module.exports =
 	  newNode.xvdom = parentInst;
 	  replaceNode(node, newNode);
 	  recycle(inst.$s.recycled, node);
-	}
+	};
 
-	function callAction(stateActions, action, parentInst, componentInstanceProp, args) {
+	var callAction = function callAction(stateActions, action, parentInst, componentInstanceProp, args) {
 	  var inst = stateActions.$$instance;
 	  var props = inst.$p;
 	  var state = inst.$t;
@@ -152,9 +139,9 @@ module.exports =
 	    internalRerenderStatefulComponent(stateActions, inst.$c(props, newState, stateActions), inst, parentInst, componentInstanceProp);
 	  }
 	  return newState;
-	}
+	};
 
-	function createAction(stateActions, action, parentInst, componentInstanceProp) {
+	var createAction = function createAction(stateActions, action, parentInst, componentInstanceProp) {
 	  return function () {
 	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
 	      args[_key] = arguments[_key];
@@ -162,17 +149,17 @@ module.exports =
 
 	    return callAction(stateActions, action, parentInst, componentInstanceProp, args);
 	  };
-	}
+	};
 
-	function createStateActions(rawActions, parentInst, componentInstanceProp, preInstance) {
+	var createStateActions = function createStateActions(rawActions, parentInst, componentInstanceProp, preInstance) {
 	  var stateActions = { $$doRerender: false, $$instance: preInstance };
 	  for (var sa in rawActions) {
 	    stateActions[sa] = createAction(stateActions, rawActions[sa], parentInst, componentInstanceProp);
 	  }
 	  return stateActions;
-	}
+	};
 
-	function rerenderArray_addAllBefore(parentNode, list, length, markerNode) {
+	var rerenderArray_addAllBefore = function rerenderArray_addAllBefore(parentNode, list, length, markerNode) {
 	  var i = 0;
 	  var value = undefined;
 
@@ -180,9 +167,9 @@ module.exports =
 	    value = list[i++];
 	    insertBefore(parentNode, value.$n = renderInstance(value), markerNode);
 	  }
-	}
+	};
 
-	function rerenderArray_reconcileWithMap(parentNode, list, oldList, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex) {
+	var rerenderArray_reconcileWithMap = function rerenderArray_reconcileWithMap(parentNode, list, oldList, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex) {
 	  var oldListNodeKeyMap = {};
 	  var saveItem = oldStartItem;
 	  var insertBeforeNode = oldEndItem.$n;
@@ -223,9 +210,9 @@ module.exports =
 	    }
 	    saveItem = saveItem.next;
 	  }
-	}
+	};
 
-	function rerenderArray_afterReconcile(parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, markerNode) {
+	var rerenderArray_afterReconcile = function rerenderArray_afterReconcile(parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, markerNode) {
 	  var node = undefined,
 	      insertBeforeNode = undefined;
 
@@ -244,9 +231,9 @@ module.exports =
 	  } else {
 	    rerenderArray_reconcileWithMap(parentNode, list, oldList, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex);
 	  }
-	}
+	};
 
-	function rerenderArray_reconcile(parentNode, list, endIndex, oldList, oldEndIndex, markerNode) {
+	var rerenderArray_reconcile = function rerenderArray_reconcile(parentNode, list, endIndex, oldList, oldEndIndex, markerNode) {
 	  var oldStartIndex = 0;
 	  var startIndex = 0;
 	  var successful = true;
@@ -316,9 +303,9 @@ module.exports =
 	  }
 
 	  rerenderArray_afterReconcile(parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, markerNode);
-	}
+	};
 
-	function rerenderArrayForReal(parentNode, list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
+	var rerenderArrayForReal = function rerenderArrayForReal(parentNode, list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
 	  var length = list.length;
 	  var oldLength = oldList.length;
 	  if (!length) {
@@ -328,9 +315,9 @@ module.exports =
 	  } else {
 	    rerenderArray_reconcile(parentNode, list, length - 1, oldList, oldLength - 1, markerNode);
 	  }
-	}
+	};
 
-	function renderArray(frag, array) {
+	var renderArray = function renderArray(frag, array) {
 	  var length = array.length;
 	  var i = 0;
 	  var item = undefined;
@@ -340,9 +327,9 @@ module.exports =
 	    frag.appendChild(item.$n = renderInstance(item));
 	  }
 	  return frag.appendChild(document.createTextNode(EMPTY_STRING));
-	}
+	};
 
-	function rerenderText(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
+	var rerenderText = function rerenderText(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
 	  if (value == null) {
 	    contextNode.nodeValue = EMPTY_STRING;
 	  } else if (value.constructor === String || value.constructor === Number) {
@@ -351,29 +338,29 @@ module.exports =
 	    rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode);
 	  }
 	  return value;
-	}
+	};
 
-	function rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
+	var rerenderDynamic = function rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
 	  replaceNode(contextNode, createDynamic(value, instance, rerenderFuncProp, rerenderContextNode));
 	  return value;
-	}
+	};
 
-	function rerenderInstance(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode) {
+	var rerenderInstance = function rerenderInstance(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode) {
 	  if (value && internalRerenderInstance(value, prevValue)) return prevValue;
 
 	  return rerenderDynamic(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode);
-	}
+	};
 
-	function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
+	var rerenderStatefulComponent = function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
 	  var onProps = componentInstance.$a.onProps;
 	  componentInstance.$p = props;
 
 	  if (onProps) onProps();else {
 	    internalRerenderStatefulComponent(componentInstance.$a, componentInstance.$c(props, componentInstance, componentInstance.$a), componentInstance, instance, componentInstanceProp);
 	  }
-	}
+	};
 
-	function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
+	var rerenderComponent = function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
 	  var newCompInstance = component(props || EMPTY_OBJECT);
 	  if (internalRerenderInstance(newCompInstance, componentInstance)) return;
 
@@ -382,9 +369,9 @@ module.exports =
 	  instance[rerenderContextNode] = newNode;
 	  newNode.xvdom = instance;
 	  replaceNode(node, newNode);
-	}
+	};
 
-	function renderInstance(instance) {
+	var renderInstance = function renderInstance(instance) {
 	  var spec = instance.$s;
 	  var node = spec.recycled && spec.recycled.pop();
 	  if (node) {
@@ -396,9 +383,9 @@ module.exports =
 	  instance.$n = node = spec.c(instance);
 	  node.xvdom = instance;
 	  return node;
-	}
+	};
 
-	function rerenderArray(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
+	var rerenderArray = function rerenderArray(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
 	  var parentNode = markerNode.parentNode;
 	  if (list instanceof Array) {
 	    rerenderArrayForReal(parentNode, list, oldList, markerNode);
@@ -407,9 +394,9 @@ module.exports =
 	    rerenderDynamic(list, undefined, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
 	  }
 	  return list;
-	}
+	};
 
-	function rerender(node, instance) {
+	var rerender = function rerender(node, instance) {
 	  var prevInstance = node.xvdom;
 	  if (internalRerenderInstance(instance, prevInstance)) return node;
 
@@ -417,9 +404,9 @@ module.exports =
 	  replaceNode(node, newNode);
 	  recycle(prevInstance.$s.recycled, node);
 	  return newNode;
-	}
+	};
 
-	function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
+	var createComponent = function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
 	  if (component.state) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
 
 	  var inst = component(props || EMPTY_OBJECT);
@@ -429,9 +416,9 @@ module.exports =
 	  instance[componentInstanceProp] = inst;
 	  instance[rerenderContextNode] = node;
 	  return node;
-	}
+	};
 
-	function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
+	var createStatefulComponent = function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
 	  preInstance.$p = props;
 	  var rawActions = component.state;
 	  var actions = createStateActions(rawActions, instance, componentInstanceProp, preInstance);
@@ -451,9 +438,9 @@ module.exports =
 	  instance[componentInstanceProp] = inst;
 	  instance[rerenderContextNode] = node;
 	  return node;
-	}
+	};
 
-	function createDynamic(value, instance, rerenderFuncProp, rerenderContextNode) {
+	var createDynamic = function createDynamic(value, instance, rerenderFuncProp, rerenderContextNode) {
 	  var node = undefined,
 	      context = undefined,
 	      rerenderFunc = undefined;
@@ -478,12 +465,27 @@ module.exports =
 	  instance[rerenderFuncProp] = rerenderFunc;
 	  instance[rerenderContextNode] = context;
 	  return node;
-	}
+	};
 
-	function unmount(node) {
+	var unmount = function unmount(node) {
 	  if (node.xvdom) recycle(node.xvdom.$s.recycled, node);
 	  if (node.parentNode) node.parentNode.removeChild(node);
-	}
+	};
+
+	exports.default = {
+	  createDynamic: createDynamic,
+	  createComponent: createComponent,
+	  render: renderInstance,
+	  rerender: rerender,
+	  unmount: unmount,
+	  _: {
+	    renderArray: renderArray,
+	    rerenderArray: rerenderArray,
+	    rerenderText: rerenderText,
+	    rerenderInstance: rerenderInstance,
+	    rerenderDynamic: rerenderDynamic
+	  }
+	};
 
 /***/ }
 /******/ ]);

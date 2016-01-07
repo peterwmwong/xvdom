@@ -1,6 +1,6 @@
 import assert        from 'assert';
 import getHTMLString from './utils/getHTMLString.js';
-import * as xvdom    from '../src/index.js';
+import xvdom         from '../src/index.js';
 
 const Counter = ({type, count})=>(
   (Counter.callCount = Counter.callCount ? Counter.callCount + 1 : 1),
@@ -16,7 +16,7 @@ const NoPropsComp = (props)=>(
 
 const Container = ({count})=><Counter type={count % 3} count={count} />;
 
-describe('Components', ()=>{
+describe('Component', ()=>{
 
   describe('Stateless', ()=>{
     let node;
@@ -27,7 +27,7 @@ describe('Components', ()=>{
 
     beforeEach(()=>{
       Counter.callCount = 0;
-      node = xvdom.renderInstance(render({count:777}));
+      node = xvdom.render(render({count:777}));
     });
 
     it('renders', ()=>{
@@ -90,7 +90,7 @@ describe('Components', ()=>{
 
   it('handles null props (no props)', ()=>{
     NoPropsComp.callArgs = [];
-    const node = xvdom.renderInstance(<NoPropsComp />);
+    const node = xvdom.render(<NoPropsComp />);
 
     assert.deepEqual(NoPropsComp.callArgs[0], {});
     assert.equal(getHTMLString(node),
@@ -109,7 +109,7 @@ describe('Components', ()=>{
 
     beforeEach(()=>{
       Counter.callCount = 0;
-      node = xvdom.renderInstance(render2(0));
+      node = xvdom.render(render2(0));
     });
 
     it('renders', ()=>{

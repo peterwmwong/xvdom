@@ -1,13 +1,13 @@
 import assert        from 'assert';
 import getHTMLString from './utils/getHTMLString.js';
-import * as xvdom    from '../src/index.js';
+import xvdom         from '../src/index.js';
 
 describe('renderArray - frag, array', ()=>{
   let markerNode, frag;
 
   beforeEach(()=>{
     frag = document.createDocumentFragment();
-    markerNode = xvdom.renderArray(
+    markerNode = xvdom._.renderArray(
       frag,
       [
         <a key='one'></a>,

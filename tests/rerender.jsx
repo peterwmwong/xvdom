@@ -3,9 +3,9 @@ import getHTMLString           from './utils/getHTMLString.js';
 import makeRecyclable          from './utils/makeRecyclable.js';
 import wrapSpecRenderFunctions from './utils/wrapSpecRenderFunctions';
 import spyOn                   from './utils/spyOn.js';
-import * as xvdom              from '../src/index.js';
+import xvdom                   from '../src/index.js';
 
-describe('rerender - node, renderInstance', ()=>{
+describe('rerender - node, instance', ()=>{
   let renderCallCount, rerenderCallCount, node;
 
   const render = ()=>
@@ -21,7 +21,7 @@ describe('rerender - node, renderInstance', ()=>{
     spyOn.uninstall();
     spyOn(document, 'createElement');
 
-    node = xvdom.renderInstance(render());
+    node = xvdom.render(render());
     rerenderCallCount = renderCallCount = 0;
   });
 

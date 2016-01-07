@@ -1,13 +1,13 @@
 import assert        from 'assert';
 import getHTMLString from './utils/getHTMLString.js';
-import * as xvdom    from '../src/index.js';
+import xvdom         from '../src/index.js';
 
-describe('render - renderInstance', ()=>{
+describe('render - instance', ()=>{
   let resultNode, instance;
 
   beforeEach(()=>{
     instance = <span></span>;
-    resultNode = xvdom.renderInstance(instance);
+    resultNode = xvdom.render(instance);
   });
 
   it('calls render() with values', ()=>{

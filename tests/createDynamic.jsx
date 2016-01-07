@@ -1,6 +1,6 @@
 import assert        from 'assert';
 import getHTMLString from './utils/getHTMLString.js';
-import * as xvdom    from '../src/index.js';
+import xvdom         from '../src/index.js';
 
 describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex', ()=>{
   let instance, parentNode, resultNode;
@@ -25,7 +25,7 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
       });
 
       it('sets rerender function and context', ()=>{
-        assert.equal(instance.r0, xvdom.rerenderDynamic);
+        assert.equal(instance.r0, xvdom._.rerenderDynamic);
         assert.equal(instance.c0, parentNode.firstChild);
       });
     });
@@ -46,7 +46,7 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
     });
 
     it('sets rerender function and context', ()=>{
-      assert.equal(instance.r0, xvdom.rerenderText);
+      assert.equal(instance.r0, xvdom._.rerenderText);
       assert.equal(instance.c0, parentNode.firstChild);
     });
   });
@@ -66,7 +66,7 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
     });
 
     it('sets rerender function and context', ()=>{
-      assert.equal(instance.r0, xvdom.rerenderText);
+      assert.equal(instance.r0, xvdom._.rerenderText);
       assert.equal(instance.c0, parentNode.firstChild);
     });
   });
@@ -86,7 +86,7 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
     });
 
     it('sets rerender function and context', ()=>{
-      assert.equal(instance.r0, xvdom.rerenderInstance);
+      assert.equal(instance.r0, xvdom._.rerenderInstance);
       assert.equal(instance.c0, parentNode.firstChild);
     });
   });
@@ -112,7 +112,7 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
     });
 
     it('sets rerender function and context', ()=>{
-      assert.equal(instance.r0, xvdom.rerenderArray);
+      assert.equal(instance.r0, xvdom._.rerenderArray);
       assert.equal(instance.c0, parentNode.lastChild);
     });
   });

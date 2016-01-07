@@ -1,7 +1,7 @@
 import assert         from 'assert';
 import spyOn          from './utils/spyOn.js';
 import getHTMLString  from './utils/getHTMLString.js';
-import * as xvdom     from '../src/index.js';
+import xvdom          from '../src/index.js';
 
 describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, xvdom.rerenderIndex, xvdom.rerenderContextIndex', ()=>{
 
@@ -28,7 +28,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
       <div key={key}>{children}</div>;
 
     it('Update array items', ()=>{
-      const parentNode = xvdom.renderInstance(
+      const parentNode = xvdom.render(
         render([
           renderChild(1, '1'),
           renderChild(2, '2'),
@@ -65,7 +65,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
       const renderChild2 = (key, id)=>
         <a key={key} id={id} />;
 
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render([
           renderChild(1, '_1'),
           renderChild(2, '_2'),
@@ -105,7 +105,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Reordering', ()=>{
-      const parentNode = xvdom.renderInstance(
+      const parentNode = xvdom.render(
         render([
           renderChild(1, '1'),
           renderChild(2, '2'),
@@ -158,7 +158,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Reordering 2', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render([
           renderChild(1, '1'),
           renderChild(2, '2'),
@@ -198,7 +198,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Reordering 3', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render([
           renderChild(0, '0'),
           renderChild(1, '1'),
@@ -244,7 +244,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Reordering 4', ()=>{
-      const parentNode = xvdom.renderInstance(
+      const parentNode = xvdom.render(
         render([
           renderChild(1, '1'),
           renderChild(0, '0'),
@@ -309,7 +309,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
           <b></b>
         </div>;
 
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         renderWithStatics([
           renderChild(1, '_1'),
           renderChild(2, '_2'),
@@ -332,7 +332,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Add to the start', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render([
           renderChild(0, '_0')
         ])
@@ -393,7 +393,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Add and change the start item', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render(
           [
             renderChild(0, '_0'),
@@ -426,7 +426,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Add and change the end item', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render(
           [
             renderChild(0, '_0'),
@@ -459,7 +459,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Add and change the middle item', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render([
           renderChild(0, '_0'),
           renderChild(1, '_1'),
@@ -492,7 +492,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Add in the middle', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render([
           renderChild(0, '_0'),
           renderChild(1, '_1'),
@@ -577,7 +577,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Add in the middle and end', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render([
           renderChild(0, '_0'),
           renderChild(1, '_1')
@@ -618,7 +618,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Add to the end', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render([
           renderChild(0, '_0')
         ])
@@ -680,7 +680,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Remove from the start', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render([
           renderChild(0, '_0'),
           renderChild(1, '_1'),
@@ -736,7 +736,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Remove from the middle', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render([
           renderChild(0, '_0'),
           renderChild(1, '_1'),
@@ -804,7 +804,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Remove from the middle and end', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render([
           renderChild(0, '_0'),
           renderChild(1, '_1'),
@@ -872,7 +872,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Remove from the end', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render([
           renderChild(0, '_0'),
           renderChild(1, '_1'),
@@ -928,7 +928,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Remove from the start and end', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render([
           renderChild(0, '_0'),
           renderChild(1, '_1'),
@@ -995,7 +995,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('All removed', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render([
           renderChild(0, '_0'),
           renderChild(1, '_1'),
@@ -1049,7 +1049,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Initially empty', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render(
           []
         )
@@ -1087,7 +1087,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Array of Arrays', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         render(
           [
             render(
@@ -1291,7 +1291,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
       }
 
       beforeEach(()=>{
-        target = xvdom.renderInstance(
+        target = xvdom.render(
           render(
             [
               renderChild(0, '_0'),
@@ -1371,7 +1371,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
       let target;
 
       beforeEach(()=>{
-        target = xvdom.renderInstance(
+        target = xvdom.render(
           renderWithStatics([
             renderChild(1, '_1'),
             renderChild(2, '_2'),
@@ -1582,7 +1582,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     });
 
     it('Array item changes templates', ()=>{
-      const parentNode = xvdom.renderInstance(
+      const parentNode = xvdom.render(
         render([
           renderChild(1, '1'),
           renderChild(2, '2'),

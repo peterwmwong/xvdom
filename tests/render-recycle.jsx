@@ -2,7 +2,7 @@ import assert         from 'assert';
 import getHTMLString  from './utils/getHTMLString.js';
 import makeRecyclable from './utils/makeRecyclable.js';
 import spyOn          from './utils/spyOn.js';
-import * as xvdom     from '../src/index.js';
+import xvdom          from '../src/index.js';
 
 describe('rerender recycled - node, renderInstance', ()=>{
   const render = className=>makeRecyclable(<div className={className} />);
@@ -16,8 +16,8 @@ describe('rerender recycled - node, renderInstance', ()=>{
     spyOn(document, 'createElement');
     spyOn(document, 'createTextNode');
 
-    node0 = xvdom.renderInstance(render('_0'));
-    node1 = xvdom.renderInstance(render('_1'));
+    node0 = xvdom.render(render('_0'));
+    node1 = xvdom.render(render('_1'));
     assert.equal(getHTMLString(node0),
       '<div class="_0"></div>'
     );
@@ -34,13 +34,13 @@ describe('rerender recycled - node, renderInstance', ()=>{
   });
 
   it('ressurects and rerenders unmounted render instances', ()=>{
-    const newNode0 = xvdom.renderInstance(render('_01'));
+    const newNode0 = xvdom.render(render('_01'));
     assert.equal(newNode0, node1);
     assert.equal(getHTMLString(newNode0),
       '<div class="_01"></div>'
     );
 
-    const newNode1 = xvdom.renderInstance(render('_11'));
+    const newNode1 = xvdom.render(render('_11'));
     assert.equal(newNode1, node0);
     assert.equal(getHTMLString(newNode1),
       '<div class="_11"></div>'
@@ -56,7 +56,7 @@ describe('rerender recycled - node, renderInstance', ()=>{
       </div>;
 
     it('Remove from the end', ()=>{
-      const target = xvdom.renderInstance(
+      const target = xvdom.render(
         renderArray([
           {key:0, className:'_0'},
           {key:1, className:'_1'},

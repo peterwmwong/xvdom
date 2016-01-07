@@ -1,7 +1,7 @@
-import assert         from 'assert';
-import {rerenderText} from '../src/index.js';
+import assert from 'assert';
+import xvdom  from '../src/index.js';
 
-describe('rerenderText - value, contextNode, instance, rerenderIndex, rerenderContextIndex', ()=>{
+describe('xvdom._.rerenderText - value, contextNode, instance, rerenderIndex, rerenderContextIndex', ()=>{
   const initialValue = 'initial text';
   let textNode, instance, returnValue;
 
@@ -12,7 +12,7 @@ describe('rerenderText - value, contextNode, instance, rerenderIndex, rerenderCo
 
   describe('When `newValue` is a string', ()=>{
     beforeEach(()=>{
-      returnValue = rerenderText('new text', initialValue, textNode, instance, 'r0', 'c0');
+      returnValue = xvdom._.rerenderText('new text', initialValue, textNode, instance, 'r0', 'c0');
     });
 
     it('updates text node value', ()=>{
@@ -26,7 +26,7 @@ describe('rerenderText - value, contextNode, instance, rerenderIndex, rerenderCo
 
   describe('When `newValue` is a number', ()=>{
     beforeEach(()=>{
-      returnValue = rerenderText(0, initialValue, textNode, instance, 'r0', 'c0');
+      returnValue = xvdom._.rerenderText(0, initialValue, textNode, instance, 'r0', 'c0');
     });
 
     it('updates text node value', ()=>{
@@ -41,7 +41,7 @@ describe('rerenderText - value, contextNode, instance, rerenderIndex, rerenderCo
   [null, undefined].forEach(value=>{
     describe(`When newValue is ${value}`, ()=>{
       it('updates text node value to ""', ()=>{
-        const result = rerenderText(value, initialValue, textNode, instance, 'r0', 'c0');
+        const result = xvdom._.rerenderText(value, initialValue, textNode, instance, 'r0', 'c0');
         assert.equal(textNode.nodeValue, '');
         assert.equal(result, value);
       });
