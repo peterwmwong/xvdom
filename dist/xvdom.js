@@ -89,6 +89,7 @@ module.exports =
 
 	var EMPTY_STRING = '';
 	var EMPTY_OBJECT = {};
+	var preInstance = { $p: null };
 
 	var replaceNode = function replaceNode(oldNode, newNode) {
 	  var parentNode = oldNode.parentNode;
@@ -97,6 +98,10 @@ module.exports =
 
 	var recycle = function recycle(stash, node) {
 	  if (stash) stash.push(node);
+	};
+
+	var insertBefore = function insertBefore(parentNode, node, beforeNode) {
+	  return beforeNode ? parentNode.insertBefore(node, beforeNode) : parentNode.appendChild(node);
 	};
 
 	var removeArrayNodes = function removeArrayNodes(list, parentNode) {
@@ -167,12 +172,171 @@ module.exports =
 	  return stateActions;
 	}
 
+	function rerenderArray_addAllBefore(parentNode, list, length, markerNode) {
+	  var i = 0;
+	  var value = undefined;
+
+	  while (i < length) {
+	    value = list[i++];
+	    insertBefore(parentNode, value.$n = renderInstance(value), markerNode);
+	  }
+	}
+
+	function rerenderArray_reconcileWithMap(parentNode, list, oldList, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex) {
+	  var oldListNodeKeyMap = {};
+	  var saveItem = oldStartItem;
+	  var insertBeforeNode = oldEndItem.$n;
+	  var startItem = undefined,
+	      item = undefined,
+	      prevItem = undefined,
+	      node = undefined;
+
+	  if (oldStartIndex <= oldEndIndex) {
+	    item = oldList[oldStartIndex++];
+	    oldListNodeKeyMap[item.key] = prevItem = item;
+	  }
+
+	  while (oldStartIndex <= oldEndIndex) {
+	    prevItem.next = item = oldList[oldStartIndex++];
+	    oldListNodeKeyMap[item.key] = prevItem = item;
+	  }
+
+	  while (startIndex <= endIndex) {
+	    startItem = list[startIndex++];
+	    item = oldListNodeKeyMap[startItem.key];
+
+	    if (item) {
+	      if (item === oldEndItem) insertBeforeNode = insertBeforeNode.nextSibling;
+	      node = rerender(item.$n, startItem);
+	      item.$n = null;
+	    } else {
+	      node = renderInstance(startItem);
+	    }
+	    startItem.$n = node;
+	    insertBefore(parentNode, node, insertBeforeNode);
+	  }
+
+	  while (saveItem) {
+	    if (node = saveItem.$n) {
+	      recycle(saveItem.$s.recycled, node);
+	      parentNode.removeChild(node);
+	    }
+	    saveItem = saveItem.next;
+	  }
+	}
+
+	function rerenderArray_afterReconcile(parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, markerNode) {
+	  var node = undefined,
+	      insertBeforeNode = undefined;
+
+	  if (oldStartIndex > oldEndIndex) {
+	    insertBeforeNode = endItem ? endItem.$n : markerNode;
+	    while (startIndex <= endIndex) {
+	      startItem = list[startIndex++];
+	      insertBefore(parentNode, startItem.$n = renderInstance(startItem), insertBeforeNode);
+	    }
+	  } else if (startIndex > endIndex) {
+	    while (oldStartIndex <= oldEndIndex) {
+	      oldStartItem = oldList[oldStartIndex++];
+	      recycle(oldStartItem.$s.recycled, node = oldStartItem.$n);
+	      parentNode.removeChild(node);
+	    }
+	  } else {
+	    rerenderArray_reconcileWithMap(parentNode, list, oldList, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex);
+	  }
+	}
+
+	function rerenderArray_reconcile(parentNode, list, endIndex, oldList, oldEndIndex, markerNode) {
+	  var oldStartIndex = 0;
+	  var startIndex = 0;
+	  var successful = true;
+	  var startItem = list[0];
+	  var oldStartItem = oldList[0];
+	  var nextItem = markerNode;
+	  var oldEndItem = undefined,
+	      endItem = undefined,
+	      node = undefined;
+
+	  outer: while (successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex) {
+	    successful = false;
+
+	    while (oldStartItem.key === startItem.key) {
+	      startItem.$n = rerender(oldStartItem.$n, startItem);
+
+	      oldStartIndex++;startIndex++;
+	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
+	        break outer;
+	      }
+	      oldStartItem = oldList[oldStartIndex];
+	      startItem = list[startIndex];
+	      successful = true;
+	    }
+
+	    oldEndItem = oldList[oldEndIndex];
+	    endItem = list[endIndex];
+
+	    while (oldEndItem.key === endItem.key) {
+	      endItem.$n = nextItem = rerender(oldEndItem.$n, endItem);
+
+	      oldEndIndex--;endIndex--;
+	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
+	        break outer;
+	      }
+	      oldEndItem = oldList[oldEndIndex];
+	      endItem = list[endIndex];
+	      successful = true;
+	    }
+
+	    while (oldStartItem.key === endItem.key) {
+	      endItem.$n = node = rerender(oldStartItem.$n, endItem);
+
+	      if (oldEndItem.key !== endItem.key) {
+	        nextItem = insertBefore(parentNode, node, nextItem);
+	      }
+	      oldStartIndex++;endIndex--;
+	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
+	        break outer;
+	      }
+	      oldStartItem = oldList[oldStartIndex];
+	      endItem = list[endIndex];
+	      successful = true;
+	    }
+
+	    while (oldEndItem.key === startItem.key) {
+	      insertBefore(parentNode, startItem.$n = rerender(oldEndItem.$n, startItem), oldStartItem.$n);
+
+	      oldEndIndex--;startIndex++;
+	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
+	        break outer;
+	      }
+	      oldEndItem = oldList[oldEndIndex];
+	      startItem = list[startIndex];
+	      successful = true;
+	    }
+	  }
+
+	  rerenderArray_afterReconcile(parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, markerNode);
+	}
+
+	function rerenderArrayForReal(parentNode, list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
+	  var length = list.length;
+	  var oldLength = oldList.length;
+	  if (!length) {
+	    removeArrayNodes(oldList, parentNode);
+	  } else if (!oldLength) {
+	    rerenderArray_addAllBefore(parentNode, list, length, markerNode);
+	  } else {
+	    rerenderArray_reconcile(parentNode, list, length - 1, oldList, oldLength - 1, markerNode);
+	  }
+	}
+
 	function renderArray(frag, array) {
 	  var length = array.length;
+	  var i = 0;
 	  var item = undefined;
 
-	  for (var i = 0; i < length; ++i) {
-	    item = array[i];
+	  while (i < length) {
+	    item = array[i++];
 	    frag.appendChild(item.$n = renderInstance(item));
 	  }
 	  return frag.appendChild(document.createTextNode(EMPTY_STRING));
@@ -236,166 +400,11 @@ module.exports =
 
 	function rerenderArray(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
 	  var parentNode = markerNode.parentNode;
-
-	  if (!list || list.constructor !== Array) {
-	    removeArrayNodes(oldList, parentNode);
-	    rerenderDynamic(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
-	    return list;
-	  }
-
-	  var length = list.length;
-	  var oldLength = oldList.length;
-	  var i = undefined,
-	      node = undefined,
-	      value = undefined,
-	      insertBeforeNode = undefined;
-
-	  if (length === 0) {
-	    removeArrayNodes(oldList, parentNode);
-	    return list;
-	  }
-
-	  if (oldLength === 0) {
-	    i = 0;
-	    while (i < length) {
-	      value = list[i++];
-	      node = renderInstance(value);
-	      parentNode.insertBefore(node, markerNode);
-	    }
-	    return list;
-	  }
-
-	  var oldEndIndex = oldLength - 1;
-	  var endIndex = length - 1;
-	  var oldStartIndex = 0;
-	  var startIndex = 0;
-	  var successful = true;
-	  var oldStartItem = undefined,
-	      oldEndItem = undefined,
-	      startItem = undefined,
-	      endItem = undefined,
-	      nextItem = undefined;
-
-	  outer: while (successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex) {
-	    successful = false;
-
-	    oldStartItem = oldList[oldStartIndex];
-	    startItem = list[startIndex];
-	    while (oldStartItem.key === startItem.key) {
-	      node = oldStartItem.$n;
-	      startItem.$n = rerender(node, startItem);
-
-	      oldStartIndex++;startIndex++;
-	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
-	        break outer;
-	      }
-	      oldStartItem = oldList[oldStartIndex];
-	      startItem = list[startIndex];
-	      successful = true;
-	    }
-
-	    oldEndItem = oldList[oldEndIndex];
-	    endItem = list[endIndex];
-	    while (oldEndItem.key === endItem.key) {
-	      node = oldEndItem.$n;
-	      endItem.$n = rerender(node, endItem);
-
-	      oldEndIndex--;endIndex--;
-	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
-	        break outer;
-	      }
-	      oldEndItem = oldList[oldEndIndex];
-	      endItem = list[endIndex];
-	      successful = true;
-	    }
-
-	    while (oldStartItem.key === endItem.key) {
-	      nextItem = endIndex + 1 < length ? list[endIndex + 1].$n : markerNode;
-	      node = oldStartItem.$n;
-	      endItem.$n = node = rerender(node, endItem);
-	      if (oldEndItem.key !== endItem.key) {
-	        parentNode.insertBefore(node, nextItem);
-	      }
-	      oldStartIndex++;endIndex--;
-	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
-	        break outer;
-	      }
-	      oldStartItem = oldList[oldStartIndex];
-	      endItem = list[endIndex];
-	      successful = true;
-	    }
-
-	    while (oldEndItem.key === startItem.key) {
-	      node = oldEndItem.$n;
-	      startItem.$n = node = rerender(node, startItem);
-	      nextItem = oldStartItem.$n;
-	      if (oldStartItem.key !== startItem.key) {
-	        if (nextItem) {
-	          parentNode.insertBefore(node, nextItem);
-	        } else {
-	          parentNode.appendChild(node);
-	        }
-	      }
-	      oldEndIndex--;startIndex++;
-	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
-	        break outer;
-	      }
-	      oldEndItem = oldList[oldEndIndex];
-	      startItem = list[startIndex];
-	      successful = true;
-	    }
-	  }
-	  if (oldStartIndex > oldEndIndex) {
-	    insertBeforeNode = endItem ? endItem.$n : markerNode;
-	    while (startIndex <= endIndex) {
-	      startItem = list[startIndex++];
-	      node = renderInstance(startItem);
-	      parentNode.insertBefore(node, insertBeforeNode);
-	    }
-	  } else if (startIndex > endIndex) {
-	    while (oldStartIndex <= oldEndIndex) {
-	      oldStartItem = oldList[oldStartIndex++];
-	      recycle(oldStartItem.$s.recycled, node = oldStartItem.$n);
-	      parentNode.removeChild(node);
-	    }
+	  if (list instanceof Array) {
+	    rerenderArrayForReal(parentNode, list, oldList, markerNode);
 	  } else {
-	    var oldListNodeKeyMap = {};
-	    var saveItem = oldStartItem;
-	    var item = undefined,
-	        prevItem = undefined;
-	    i = oldStartIndex;
-
-	    if (i <= oldEndIndex) {
-	      item = oldList[i++];
-	      oldListNodeKeyMap[item.key] = prevItem = item;
-	    }
-
-	    while (i <= oldEndIndex) {
-	      prevItem.next = item = oldList[i++];
-	      oldListNodeKeyMap[item.key] = prevItem = item;
-	    }
-
-	    while (startIndex <= endIndex) {
-	      startItem = list[startIndex++];
-	      item = oldListNodeKeyMap[startItem.key];
-	      if (item) {
-	        node = rerender(item.$n, startItem);
-	        item.$n = null;
-	      } else {
-	        node = renderInstance(startItem);
-	      }
-	      startItem.$n = node;
-	      parentNode.insertBefore(node, oldEndItem.$n);
-	    }
-
-	    while (saveItem) {
-	      node = saveItem.$n;
-	      if (node) {
-	        recycle(saveItem.$s.recycled, node);
-	        parentNode.removeChild(node);
-	      }
-	      saveItem = saveItem.next;
-	    }
+	    removeArrayNodes(oldList, parentNode);
+	    rerenderDynamic(list, undefined, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
 	  }
 	  return list;
 	}
@@ -421,8 +430,6 @@ module.exports =
 	  instance[rerenderContextNode] = node;
 	  return node;
 	}
-
-	var preInstance = { $p: null };
 
 	function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
 	  preInstance.$p = props;
