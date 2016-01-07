@@ -2,7 +2,7 @@
   "name": "xvdom",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/xvdom.js",
+  "main": "dist/xvdom.min.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "test": "webpack-dev-server --config webpack-server.config.js",
