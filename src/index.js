@@ -242,8 +242,9 @@ const rerenderArray_reconcile = (parentNode, list, endIndex, oldList, oldEndInde
     }
   }
 
-  rerenderArray_afterReconcile(parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, markerNode);
+  if(startIndex <= endIndex || oldStartIndex <= oldEndIndex){
     rerenderArray_afterReconcile(parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode);
+  }
 };
 
 const rerenderArrayForReal = (parentNode, list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode)=>{

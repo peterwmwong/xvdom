@@ -171,21 +171,16 @@ module.exports =
 
 	var rerenderArray_reconcileWithMap = function rerenderArray_reconcileWithMap(parentNode, list, oldList, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex) {
 	  var oldListNodeKeyMap = {};
-	  var saveItem = oldStartItem;
 	  var insertBeforeNode = oldEndItem.$n;
-	  var startItem = undefined,
+	  var saveItem = undefined,
+	      startItem = undefined,
 	      item = undefined,
-	      prevItem = undefined,
 	      node = undefined;
 
-	  if (oldStartIndex <= oldEndIndex) {
-	    item = oldList[oldStartIndex++];
-	    oldListNodeKeyMap[item.key] = prevItem = item;
-	  }
-
 	  while (oldStartIndex <= oldEndIndex) {
-	    prevItem.next = item = oldList[oldStartIndex++];
-	    oldListNodeKeyMap[item.key] = prevItem = item;
+	    saveItem = oldList[oldStartIndex++];
+	    saveItem.prev = item;
+	    oldListNodeKeyMap[saveItem.key] = item = saveItem;
 	  }
 
 	  while (startIndex <= endIndex) {
@@ -208,16 +203,13 @@ module.exports =
 	      recycle(saveItem.$s.recycled, node);
 	      parentNode.removeChild(node);
 	    }
-	    saveItem = saveItem.next;
+	    saveItem = saveItem.prev;
 	  }
 	};
 
-	var rerenderArray_afterReconcile = function rerenderArray_afterReconcile(parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, markerNode) {
-	  var node = undefined,
-	      insertBeforeNode = undefined;
-
+	var rerenderArray_afterReconcile = function rerenderArray_afterReconcile(parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode) {
+	  var node = undefined;
 	  if (oldStartIndex > oldEndIndex) {
-	    insertBeforeNode = endItem ? endItem.$n : markerNode;
 	    while (startIndex <= endIndex) {
 	      startItem = list[startIndex++];
 	      insertBefore(parentNode, startItem.$n = renderInstance(startItem), insertBeforeNode);
@@ -239,7 +231,7 @@ module.exports =
 	  var successful = true;
 	  var startItem = list[0];
 	  var oldStartItem = oldList[0];
-	  var nextItem = markerNode;
+	  var insertBeforeNode = markerNode;
 	  var oldEndItem = undefined,
 	      endItem = undefined,
 	      node = undefined;
@@ -263,7 +255,7 @@ module.exports =
 	    endItem = list[endIndex];
 
 	    while (oldEndItem.key === endItem.key) {
-	      endItem.$n = nextItem = rerender(oldEndItem.$n, endItem);
+	      endItem.$n = insertBeforeNode = rerender(oldEndItem.$n, endItem);
 
 	      oldEndIndex--;endIndex--;
 	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
@@ -278,7 +270,7 @@ module.exports =
 	      endItem.$n = node = rerender(oldStartItem.$n, endItem);
 
 	      if (oldEndItem.key !== endItem.key) {
-	        nextItem = insertBefore(parentNode, node, nextItem);
+	        insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
 	      }
 	      oldStartIndex++;endIndex--;
 	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
@@ -302,7 +294,9 @@ module.exports =
 	    }
 	  }
 
-	  rerenderArray_afterReconcile(parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, markerNode);
+	  if (startIndex <= endIndex || oldStartIndex <= oldEndIndex) {
+	    rerenderArray_afterReconcile(parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode);
+	  }
 	};
 
 	var rerenderArrayForReal = function rerenderArrayForReal(parentNode, list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
