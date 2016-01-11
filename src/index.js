@@ -97,7 +97,6 @@ const createStateActions = (rawActions, parentInst, componentInstanceProp, preIn
   return stateActions;
 };
 
-
 const rerenderArray_addAllBefore = (parentNode, list, length, markerNode)=>{
   let i = 0;
   let value;
@@ -114,18 +113,13 @@ const rerenderArray_addAllBefore = (parentNode, list, length, markerNode)=>{
 
 const rerenderArray_reconcileWithMap = (parentNode, list, oldList, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex)=>{
   const oldListNodeKeyMap = {};
-  let saveItem = oldStartItem;
   let insertBeforeNode = oldEndItem.$n;
-  let startItem, item, prevItem, node;
-
-  if(oldStartIndex <= oldEndIndex){
-    item = oldList[oldStartIndex++];
-    oldListNodeKeyMap[item.key] = prevItem = item;
-  }
+  let saveItem, startItem, item, node;
 
   while(oldStartIndex <= oldEndIndex){
-    prevItem.next = item = oldList[oldStartIndex++];
-    oldListNodeKeyMap[item.key] = prevItem = item;
+    saveItem = oldList[oldStartIndex++];
+    saveItem.prev = item;
+    oldListNodeKeyMap[saveItem.key] = item = saveItem;
   }
 
   while(startIndex <= endIndex){
@@ -149,15 +143,13 @@ const rerenderArray_reconcileWithMap = (parentNode, list, oldList, startIndex, e
       recycle(saveItem.$s.recycled, node);
       parentNode.removeChild(node);
     }
-    saveItem = saveItem.next;
+    saveItem = saveItem.prev;
   }
 };
 
-const rerenderArray_afterReconcile = (parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, markerNode)=>{
-  let node, insertBeforeNode;
-
+const rerenderArray_afterReconcile = (parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode)=>{
+  let node;
   if(oldStartIndex > oldEndIndex){
-    insertBeforeNode = endItem ? endItem.$n : markerNode;
     while(startIndex <= endIndex){
       startItem = list[startIndex++];
       insertBefore(
@@ -185,7 +177,7 @@ const rerenderArray_reconcile = (parentNode, list, endIndex, oldList, oldEndInde
   let successful    = true;
   let startItem     = list[0];
   let oldStartItem  = oldList[0];
-  let nextItem      = markerNode;
+  let insertBeforeNode = markerNode;
   let oldEndItem, endItem, node;
 
   outer: while(successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex){
@@ -207,7 +199,7 @@ const rerenderArray_reconcile = (parentNode, list, endIndex, oldList, oldEndInde
     endItem = list[endIndex];
 
     while (oldEndItem.key === endItem.key){
-      endItem.$n = nextItem = rerender(oldEndItem.$n, endItem);
+      endItem.$n = insertBeforeNode = rerender(oldEndItem.$n, endItem);
 
       oldEndIndex--; endIndex--;
       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
@@ -222,7 +214,7 @@ const rerenderArray_reconcile = (parentNode, list, endIndex, oldList, oldEndInde
       endItem.$n = node = rerender(oldStartItem.$n, endItem);
 
       if(oldEndItem.key !== endItem.key){
-        nextItem = insertBefore(parentNode, node, nextItem);
+        insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
       }
       oldStartIndex++; endIndex--;
       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
@@ -251,6 +243,7 @@ const rerenderArray_reconcile = (parentNode, list, endIndex, oldList, oldEndInde
   }
 
   rerenderArray_afterReconcile(parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, markerNode);
+    rerenderArray_afterReconcile(parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode);
 };
 
 const rerenderArrayForReal = (parentNode, list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode)=>{
