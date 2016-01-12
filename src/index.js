@@ -48,7 +48,7 @@ const internalRerenderInstance = (inst, prevInst)=>
 const internalRerenderStatefulComponent = (stateActions, inst, prevInst, parentInst, componentInstanceProp)=>{
   if(internalRerenderInstance(inst, prevInst)) return;
 
-  const newNode = renderInstance(inst);
+  const newNode = render(inst);
   const node    = parentInst.$n;
 
   inst.$c = prevInst.$c;
@@ -105,7 +105,7 @@ const rerenderArray_addAllBefore = (parentNode, list, length, markerNode)=>{
     value = list[i++];
     insertBefore(
       parentNode,
-      (value.$n = renderInstance(value)),
+      (value.$n = render(value)),
       markerNode
     );
   }
@@ -132,7 +132,7 @@ const rerenderArray_reconcileWithMap = (parentNode, list, oldList, startIndex, e
       item.$n = null;
     }
     else{
-      node = renderInstance(startItem);
+      node = render(startItem);
     }
     startItem.$n = node;
     insertBefore(parentNode, node, insertBeforeNode);
@@ -154,7 +154,7 @@ const rerenderArray_afterReconcile = (parentNode, list, oldList, startIndex, sta
       startItem = list[startIndex++];
       insertBefore(
         parentNode,
-        (startItem.$n = renderInstance(startItem)),
+        (startItem.$n = render(startItem)),
         insertBeforeNode
       );
     }
@@ -268,7 +268,7 @@ const renderArray = (frag, array)=>{
 
   while(i<length){
     item = array[i++];
-    frag.appendChild(item.$n = renderInstance(item));
+    frag.appendChild(item.$n = render(item));
   }
   return frag.appendChild(document.createTextNode(EMPTY_STRING));
 };
@@ -320,25 +320,11 @@ const rerenderComponent = (component, props, prevProps, componentInstance, node,
   const newCompInstance = component(props || EMPTY_OBJECT);
   if(internalRerenderInstance(newCompInstance, componentInstance)) return;
 
-  const newNode = renderInstance(newCompInstance);
+  const newNode = render(newCompInstance);
   instance[componentInstanceProp] = newCompInstance;
   instance[rerenderContextNode]   = newNode;
   newNode.xvdom = instance;
   replaceNode(node, newNode);
-};
-
-const renderInstance = (instance)=>{
-  const spec = instance.$s;
-  let node = spec.recycled && spec.recycled.pop();
-  if(node){
-    spec.u(instance, node.xvdom);
-    instance.$n = node;
-    return node;
-  }
-
-  instance.$n = node = spec.c(instance);
-  node.xvdom = instance;
-  return node;
 };
 
 const rerenderArray = (list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode)=>{
@@ -353,28 +339,6 @@ const rerenderArray = (list, oldList, markerNode, valuesAndContext, rerenderFunc
   return list;
 };
 
-const rerender = (node, instance)=>{
-  const prevInstance = node.xvdom;
-  if(internalRerenderInstance(instance, prevInstance)) return node;
-
-  const newNode = renderInstance(instance);
-  replaceNode(node, newNode);
-  recycle(prevInstance.$s.recycled, node);
-  return newNode;
-};
-
-const createComponent = (component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
-  if(component.state) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
-
-  const inst = component(props || EMPTY_OBJECT);
-  const node = renderInstance(inst);
-
-  instance[rerenderFuncProp]      = rerenderComponent;
-  instance[componentInstanceProp] = inst;
-  instance[rerenderContextNode]   = node;
-  return node;
-};
-
 const createStatefulComponent = (component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
   preInstance.$p        = props;
   const rawActions      = component.state;
@@ -382,7 +346,7 @@ const createStatefulComponent = (component, props, instance, rerenderFuncProp, r
   const state           = rawActions.onInit(props || EMPTY_OBJECT, undefined, actions);
   actions.$$doRerender  = true;
   const inst            = component(props, state, actions);
-  const node            = renderInstance(inst);
+  const node            = render(inst);
 
   actions.$$instance = inst;
 
@@ -397,7 +361,7 @@ const createStatefulComponent = (component, props, instance, rerenderFuncProp, r
   return node;
 };
 
-const createDynamic = (value, instance, rerenderFuncProp, rerenderContextNode)=>{
+export const createDynamic = (value, instance, rerenderFuncProp, rerenderContextNode)=>{
   let node, context, rerenderFunc;
   let valueConstructor;
   if(value == null || ((valueConstructor = value.constructor) === Boolean)){
@@ -407,7 +371,7 @@ const createDynamic = (value, instance, rerenderFuncProp, rerenderContextNode)=>
 
   if(valueConstructor === Object){
     rerenderFunc = rerenderInstance;
-    context = node = renderInstance(value);
+    context = node = render(value);
   }
   else if(valueConstructor === String || valueConstructor === Number){
     rerenderFunc = rerenderText;
@@ -424,7 +388,43 @@ const createDynamic = (value, instance, rerenderFuncProp, rerenderContextNode)=>
   return node;
 };
 
-const unmount = (node)=>{
+export const createComponent = (component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
+  if(component.state) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
+
+  const inst = component(props || EMPTY_OBJECT);
+  const node = render(inst);
+
+  instance[rerenderFuncProp]      = rerenderComponent;
+  instance[componentInstanceProp] = inst;
+  instance[rerenderContextNode]   = node;
+  return node;
+};
+
+export const render = instance=>{
+  const spec = instance.$s;
+  let node = spec.recycled && spec.recycled.pop();
+  if(node){
+    spec.u(instance, node.xvdom);
+    instance.$n = node;
+    return node;
+  }
+
+  instance.$n = node = spec.c(instance);
+  node.xvdom = instance;
+  return node;
+};
+
+export const rerender = (node, instance)=>{
+  const prevInstance = node.xvdom;
+  if(internalRerenderInstance(instance, prevInstance)) return node;
+
+  const newNode = render(instance);
+  replaceNode(node, newNode);
+  recycle(prevInstance.$s.recycled, node);
+  return newNode;
+};
+
+export const unmount = node=>{
   if(node.xvdom) recycle(node.xvdom.$s.recycled, node);
   if(node.parentNode) node.parentNode.removeChild(node);
 };
@@ -432,14 +432,16 @@ const unmount = (node)=>{
 export default {
   createDynamic,
   createComponent,
-  render: renderInstance,
+  render,
   rerender,
-  unmount,
-  _:{
-    renderArray,
-    rerenderArray,
-    rerenderText,
-    rerenderInstance,
-    rerenderDynamic
-  }
+  unmount
+};
+
+// Internal API
+export const _ = {
+  renderArray,
+  rerenderArray,
+  rerenderText,
+  rerenderInstance,
+  rerenderDynamic
 };

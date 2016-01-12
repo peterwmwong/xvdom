@@ -1,5 +1,14 @@
-module.exports =
-/******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else if(typeof exports === 'object')
+		exports["xvdom"] = factory();
+	else
+		root["xvdom"] = factory();
+})(this, function() {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 
@@ -107,7 +116,7 @@ module.exports =
 	var internalRerenderStatefulComponent = function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentInst, componentInstanceProp) {
 	  if (internalRerenderInstance(inst, prevInst)) return;
 
-	  var newNode = renderInstance(inst);
+	  var newNode = render(inst);
 	  var node = parentInst.$n;
 
 	  inst.$c = prevInst.$c;
@@ -165,7 +174,7 @@ module.exports =
 
 	  while (i < length) {
 	    value = list[i++];
-	    insertBefore(parentNode, value.$n = renderInstance(value), markerNode);
+	    insertBefore(parentNode, value.$n = render(value), markerNode);
 	  }
 	};
 
@@ -192,7 +201,7 @@ module.exports =
 	      node = rerender(item.$n, startItem);
 	      item.$n = null;
 	    } else {
-	      node = renderInstance(startItem);
+	      node = render(startItem);
 	    }
 	    startItem.$n = node;
 	    insertBefore(parentNode, node, insertBeforeNode);
@@ -212,7 +221,7 @@ module.exports =
 	  if (oldStartIndex > oldEndIndex) {
 	    while (startIndex <= endIndex) {
 	      startItem = list[startIndex++];
-	      insertBefore(parentNode, startItem.$n = renderInstance(startItem), insertBeforeNode);
+	      insertBefore(parentNode, startItem.$n = render(startItem), insertBeforeNode);
 	    }
 	  } else if (startIndex > endIndex) {
 	    while (oldStartIndex <= oldEndIndex) {
@@ -318,7 +327,7 @@ module.exports =
 
 	  while (i < length) {
 	    item = array[i++];
-	    frag.appendChild(item.$n = renderInstance(item));
+	    frag.appendChild(item.$n = render(item));
 	  }
 	  return frag.appendChild(document.createTextNode(EMPTY_STRING));
 	};
@@ -358,25 +367,11 @@ module.exports =
 	  var newCompInstance = component(props || EMPTY_OBJECT);
 	  if (internalRerenderInstance(newCompInstance, componentInstance)) return;
 
-	  var newNode = renderInstance(newCompInstance);
+	  var newNode = render(newCompInstance);
 	  instance[componentInstanceProp] = newCompInstance;
 	  instance[rerenderContextNode] = newNode;
 	  newNode.xvdom = instance;
 	  replaceNode(node, newNode);
-	};
-
-	var renderInstance = function renderInstance(instance) {
-	  var spec = instance.$s;
-	  var node = spec.recycled && spec.recycled.pop();
-	  if (node) {
-	    spec.u(instance, node.xvdom);
-	    instance.$n = node;
-	    return node;
-	  }
-
-	  instance.$n = node = spec.c(instance);
-	  node.xvdom = instance;
-	  return node;
 	};
 
 	var rerenderArray = function rerenderArray(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
@@ -390,28 +385,6 @@ module.exports =
 	  return list;
 	};
 
-	var rerender = function rerender(node, instance) {
-	  var prevInstance = node.xvdom;
-	  if (internalRerenderInstance(instance, prevInstance)) return node;
-
-	  var newNode = renderInstance(instance);
-	  replaceNode(node, newNode);
-	  recycle(prevInstance.$s.recycled, node);
-	  return newNode;
-	};
-
-	var createComponent = function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
-	  if (component.state) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
-
-	  var inst = component(props || EMPTY_OBJECT);
-	  var node = renderInstance(inst);
-
-	  instance[rerenderFuncProp] = rerenderComponent;
-	  instance[componentInstanceProp] = inst;
-	  instance[rerenderContextNode] = node;
-	  return node;
-	};
-
 	var createStatefulComponent = function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
 	  preInstance.$p = props;
 	  var rawActions = component.state;
@@ -419,7 +392,7 @@ module.exports =
 	  var state = rawActions.onInit(props || EMPTY_OBJECT, undefined, actions);
 	  actions.$$doRerender = true;
 	  var inst = component(props, state, actions);
-	  var node = renderInstance(inst);
+	  var node = render(inst);
 
 	  actions.$$instance = inst;
 
@@ -434,7 +407,7 @@ module.exports =
 	  return node;
 	};
 
-	var createDynamic = function createDynamic(value, instance, rerenderFuncProp, rerenderContextNode) {
+	var createDynamic = exports.createDynamic = function createDynamic(value, instance, rerenderFuncProp, rerenderContextNode) {
 	  var node = undefined,
 	      context = undefined,
 	      rerenderFunc = undefined;
@@ -446,7 +419,7 @@ module.exports =
 
 	  if (valueConstructor === Object) {
 	    rerenderFunc = rerenderInstance;
-	    context = node = renderInstance(value);
+	    context = node = render(value);
 	  } else if (valueConstructor === String || valueConstructor === Number) {
 	    rerenderFunc = rerenderText;
 	    context = node = document.createTextNode(value);
@@ -461,7 +434,43 @@ module.exports =
 	  return node;
 	};
 
-	var unmount = function unmount(node) {
+	var createComponent = exports.createComponent = function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
+	  if (component.state) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
+
+	  var inst = component(props || EMPTY_OBJECT);
+	  var node = render(inst);
+
+	  instance[rerenderFuncProp] = rerenderComponent;
+	  instance[componentInstanceProp] = inst;
+	  instance[rerenderContextNode] = node;
+	  return node;
+	};
+
+	var render = exports.render = function render(instance) {
+	  var spec = instance.$s;
+	  var node = spec.recycled && spec.recycled.pop();
+	  if (node) {
+	    spec.u(instance, node.xvdom);
+	    instance.$n = node;
+	    return node;
+	  }
+
+	  instance.$n = node = spec.c(instance);
+	  node.xvdom = instance;
+	  return node;
+	};
+
+	var rerender = exports.rerender = function rerender(node, instance) {
+	  var prevInstance = node.xvdom;
+	  if (internalRerenderInstance(instance, prevInstance)) return node;
+
+	  var newNode = render(instance);
+	  replaceNode(node, newNode);
+	  recycle(prevInstance.$s.recycled, node);
+	  return newNode;
+	};
+
+	var unmount = exports.unmount = function unmount(node) {
 	  if (node.xvdom) recycle(node.xvdom.$s.recycled, node);
 	  if (node.parentNode) node.parentNode.removeChild(node);
 	};
@@ -469,17 +478,22 @@ module.exports =
 	exports.default = {
 	  createDynamic: createDynamic,
 	  createComponent: createComponent,
-	  render: renderInstance,
+	  render: render,
 	  rerender: rerender,
-	  unmount: unmount,
-	  _: {
-	    renderArray: renderArray,
-	    rerenderArray: rerenderArray,
-	    rerenderText: rerenderText,
-	    rerenderInstance: rerenderInstance,
-	    rerenderDynamic: rerenderDynamic
-	  }
+	  unmount: unmount
+	};
+
+	// Internal API
+
+	var _ = exports._ = {
+	  renderArray: renderArray,
+	  rerenderArray: rerenderArray,
+	  rerenderText: rerenderText,
+	  rerenderInstance: rerenderInstance,
+	  rerenderDynamic: rerenderDynamic
 	};
 
 /***/ }
-/******/ ]);
+/******/ ])
+});
+;

@@ -1,5 +1,5 @@
 import assert from 'assert';
-import xvdom  from '../src/index.js';
+import xvdom, {_}  from '../src/index.js';
 
 describe('rerenderDynamic - value, contextNode, instance, rerenderIndex, rerenderContextIndex', ()=>{
   const initialValue = 'initial text';
@@ -19,7 +19,7 @@ describe('rerenderDynamic - value, contextNode, instance, rerenderIndex, rerende
 
     it('does nothing and does not throw error', ()=>{
       try{
-        xvdom._.rerenderDynamic('new text', initialValue, textNode, instance, 'r0', 'c0');
+        _.rerenderDynamic('new text', initialValue, textNode, instance, 'r0', 'c0');
         assert.equal(parentNode.children.length, 0);
       }
       catch(e){
@@ -30,7 +30,7 @@ describe('rerenderDynamic - value, contextNode, instance, rerenderIndex, rerende
 
   describe('When `newValue` is a string', ()=>{
     beforeEach(()=>{
-      returnValue = xvdom._.rerenderDynamic('new text', initialValue, textNode, instance, 'r0', 'c0');
+      returnValue = _.rerenderDynamic('new text', initialValue, textNode, instance, 'r0', 'c0');
     });
 
     it('updates text node value', ()=>{
@@ -44,7 +44,7 @@ describe('rerenderDynamic - value, contextNode, instance, rerenderIndex, rerende
 
   describe('When `newValue` is a number', ()=>{
     beforeEach(()=>{
-      returnValue = xvdom._.rerenderDynamic(0, initialValue, textNode, instance, 'r0', 'c0');
+      returnValue = _.rerenderDynamic(0, initialValue, textNode, instance, 'r0', 'c0');
     });
 
     it('updates text node value', ()=>{
@@ -59,7 +59,7 @@ describe('rerenderDynamic - value, contextNode, instance, rerenderIndex, rerende
   [null, undefined].forEach(value=>{
     describe(`When newValue is ${value}`, ()=>{
       it('updates text node value to ""', ()=>{
-        const result = xvdom._.rerenderDynamic(value, initialValue, textNode, instance, 'r0', 'c0');
+        const result = _.rerenderDynamic(value, initialValue, textNode, instance, 'r0', 'c0');
         assert.equal(parentNode.firstChild.nodeValue, '');
         assert.equal(result, value);
       });

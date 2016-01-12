@@ -8,7 +8,7 @@ module.exports = {
     path    : 'dist',
     filename: 'xvdom.js',
     library: 'xvdom',
-    libraryTarget: 'commonjs2'
+    libraryTarget: 'umd'
   },
   module: {
     loaders: [
