@@ -92,20 +92,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if (parentNode) parentNode.replaceChild(newNode, oldNode);
 	};
 
-	var recycle = function recycle(stash, node) {
-	  if (stash) stash.push(node);
+	var recycle = function recycle(instance) {
+	  var pool = instance.$s.recycled;
+	  if (pool) pool.push(instance);
 	};
+
+	// const recycleKeyed = instance=>{
+	//   const pool = instance.$s.recycledKeyed;
+	//   if(pool) pool[instance.key] = instance.$n;
+	// };
 
 	var insertBefore = function insertBefore(parentNode, node, beforeNode) {
 	  return beforeNode ? parentNode.insertBefore(node, beforeNode) : parentNode.appendChild(node);
 	};
 
 	var removeArrayNodes = function removeArrayNodes(list, parentNode) {
-	  var item = undefined,
-	      node = undefined;
+	  var item = undefined;
 	  while (item = list.pop()) {
-	    recycle(item.$s.recycled, node = item.$n);
-	    parentNode.removeChild(node);
+	    recycle(item);
+	    parentNode.removeChild(item.$n);
 	  }
 	};
 
@@ -131,7 +136,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  newNode.xvdom = parentInst;
 	  replaceNode(node, newNode);
-	  recycle(inst.$s.recycled, node);
+	  recycle(inst);
 	};
 
 	var callAction = function callAction(stateActions, action, parentInst, componentInstanceProp, args) {
@@ -160,8 +165,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	};
 
-	var createStateActions = function createStateActions(rawActions, parentInst, componentInstanceProp, preInstance) {
-	  var stateActions = { $$doRerender: false, $$instance: preInstance };
+	var createStateActions = function createStateActions(rawActions, parentInst, componentInstanceProp, $$instance) {
+	  var stateActions = { $$doRerender: false, $$instance: $$instance };
 	  for (var sa in rawActions) {
 	    stateActions[sa] = createAction(stateActions, rawActions[sa], parentInst, componentInstanceProp);
 	  }
@@ -181,65 +186,67 @@ return /******/ (function(modules) { // webpackBootstrap
 	var rerenderArray_reconcileWithMap = function rerenderArray_reconcileWithMap(parentNode, list, oldList, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex) {
 	  var oldListNodeKeyMap = {};
 	  var insertBeforeNode = oldEndItem.$n;
-	  var saveItem = undefined,
-	      startItem = undefined,
-	      item = undefined,
-	      node = undefined;
+	  var item = undefined,
+	      key = undefined,
+	      node = undefined,
+	      startItem = undefined;
 
 	  while (oldStartIndex <= oldEndIndex) {
-	    saveItem = oldList[oldStartIndex++];
-	    saveItem.prev = item;
-	    oldListNodeKeyMap[saveItem.key] = item = saveItem;
+	    item = oldList[oldStartIndex++];
+	    oldListNodeKeyMap[item.key] = item;
 	  }
 
 	  while (startIndex <= endIndex) {
-	    startItem = list[startIndex++];
-	    item = oldListNodeKeyMap[startItem.key];
+	    startItem = list[startIndex];
+	    key = startItem.key;
+	    item = oldListNodeKeyMap[key];
 
 	    if (item) {
 	      if (item === oldEndItem) insertBeforeNode = insertBeforeNode.nextSibling;
-	      node = rerender(item.$n, startItem);
-	      item.$n = null;
+	      oldListNodeKeyMap[key] = null;
+	      node = (list[startIndex] = internalRerender(item, startItem)).$n;
 	    } else {
 	      node = render(startItem);
 	    }
-	    startItem.$n = node;
 	    insertBefore(parentNode, node, insertBeforeNode);
+	    ++startIndex;
 	  }
 
-	  while (saveItem) {
-	    if (node = saveItem.$n) {
-	      recycle(saveItem.$s.recycled, node);
-	      parentNode.removeChild(node);
+	  for (key in oldListNodeKeyMap) {
+	    item = oldListNodeKeyMap[key];
+	    if (item) {
+	      recycle(item);
+	      parentNode.removeChild(item.$n);
 	    }
-	    saveItem = saveItem.prev;
 	  }
 	};
 
 	var rerenderArray_afterReconcile = function rerenderArray_afterReconcile(parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode) {
-	  var node = undefined;
 	  if (oldStartIndex > oldEndIndex) {
 	    while (startIndex <= endIndex) {
-	      startItem = list[startIndex++];
-	      insertBefore(parentNode, startItem.$n = render(startItem), insertBeforeNode);
+	      startItem = list[startIndex];
+	      insertBefore(parentNode, (list[startIndex] = internalRender(startItem)).$n, insertBeforeNode);
+	      ++startIndex;
 	    }
 	  } else if (startIndex > endIndex) {
 	    while (oldStartIndex <= oldEndIndex) {
 	      oldStartItem = oldList[oldStartIndex++];
-	      recycle(oldStartItem.$s.recycled, node = oldStartItem.$n);
-	      parentNode.removeChild(node);
+	      recycle(oldStartItem);
+	      parentNode.removeChild(oldStartItem.$n);
 	    }
 	  } else {
 	    rerenderArray_reconcileWithMap(parentNode, list, oldList, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex);
 	  }
 	};
 
-	var rerenderArray_reconcile = function rerenderArray_reconcile(parentNode, list, endIndex, oldList, oldEndIndex, markerNode) {
+	var rerenderArray_reconcile = function rerenderArray_reconcile(parentNode, list, length, oldList, oldLength, markerNode) {
 	  var oldStartIndex = 0;
 	  var startIndex = 0;
 	  var successful = true;
-	  var startItem = list[0];
-	  var oldStartItem = oldList[0];
+	  var endIndex = length - 1;
+	  var oldEndIndex = oldLength - 1;
+	  var startItem = 0 !== length && list[0];
+	  var oldStartItem = 0 !== oldLength && oldList[0];
 	  var insertBeforeNode = markerNode;
 	  var oldEndItem = undefined,
 	      endItem = undefined,
@@ -249,34 +256,36 @@ return /******/ (function(modules) { // webpackBootstrap
 	    successful = false;
 
 	    while (oldStartItem.key === startItem.key) {
-	      startItem.$n = rerender(oldStartItem.$n, startItem);
+	      list[startIndex] = internalRerender(oldStartItem, startItem);
 
 	      oldStartIndex++;startIndex++;
 	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
 	        break outer;
+	      } else {
+	        oldStartItem = oldList[oldStartIndex];
+	        startItem = list[startIndex];
+	        successful = true;
 	      }
-	      oldStartItem = oldList[oldStartIndex];
-	      startItem = list[startIndex];
-	      successful = true;
 	    }
 
 	    oldEndItem = oldList[oldEndIndex];
 	    endItem = list[endIndex];
 
 	    while (oldEndItem.key === endItem.key) {
-	      endItem.$n = insertBeforeNode = rerender(oldEndItem.$n, endItem);
+	      insertBeforeNode = (list[endIndex] = internalRerender(oldEndItem, endItem)).$n;
 
 	      oldEndIndex--;endIndex--;
 	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
 	        break outer;
+	      } else {
+	        oldEndItem = oldList[oldEndIndex];
+	        endItem = list[endIndex];
+	        successful = true;
 	      }
-	      oldEndItem = oldList[oldEndIndex];
-	      endItem = list[endIndex];
-	      successful = true;
 	    }
 
 	    while (oldStartItem.key === endItem.key) {
-	      endItem.$n = node = rerender(oldStartItem.$n, endItem);
+	      node = (list[endIndex] = internalRerender(oldStartItem, endItem)).$n;
 
 	      if (oldEndItem.key !== endItem.key) {
 	        insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
@@ -284,22 +293,25 @@ return /******/ (function(modules) { // webpackBootstrap
 	      oldStartIndex++;endIndex--;
 	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
 	        break outer;
+	      } else {
+	        oldStartItem = oldList[oldStartIndex];
+	        endItem = list[endIndex];
+	        successful = true;
 	      }
-	      oldStartItem = oldList[oldStartIndex];
-	      endItem = list[endIndex];
-	      successful = true;
 	    }
 
 	    while (oldEndItem.key === startItem.key) {
-	      insertBefore(parentNode, startItem.$n = rerender(oldEndItem.$n, startItem), oldStartItem.$n);
+	      insertBefore(parentNode, internalRerender(oldEndItem, startItem).$n, oldStartItem.$n);
+	      list[startIndex] = oldEndItem;
 
 	      oldEndIndex--;startIndex++;
 	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
 	        break outer;
+	      } else {
+	        oldEndItem = oldList[oldEndIndex];
+	        startItem = list[startIndex];
+	        successful = true;
 	      }
-	      oldEndItem = oldList[oldEndIndex];
-	      startItem = list[startIndex];
-	      successful = true;
 	    }
 	  }
 
@@ -308,7 +320,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	};
 
-	var rerenderArrayForReal = function rerenderArrayForReal(parentNode, list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
+	var rerenderArray = function rerenderArray(parentNode, list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
 	  var length = list.length;
 	  var oldLength = oldList.length;
 	  if (!length) {
@@ -316,7 +328,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  } else if (!oldLength) {
 	    rerenderArray_addAllBefore(parentNode, list, length, markerNode);
 	  } else {
-	    rerenderArray_reconcile(parentNode, list, length - 1, oldList, oldLength - 1, markerNode);
+	    rerenderArray_reconcile(parentNode, list, length, oldList, oldLength, markerNode);
 	  }
 	};
 
@@ -374,10 +386,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  replaceNode(node, newNode);
 	};
 
-	var rerenderArray = function rerenderArray(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
+	var rerenderArrayMaybe = function rerenderArrayMaybe(list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
 	  var parentNode = markerNode.parentNode;
 	  if (list instanceof Array) {
-	    rerenderArrayForReal(parentNode, list, oldList, markerNode);
+	    rerenderArray(parentNode, list, oldList, markerNode);
 	  } else {
 	    removeArrayNodes(oldList, parentNode);
 	    rerenderDynamic(list, undefined, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
@@ -424,7 +436,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    rerenderFunc = rerenderText;
 	    context = node = document.createTextNode(value);
 	  } else if (valueConstructor === Array) {
-	    rerenderFunc = rerenderArray;
+	    rerenderFunc = rerenderArrayMaybe;
 	    node = document.createDocumentFragment();
 	    context = renderArray(node, value);
 	  }
@@ -446,32 +458,36 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return node;
 	};
 
-	var render = exports.render = function render(instance) {
+	var internalRender = function internalRender(instance) {
 	  var spec = instance.$s;
-	  var node = spec.recycled && spec.recycled.pop();
-	  if (node) {
-	    spec.u(instance, node.xvdom);
-	    instance.$n = node;
-	    return node;
+	  var recycledInstance = spec.recycled && spec.recycled.pop();
+	  if (recycledInstance) {
+	    spec.u(instance, recycledInstance);
+	    return recycledInstance;
+	  } else {
+	    (instance.$n = spec.c(instance)).xvdom = instance;
+	    return instance;
 	  }
+	};
 
-	  instance.$n = node = spec.c(instance);
-	  node.xvdom = instance;
-	  return node;
+	var render = exports.render = function render(instance) {
+	  return internalRender(instance).$n;
+	};
+
+	var internalRerender = function internalRerender(prevInstance, instance) {
+	  if (internalRerenderInstance(instance, prevInstance)) return prevInstance;
+
+	  replaceNode(prevInstance.$n, render(instance));
+	  recycle(prevInstance);
+	  return instance;
 	};
 
 	var rerender = exports.rerender = function rerender(node, instance) {
-	  var prevInstance = node.xvdom;
-	  if (internalRerenderInstance(instance, prevInstance)) return node;
-
-	  var newNode = render(instance);
-	  replaceNode(node, newNode);
-	  recycle(prevInstance.$s.recycled, node);
-	  return newNode;
+	  return internalRerender(node.xvdom, instance).$n;
 	};
 
 	var unmount = exports.unmount = function unmount(node) {
-	  if (node.xvdom) recycle(node.xvdom.$s.recycled, node);
+	  if (node.xvdom) recycle(node.xvdom);
 	  if (node.parentNode) node.parentNode.removeChild(node);
 	};
 
@@ -487,10 +503,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _ = exports._ = {
 	  renderArray: renderArray,
-	  rerenderArray: rerenderArray,
 	  rerenderText: rerenderText,
 	  rerenderInstance: rerenderInstance,
-	  rerenderDynamic: rerenderDynamic
+	  rerenderDynamic: rerenderDynamic,
+	  rerenderArray: rerenderArrayMaybe
 	};
 
 /***/ }
