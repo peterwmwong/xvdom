@@ -18,6 +18,9 @@ u - update (or update)
 const EMPTY_STRING = '';
 const EMPTY_OBJECT = {};
 const preInstance = {$p:null};
+const MARKER_NODE = document.createComment(EMPTY_STRING);
+
+const getMarkerNode = ()=>MARKER_NODE.cloneNode(false);
 
 const replaceNode = (oldNode, newNode)=>{
   const parentNode = oldNode.parentNode;
@@ -26,23 +29,32 @@ const replaceNode = (oldNode, newNode)=>{
 
 const recycle = instance=>{
   const pool = instance.$s.recycled;
-  if(pool) pool.push(instance);
+  if(pool) pool[instance.key] = instance;
 };
-
-// const recycleKeyed = instance=>{
-//   const pool = instance.$s.recycledKeyed;
-//   if(pool) pool[instance.key] = instance.$n;
-// };
 
 const insertBefore = (parentNode, node, beforeNode)=>
   beforeNode ? parentNode.insertBefore(node, beforeNode) : parentNode.appendChild(node);
 
-const removeArrayNodes = (list, parentNode)=>{
+const renderArray = (array, parentNode)=>{
+  let length = array.length;
+  let i = 0;
   let item;
-  while(item = list.pop()){
+
+  while(i<length){
+    item = array[i++];
     recycle(item);
     parentNode.removeChild(item.$n);
   }
+};
+
+const removeArrayNodesOnlyChild = (array, parentNode)=>{
+  let length = array.length;
+  let i = 0;
+
+  while(i<length){
+    recycle(array[i++]);
+  }
+  parentNode.textContent = '';
 };
 
 const internalRerenderInstance = (inst, prevInst)=>
@@ -103,39 +115,49 @@ const createStateActions = (rawActions, parentInst, componentInstanceProp, $$ins
   return stateActions;
 };
 
-const rerenderArray_addAllBefore = (parentNode, list, length, markerNode)=>{
+const renderArrayToParentBefore = (parentNode, array, length, markerNode)=>{
   let i = 0;
-  let value;
 
   while(i < length){
-    value = list[i++];
     insertBefore(
       parentNode,
-      (value.$n = render(value)),
+      (array[i] = internalRender(array[i])).$n,
       markerNode
     );
+    ++i;
   }
 };
 
-const rerenderArray_reconcileWithMap = (parentNode, list, oldList, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex)=>{
+const renderArrayToParent = (parentNode, array, length)=>{
+  let i = 0;
+
+  while(i < length){
+    parentNode.appendChild(
+      (array[i] = internalRender(array[i])).$n
+    );
+    ++i;
+  }
+};
+
+const rerenderArray_reconcileWithMap = (parentNode, array, oldArray, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex)=>{
   const oldListNodeKeyMap = {};
   let insertBeforeNode = oldEndItem.$n;
   let item, key, node, startItem;
 
   while(oldStartIndex <= oldEndIndex){
-    item = oldList[oldStartIndex++];
+    item = oldArray[oldStartIndex++];
     oldListNodeKeyMap[item.key] = item;
   }
 
   while(startIndex <= endIndex){
-    startItem = list[startIndex];
+    startItem = array[startIndex];
     key = startItem.key;
     item = oldListNodeKeyMap[key];
 
     if(item){
       if(item === oldEndItem) insertBeforeNode = insertBeforeNode.nextSibling;
       oldListNodeKeyMap[key] = null;
-      node = (list[startIndex] = internalRerender(item, startItem)).$n;
+      node = (array[startIndex] = internalRerender(item, startItem)).$n;
     }
     else{
       node = render(startItem);
@@ -153,13 +175,13 @@ const rerenderArray_reconcileWithMap = (parentNode, list, oldList, startIndex, e
   }
 };
 
-const rerenderArray_afterReconcile = (parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode)=>{
+const rerenderArray_afterReconcile = (parentNode, array, oldArray, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode)=>{
   if(oldStartIndex > oldEndIndex){
     while(startIndex <= endIndex){
-      startItem = list[startIndex];
+      startItem = array[startIndex];
       insertBefore(
         parentNode,
-        (list[startIndex] = internalRender(startItem)).$n,
+        (array[startIndex] = internalRender(startItem)).$n,
         insertBeforeNode
       );
       ++startIndex;
@@ -167,24 +189,24 @@ const rerenderArray_afterReconcile = (parentNode, list, oldList, startIndex, sta
   }
   else if(startIndex > endIndex){
     while(oldStartIndex <= oldEndIndex){
-      oldStartItem = oldList[oldStartIndex++];
+      oldStartItem = oldArray[oldStartIndex++];
       recycle(oldStartItem);
       parentNode.removeChild(oldStartItem.$n);
     }
   }
   else{
-    rerenderArray_reconcileWithMap(parentNode, list, oldList, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex);
+    rerenderArray_reconcileWithMap(parentNode, array, oldArray, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex);
   }
 };
 
-const rerenderArray_reconcile = (parentNode, list, length, oldList, oldLength, markerNode)=>{
+const rerenderArray_reconcile = (parentNode, array, length, oldArray, oldLength, markerNode)=>{
   let oldStartIndex = 0;
   let startIndex    = 0;
   let successful    = true;
   let endIndex      = length - 1;
   let oldEndIndex   = oldLength - 1;
-  let startItem     = 0 !== length && list[0];
-  let oldStartItem  = 0 !== oldLength && oldList[0];
+  let startItem     = 0 !== length && array[0];
+  let oldStartItem  = 0 !== oldLength && oldArray[0];
   let insertBeforeNode = markerNode;
   let oldEndItem, endItem, node;
 
@@ -192,38 +214,38 @@ const rerenderArray_reconcile = (parentNode, list, length, oldList, oldLength, m
     successful = false;
 
     while (oldStartItem.key === startItem.key){
-      list[startIndex] = internalRerender(oldStartItem, startItem);
+      array[startIndex] = internalRerender(oldStartItem, startItem);
 
       oldStartIndex++; startIndex++;
       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
         break outer;
       }
       else{
-        oldStartItem = oldList[oldStartIndex];
-        startItem = list[startIndex];
+        oldStartItem = oldArray[oldStartIndex];
+        startItem = array[startIndex];
         successful = true;
       }
     }
 
-    oldEndItem = oldList[oldEndIndex];
-    endItem = list[endIndex];
+    oldEndItem = oldArray[oldEndIndex];
+    endItem = array[endIndex];
 
     while (oldEndItem.key === endItem.key){
-      insertBeforeNode = (list[endIndex] = internalRerender(oldEndItem, endItem)).$n;
+      insertBeforeNode = (array[endIndex] = internalRerender(oldEndItem, endItem)).$n;
 
       oldEndIndex--; endIndex--;
       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
         break outer;
       }
       else{
-        oldEndItem = oldList[oldEndIndex];
-        endItem = list[endIndex];
+        oldEndItem = oldArray[oldEndIndex];
+        endItem = array[endIndex];
         successful = true;
       }
     }
 
     while (oldStartItem.key === endItem.key){
-      node = (list[endIndex] = internalRerender(oldStartItem, endItem)).$n;
+      node = (array[endIndex] = internalRerender(oldStartItem, endItem)).$n;
 
       if(oldEndItem.key !== endItem.key){
         insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
@@ -233,8 +255,8 @@ const rerenderArray_reconcile = (parentNode, list, length, oldList, oldLength, m
         break outer;
       }
       else{
-        oldStartItem = oldList[oldStartIndex];
-        endItem = list[endIndex];
+        oldStartItem = oldArray[oldStartIndex];
+        endItem = array[endIndex];
         successful = true;
       }
     }
@@ -242,52 +264,53 @@ const rerenderArray_reconcile = (parentNode, list, length, oldList, oldLength, m
     while (oldEndItem.key === startItem.key){
       insertBefore(
         parentNode,
-        internalRerender(oldEndItem, startItem).$n,
+        (array[startIndex] = internalRerender(oldEndItem, startItem)).$n,
         oldStartItem.$n
       );
-      list[startIndex] = oldEndItem;
 
       oldEndIndex--; startIndex++;
       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
         break outer;
       }
       else{
-        oldEndItem = oldList[oldEndIndex];
-        startItem = list[startIndex];
+        oldEndItem = oldArray[oldEndIndex];
+        startItem = array[startIndex];
         successful = true;
       }
     }
   }
 
   if(startIndex <= endIndex || oldStartIndex <= oldEndIndex){
-    rerenderArray_afterReconcile(parentNode, list, oldList, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode);
+    rerenderArray_afterReconcile(parentNode, array, oldArray, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode);
   }
 };
 
-const rerenderArray = (parentNode, list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode)=>{
-  const length = list.length;
-  const oldLength = oldList.length;
+const rerenderArray = (parentNode, array, oldArray, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode)=>{
+  const length = array.length;
+  const oldLength = oldArray.length;
   if(!length){
-    removeArrayNodes(oldList, parentNode);
+    renderArray(oldArray, parentNode);
   }
   else if(!oldLength){
-    rerenderArray_addAllBefore(parentNode, list, length, markerNode);
+    renderArrayToParentBefore(parentNode, array, length, markerNode);
   }
   else{
-    rerenderArray_reconcile(parentNode, list, length, oldList, oldLength, markerNode);
+    rerenderArray_reconcile(parentNode, array, length, oldArray, oldLength, markerNode);
   }
 };
 
-const renderArray = (frag, array)=>{
+const rerenderArrayOnlyChild = (parentNode, array, oldArray, valuesAndContext, rerenderFuncProp, rerenderContextNode)=>{
   const length = array.length;
-  let i=0;
-  let item;
-
-  while(i<length){
-    item = array[i++];
-    frag.appendChild(item.$n = render(item));
+  const oldLength = oldArray.length;
+  if(!length){
+    removeArrayNodesOnlyChild(oldArray, parentNode);
   }
-  return frag.appendChild(document.createTextNode(EMPTY_STRING));
+  else if(!oldLength){
+    renderArrayToParent(parentNode, array, length);
+  }
+  else{
+    rerenderArray_reconcile(parentNode, array, length, oldArray, oldLength, null);
+  }
 };
 
 const rerenderText = (value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode)=>{
@@ -298,7 +321,20 @@ const rerenderText = (value, oldValue, contextNode, instance, rerenderFuncProp, 
     contextNode.nodeValue = value;
   }
   else{
-    rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode);
+    rerenderDynamic(value, null, contextNode, instance, rerenderFuncProp, rerenderContextNode);
+  }
+  return value;
+};
+
+const rerenderTextOnlyChild = (value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode)=>{
+  if(value == null){
+    contextNode.nodeValue = EMPTY_STRING;
+  }
+  else if(value.constructor === String || value.constructor === Number){
+    contextNode.nodeValue = value;
+  }
+  else{
+    rerenderDynamicOnlyChild(value, null, contextNode, instance, rerenderFuncProp, rerenderContextNode);
   }
   return value;
 };
@@ -311,10 +347,24 @@ const rerenderDynamic = (value, oldValue, contextNode, instance, rerenderFuncPro
   return value;
 };
 
+const rerenderDynamicOnlyChild = (value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode)=>{
+  replaceNode(
+    contextNode,
+    createDynamicOnlyChild(contextNode.parentNode, value, instance, rerenderFuncProp, rerenderContextNode)
+  );
+  return value;
+};
+
 const rerenderInstance = (value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode)=>{
   if(value && internalRerenderInstance(value, prevValue)) return prevValue;
 
-  return rerenderDynamic(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode);
+  return rerenderDynamic(value, null, node, instance, rerenderFuncProp, rerenderContextNode);
+};
+
+const rerenderInstanceOnlyChild = (value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode)=>{
+  if(value && internalRerenderInstance(value, prevValue)) return prevValue;
+
+  return rerenderDynamicOnlyChild(value, null, node, instance, rerenderFuncProp, rerenderContextNode);
 };
 
 const rerenderStatefulComponent = (component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp)=>{
@@ -344,16 +394,29 @@ const rerenderComponent = (component, props, prevProps, componentInstance, node,
   replaceNode(node, newNode);
 };
 
-const rerenderArrayMaybe = (list, oldList, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode)=>{
+const rerenderArrayMaybe = (array, oldArray, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode)=>{
   const parentNode = markerNode.parentNode;
-  if(list instanceof Array){
-    rerenderArray(parentNode, list, oldList, markerNode);
+  if(array instanceof Array){
+    rerenderArray(parentNode, array, oldArray, markerNode);
   }
   else{
-    removeArrayNodes(oldList, parentNode);
-    rerenderDynamic(list, undefined, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
+    renderArray(oldArray, parentNode);
+    rerenderDynamic(array, null, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
   }
-  return list;
+  return array;
+};
+
+const rerenderArrayMaybeOnlyChild = (array, oldArray, parentNode, valuesAndContext, rerenderFuncProp, rerenderContextNode)=>{
+  if(array instanceof Array){
+    rerenderArrayOnlyChild(parentNode, array, oldArray, parentNode);
+  }
+  else{
+    removeArrayNodesOnlyChild(oldArray, parentNode);
+    parentNode.appendChild(
+      createDynamicOnlyChild(parentNode, array, valuesAndContext, rerenderFuncProp, rerenderContextNode)
+    );
+  }
+  return array;
 };
 
 const createStatefulComponent = (component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
@@ -382,11 +445,10 @@ export const createDynamic = (value, instance, rerenderFuncProp, rerenderContext
   let node, context, rerenderFunc;
   let valueConstructor;
   if(value == null || ((valueConstructor = value.constructor) === Boolean)){
-    instance[rerenderFuncProp] = rerenderDynamic;
-    return instance[rerenderContextNode] = document.createTextNode(EMPTY_STRING);
+    rerenderFunc = rerenderDynamic;
+    context = node = getMarkerNode();
   }
-
-  if(valueConstructor === Object){
+  else if(valueConstructor === Object){
     rerenderFunc = rerenderInstance;
     context = node = render(value);
   }
@@ -395,9 +457,40 @@ export const createDynamic = (value, instance, rerenderFuncProp, rerenderContext
     context = node = document.createTextNode(value);
   }
   else if(valueConstructor === Array){
-    rerenderFunc = rerenderArrayMaybe;
     node = document.createDocumentFragment();
-    context = renderArray(node, value);
+    renderArrayToParent(node, value, value.length);
+
+    rerenderFunc = rerenderArrayMaybe;
+    context = node.appendChild(getMarkerNode());
+  }
+
+  instance[rerenderFuncProp]    = rerenderFunc;
+  instance[rerenderContextNode] = context;
+  return node;
+};
+
+
+export const createDynamicOnlyChild = (onlyChildParentNode, value, instance, rerenderFuncProp, rerenderContextNode)=>{
+  let node, context, rerenderFunc;
+  let valueConstructor;
+  if(value == null || ((valueConstructor = value.constructor) === Boolean)){
+    rerenderFunc = rerenderDynamicOnlyChild;
+    context = node = getMarkerNode();
+  }
+  else if(valueConstructor === Object){
+    rerenderFunc = rerenderInstanceOnlyChild;
+    context = node = render(value);
+  }
+  else if(valueConstructor === String || valueConstructor === Number){
+    rerenderFunc = rerenderTextOnlyChild;
+    context = node = document.createTextNode(value);
+  }
+  else if(valueConstructor === Array){
+    node = document.createDocumentFragment();
+    renderArrayToParent(node, value, value.length);
+
+    rerenderFunc = rerenderArrayMaybeOnlyChild;
+    context = onlyChildParentNode;
   }
 
   instance[rerenderFuncProp]    = rerenderFunc;
@@ -418,9 +511,11 @@ export const createComponent = (component, props, instance, rerenderFuncProp, re
 };
 
 const internalRender = instance=>{
-  const spec = instance.$s;
-  let recycledInstance = spec.recycled && spec.recycled.pop();
+  const spec             = instance.$s;
+  const recycled         = spec.recycled;
+  const recycledInstance = recycled && recycled[instance.key];
   if(recycledInstance){
+    recycled[instance.key] = null;
     spec.u(instance, recycledInstance);
     return recycledInstance;
   }
@@ -435,7 +530,8 @@ export const render = instance=>internalRender(instance).$n;
 const internalRerender = (prevInstance, instance)=>{
   if(internalRerenderInstance(instance, prevInstance)) return prevInstance;
 
-  replaceNode(prevInstance.$n, render(instance));
+  instance = internalRender(instance);
+  replaceNode(prevInstance.$n, instance.$n);
   recycle(prevInstance);
   return instance;
 };
@@ -449,6 +545,7 @@ export const unmount = node=>{
 
 export default {
   createDynamic,
+  createDynamicOnlyChild,
   createComponent,
   render,
   rerender,
@@ -457,9 +554,9 @@ export default {
 
 // Internal API
 export const _ = {
-  renderArray,
   rerenderText,
   rerenderInstance,
   rerenderDynamic,
-  rerenderArray: rerenderArrayMaybe
+  rerenderArray: rerenderArrayMaybe,
+  rerenderArrayOnlyChild: rerenderArrayMaybeOnlyChild
 };

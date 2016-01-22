@@ -5,7 +5,7 @@ import spyOn          from './utils/spyOn.js';
 import xvdom          from '../src/index.js';
 
 describe('rerender recycled - node, renderInstance', ()=>{
-  const render = className=>makeRecyclable(<div className={className} />);
+  const render = (key, className)=>makeRecyclable(<div key={key} className={className} />);
   let node0, node1;
 
   beforeEach(()=>{
@@ -14,10 +14,9 @@ describe('rerender recycled - node, renderInstance', ()=>{
     spyOn(Node.prototype, 'appendChild');
     spyOn(Node.prototype, 'removeChild');
     spyOn(document, 'createElement');
-    spyOn(document, 'createTextNode');
 
-    node0 = xvdom.render(render('_0'));
-    node1 = xvdom.render(render('_1'));
+    node0 = xvdom.render(render(0, '_0'));
+    node1 = xvdom.render(render(1, '_1'));
     assert.equal(getHTMLString(node0),
       '<div class="_0"></div>'
     );
@@ -29,22 +28,24 @@ describe('rerender recycled - node, renderInstance', ()=>{
     spyOn.resetSpyCounts();
   });
 
-  afterEach(()=>{
-    spyOn.uninstall();
-  });
+  afterEach(()=>spyOn.uninstall());
 
   it('ressurects and rerenders unmounted render instances', ()=>{
-    const newNode0 = xvdom.render(render('_01'));
-    assert.equal(newNode0, node1);
+    const newNode0 = xvdom.render(render(1, '_01'));
+    assert.strictEqual(newNode0, node1);
     assert.equal(getHTMLString(newNode0),
       '<div class="_01"></div>'
     );
 
-    const newNode1 = xvdom.render(render('_11'));
-    assert.equal(newNode1, node0);
+    const newNode1 = xvdom.render(render(0, '_11'));
+    assert.strictEqual(newNode1, node0);
     assert.equal(getHTMLString(newNode1),
       '<div class="_11"></div>'
     );
+
+    const newNode2 = xvdom.render(render(1, '_21'));
+    assert.notStrictEqual(newNode2, node0);
+    assert.notStrictEqual(newNode2, node1);
   });
 
   describe('Arrays', ()=>{
@@ -72,7 +73,6 @@ describe('rerender recycled - node, renderInstance', ()=>{
         '</div>'
       );
       assert.equal(document.createElement.count, 4);
-      assert.equal(document.createTextNode.count, 1);
       spyOn.resetSpyCounts();
 
       xvdom.rerender(target,
@@ -87,7 +87,6 @@ describe('rerender recycled - node, renderInstance', ()=>{
         '</div>'
       );
       assert.equal(document.createElement.count , 0);
-      assert.equal(document.createTextNode.count, 0);
       spyOn.resetSpyCounts();
 
       xvdom.rerender(target,
@@ -106,7 +105,6 @@ describe('rerender recycled - node, renderInstance', ()=>{
         '</div>'
       );
       assert.equal(document.createElement.count, 0);
-      assert.equal(document.createTextNode.count, 0);
       spyOn.resetSpyCounts();
 
       xvdom.rerender(target,
@@ -121,7 +119,6 @@ describe('rerender recycled - node, renderInstance', ()=>{
         '</div>'
       );
       assert.equal(document.createElement.count , 0);
-      assert.equal(document.createTextNode.count, 0);
       spyOn.resetSpyCounts();
 
       xvdom.rerender(target,
@@ -140,7 +137,6 @@ describe('rerender recycled - node, renderInstance', ()=>{
         '</div>'
       );
       assert.equal(document.createElement.count, 0);
-      assert.equal(document.createTextNode.count, 0);
       spyOn.resetSpyCounts();
     });
   });

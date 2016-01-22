@@ -29,8 +29,8 @@
     "html-parse-stringify": "^1.0.2",
     "mocha-loader": "^0.7.1",
     "mocha": "^2.3.4",
+    "uglify-js": "^2.6.1",
     "webpack-dev-server": "^1.12.1",
-    "webpack": "^1.12.11",
-    "uglify-js": "^2.6.1"
+    "webpack": "^1.12.11"
   }
 }

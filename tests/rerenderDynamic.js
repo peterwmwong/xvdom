@@ -1,5 +1,5 @@
 import assert from 'assert';
-import xvdom, {_}  from '../src/index.js';
+import {_}  from '../src/index.js';
 
 describe('rerenderDynamic - value, contextNode, instance, rerenderIndex, rerenderContextIndex', ()=>{
   const initialValue = 'initial text';

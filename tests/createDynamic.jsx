@@ -2,7 +2,7 @@ import assert        from 'assert';
 import getHTMLString from './utils/getHTMLString.js';
 import xvdom, {_}    from '../src/index.js';
 
-describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex', ()=>{
+describe('createDynamic - isOnlyChild, value, instance, rerenderIndex, rerenderContextIndex', ()=>{
   let instance, parentNode, resultNode;
 
   beforeEach(()=>{
@@ -18,9 +18,11 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
       });
 
       it('renders text node with string', ()=>{
-        assert.ok(resultNode instanceof Text);
+        assert.ok(resultNode instanceof Comment);
         assert.equal(getHTMLString(parentNode),
-          '<div></div>'
+          '<div>'+
+            '<!---->'+
+          '</div>'
         );
       });
 
@@ -92,12 +94,16 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
   });
 
   describe('Array', ()=>{
+    const renderChild = (key, className)=>
+      <span key={key} className={className}></span>;
+
     beforeEach(()=>{
-      const array = [
-        <span key={1}>one</span>,
-        <span key={2}>two</span>
-      ];
-      instance = {v0:array};
+      instance = {
+        v0:[
+          renderChild(1, 'one'),
+          renderChild(2, 'two')
+        ]
+      };
       resultNode = xvdom.createDynamic(instance.v0, instance, 'r0', 'c0');
       parentNode.appendChild(resultNode);
     });
@@ -105,8 +111,9 @@ describe('createDynamic - value, instance, rerenderIndex, rerenderContextIndex',
     it('renders array of items', ()=>{
       assert.equal(getHTMLString(parentNode),
         '<div>'+
-          '<span>one</span>'+
-          '<span>two</span>'+
+          '<span class="one"></span>'+
+          '<span class="two"></span>'+
+          '<!---->'+
         '</div>'
       );
     });
