@@ -13,7 +13,7 @@ describe('createDynamic - isOnlyChild, value, instance, rerenderIndex, rerenderC
     describe(`${value} - empty text node`, ()=>{
       beforeEach(()=>{
         instance = <div>{value}</div>;
-        resultNode = xvdom.createDynamic(instance.v0, instance, 'r0', 'c0');
+        resultNode = xvdom.createDynamic(true, parentNode, instance.v0, instance, 'r0', 'c0');
         parentNode.appendChild(resultNode);
       });
 
@@ -37,7 +37,7 @@ describe('createDynamic - isOnlyChild, value, instance, rerenderIndex, rerenderC
     beforeEach(()=>{
       const string = 'test string';
       instance = {v0:string};
-      resultNode = xvdom.createDynamic(instance.v0, instance, 'r0', 'c0');
+      resultNode = xvdom.createDynamic(true, parentNode, instance.v0, instance, 'r0', 'c0');
       parentNode.appendChild(resultNode);
     });
 
@@ -57,7 +57,7 @@ describe('createDynamic - isOnlyChild, value, instance, rerenderIndex, rerenderC
     beforeEach(()=>{
       const num = 0;
       instance = {v0:num};
-      resultNode = xvdom.createDynamic(instance.v0, instance, 'r0', 'c0');
+      resultNode = xvdom.createDynamic(true, parentNode, instance.v0, instance, 'r0', 'c0');
       parentNode.appendChild(resultNode);
     });
 
@@ -77,7 +77,7 @@ describe('createDynamic - isOnlyChild, value, instance, rerenderIndex, rerenderC
     beforeEach(()=>{
       const childInstance = <span></span>;
       instance = {v0:childInstance};
-      resultNode = xvdom.createDynamic(instance.v0, instance, 'r0', 'c0');
+      resultNode = xvdom.createDynamic(true, parentNode, instance.v0, instance, 'r0', 'c0');
       parentNode.appendChild(resultNode);
     });
 
@@ -104,7 +104,7 @@ describe('createDynamic - isOnlyChild, value, instance, rerenderIndex, rerenderC
           renderChild(2, 'two')
         ]
       };
-      resultNode = xvdom.createDynamic(instance.v0, instance, 'r0', 'c0');
+      resultNode = xvdom.createDynamic(true, parentNode, instance.v0, instance, 'r0', 'c0');
       parentNode.appendChild(resultNode);
     });
 
@@ -113,14 +113,13 @@ describe('createDynamic - isOnlyChild, value, instance, rerenderIndex, rerenderC
         '<div>'+
           '<span class="one"></span>'+
           '<span class="two"></span>'+
-          '<!---->'+
         '</div>'
       );
     });
 
     it('sets rerender function and context', ()=>{
       assert.equal(instance.r0, _.rerenderArray);
-      assert.equal(instance.c0, parentNode.lastChild);
+      assert.equal(instance.c0, parentNode);
     });
   });
 });

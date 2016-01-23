@@ -15,10 +15,9 @@ u - update (or update)
 
 */
 
-const EMPTY_STRING = '';
 const EMPTY_OBJECT = {};
 const preInstance = {$p:null};
-const MARKER_NODE = document.createComment(EMPTY_STRING);
+const MARKER_NODE = document.createComment('');
 
 const getMarkerNode = ()=>MARKER_NODE.cloneNode(false);
 
@@ -28,14 +27,27 @@ const replaceNode = (oldNode, newNode)=>{
 };
 
 const recycle = instance=>{
-  const pool = instance.$s.recycled;
-  if(pool) pool[instance.key] = instance;
+  const pools = instance.$s.r;
+  if(pools){
+    const key = instance.key;
+    const pool = pools[key];
+
+    if(!pool) pools[key] = [instance];
+    else pool.push(instance);
+  }
+};
+
+const getRecycle = ({r:pools}, key)=>{
+  if(pools){
+    const pool = pools[key];
+    return pool && pool.pop();
+  }
 };
 
 const insertBefore = (parentNode, node, beforeNode)=>
   beforeNode ? parentNode.insertBefore(node, beforeNode) : parentNode.appendChild(node);
 
-const renderArray = (array, parentNode)=>{
+const removeArrayNodes = (array, parentNode)=>{
   let length = array.length;
   let i = 0;
   let item;
@@ -285,11 +297,11 @@ const rerenderArray_reconcile = (parentNode, array, length, oldArray, oldLength,
   }
 };
 
-const rerenderArray = (parentNode, array, oldArray, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode)=>{
+const rerenderArray = (parentNode, array, oldArray, markerNode)=>{
   const length = array.length;
   const oldLength = oldArray.length;
   if(!length){
-    renderArray(oldArray, parentNode);
+    removeArrayNodes(oldArray, parentNode);
   }
   else if(!oldLength){
     renderArrayToParentBefore(parentNode, array, length, markerNode);
@@ -299,7 +311,7 @@ const rerenderArray = (parentNode, array, oldArray, markerNode, valuesAndContext
   }
 };
 
-const rerenderArrayOnlyChild = (parentNode, array, oldArray, valuesAndContext, rerenderFuncProp, rerenderContextNode)=>{
+const rerenderArrayOnlyChild = (parentNode, array, oldArray)=>{
   const length = array.length;
   const oldLength = oldArray.length;
   if(!length){
@@ -313,58 +325,31 @@ const rerenderArrayOnlyChild = (parentNode, array, oldArray, valuesAndContext, r
   }
 };
 
-const rerenderText = (value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode)=>{
+const rerenderText = (isOnlyChild, value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode)=>{
   if(value == null){
-    contextNode.nodeValue = EMPTY_STRING;
+    contextNode.nodeValue = '';
   }
   else if(value.constructor === String || value.constructor === Number){
     contextNode.nodeValue = value;
   }
   else{
-    rerenderDynamic(value, null, contextNode, instance, rerenderFuncProp, rerenderContextNode);
+    rerenderDynamic(isOnlyChild, value, null, contextNode, instance, rerenderFuncProp, rerenderContextNode);
   }
   return value;
 };
 
-const rerenderTextOnlyChild = (value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode)=>{
-  if(value == null){
-    contextNode.nodeValue = EMPTY_STRING;
-  }
-  else if(value.constructor === String || value.constructor === Number){
-    contextNode.nodeValue = value;
-  }
-  else{
-    rerenderDynamicOnlyChild(value, null, contextNode, instance, rerenderFuncProp, rerenderContextNode);
-  }
-  return value;
-};
-
-const rerenderDynamic = (value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode)=>{
+const rerenderDynamic = (isOnlyChild, value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode)=>{
   replaceNode(
     contextNode,
-    createDynamic(value, instance, rerenderFuncProp, rerenderContextNode)
+    createDynamic(isOnlyChild, contextNode.parentNode, value, instance, rerenderFuncProp, rerenderContextNode)
   );
   return value;
 };
 
-const rerenderDynamicOnlyChild = (value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode)=>{
-  replaceNode(
-    contextNode,
-    createDynamicOnlyChild(contextNode.parentNode, value, instance, rerenderFuncProp, rerenderContextNode)
-  );
-  return value;
-};
-
-const rerenderInstance = (value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode)=>{
+const rerenderInstance = (isOnlyChild, value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode)=>{
   if(value && internalRerenderInstance(value, prevValue)) return prevValue;
 
-  return rerenderDynamic(value, null, node, instance, rerenderFuncProp, rerenderContextNode);
-};
-
-const rerenderInstanceOnlyChild = (value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode)=>{
-  if(value && internalRerenderInstance(value, prevValue)) return prevValue;
-
-  return rerenderDynamicOnlyChild(value, null, node, instance, rerenderFuncProp, rerenderContextNode);
+  return rerenderDynamic(isOnlyChild, value, null, node, instance, rerenderFuncProp, rerenderContextNode);
 };
 
 const rerenderStatefulComponent = (component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp)=>{
@@ -394,27 +379,26 @@ const rerenderComponent = (component, props, prevProps, componentInstance, node,
   replaceNode(node, newNode);
 };
 
-const rerenderArrayMaybe = (array, oldArray, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode)=>{
-  const parentNode = markerNode.parentNode;
+const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode)=>{
   if(array instanceof Array){
-    rerenderArray(parentNode, array, oldArray, markerNode);
+    if(isOnlyChild){
+      rerenderArrayOnlyChild(markerNode, array, oldArray);
+    }
+    else{
+      rerenderArray(markerNode.parentNode, array, oldArray, markerNode);
+    }
   }
   else{
-    renderArray(oldArray, parentNode);
-    rerenderDynamic(array, null, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
-  }
-  return array;
-};
-
-const rerenderArrayMaybeOnlyChild = (array, oldArray, parentNode, valuesAndContext, rerenderFuncProp, rerenderContextNode)=>{
-  if(array instanceof Array){
-    rerenderArrayOnlyChild(parentNode, array, oldArray, parentNode);
-  }
-  else{
-    removeArrayNodesOnlyChild(oldArray, parentNode);
-    parentNode.appendChild(
-      createDynamicOnlyChild(parentNode, array, valuesAndContext, rerenderFuncProp, rerenderContextNode)
-    );
+    if(isOnlyChild){
+      removeArrayNodesOnlyChild(oldArray, markerNode);
+      markerNode.appendChild(
+        createDynamic(true, markerNode, array, valuesAndContext, rerenderFuncProp, rerenderContextNode)
+      );
+    }
+    else{
+      removeArrayNodes(oldArray, markerNode.parentNode);
+      rerenderDynamic(false, array, null, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
+    }
   }
   return array;
 };
@@ -441,7 +425,7 @@ const createStatefulComponent = (component, props, instance, rerenderFuncProp, r
   return node;
 };
 
-export const createDynamic = (value, instance, rerenderFuncProp, rerenderContextNode)=>{
+export const createDynamic = (isOnlyChild, parentNode, value, instance, rerenderFuncProp, rerenderContextNode)=>{
   let node, context, rerenderFunc;
   let valueConstructor;
   if(value == null || ((valueConstructor = value.constructor) === Boolean)){
@@ -461,36 +445,7 @@ export const createDynamic = (value, instance, rerenderFuncProp, rerenderContext
     renderArrayToParent(node, value, value.length);
 
     rerenderFunc = rerenderArrayMaybe;
-    context = node.appendChild(getMarkerNode());
-  }
-
-  instance[rerenderFuncProp]    = rerenderFunc;
-  instance[rerenderContextNode] = context;
-  return node;
-};
-
-
-export const createDynamicOnlyChild = (onlyChildParentNode, value, instance, rerenderFuncProp, rerenderContextNode)=>{
-  let node, context, rerenderFunc;
-  let valueConstructor;
-  if(value == null || ((valueConstructor = value.constructor) === Boolean)){
-    rerenderFunc = rerenderDynamicOnlyChild;
-    context = node = getMarkerNode();
-  }
-  else if(valueConstructor === Object){
-    rerenderFunc = rerenderInstanceOnlyChild;
-    context = node = render(value);
-  }
-  else if(valueConstructor === String || valueConstructor === Number){
-    rerenderFunc = rerenderTextOnlyChild;
-    context = node = document.createTextNode(value);
-  }
-  else if(valueConstructor === Array){
-    node = document.createDocumentFragment();
-    renderArrayToParent(node, value, value.length);
-
-    rerenderFunc = rerenderArrayMaybeOnlyChild;
-    context = onlyChildParentNode;
+    context = isOnlyChild ? parentNode : node.appendChild(getMarkerNode());
   }
 
   instance[rerenderFuncProp]    = rerenderFunc;
@@ -511,11 +466,9 @@ export const createComponent = (component, props, instance, rerenderFuncProp, re
 };
 
 const internalRender = instance=>{
-  const spec             = instance.$s;
-  const recycled         = spec.recycled;
-  const recycledInstance = recycled && recycled[instance.key];
+  const spec = instance.$s;
+  const recycledInstance = getRecycle(spec, instance.key);
   if(recycledInstance){
-    recycled[instance.key] = null;
     spec.u(instance, recycledInstance);
     return recycledInstance;
   }
@@ -545,7 +498,6 @@ export const unmount = node=>{
 
 export default {
   createDynamic,
-  createDynamicOnlyChild,
   createComponent,
   render,
   rerender,
@@ -557,6 +509,5 @@ export const _ = {
   rerenderText,
   rerenderInstance,
   rerenderDynamic,
-  rerenderArray: rerenderArrayMaybe,
-  rerenderArrayOnlyChild: rerenderArrayMaybeOnlyChild
+  rerenderArray: rerenderArrayMaybe
 };

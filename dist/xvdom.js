@@ -83,10 +83,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	*/
 
-	var EMPTY_STRING = '';
 	var EMPTY_OBJECT = {};
 	var preInstance = { $p: null };
-	var MARKER_NODE = document.createComment(EMPTY_STRING);
+	var MARKER_NODE = document.createComment('');
 
 	var getMarkerNode = function getMarkerNode() {
 	  return MARKER_NODE.cloneNode(false);
@@ -98,15 +97,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	var recycle = function recycle(instance) {
-	  var pool = instance.$s.recycled;
-	  if (pool) pool[instance.key] = instance;
+	  var pools = instance.$s.r;
+	  if (pools) {
+	    var key = instance.key;
+	    var pool = pools[key];
+
+	    if (!pool) pools[key] = [instance];else pool.push(instance);
+	  }
+	};
+
+	var getRecycle = function getRecycle(_ref, key) {
+	  var pools = _ref.r;
+
+	  if (pools) {
+	    var pool = pools[key];
+	    return pool && pool.pop();
+	  }
 	};
 
 	var insertBefore = function insertBefore(parentNode, node, beforeNode) {
 	  return beforeNode ? parentNode.insertBefore(node, beforeNode) : parentNode.appendChild(node);
 	};
 
-	var renderArray = function renderArray(array, parentNode) {
+	var removeArrayNodes = function removeArrayNodes(array, parentNode) {
 	  var length = array.length;
 	  var i = 0;
 	  var item = undefined;
@@ -341,11 +354,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	};
 
-	var rerenderArray = function rerenderArray(parentNode, array, oldArray, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
+	var rerenderArray = function rerenderArray(parentNode, array, oldArray, markerNode) {
 	  var length = array.length;
 	  var oldLength = oldArray.length;
 	  if (!length) {
-	    renderArray(oldArray, parentNode);
+	    removeArrayNodes(oldArray, parentNode);
 	  } else if (!oldLength) {
 	    renderArrayToParentBefore(parentNode, array, length, markerNode);
 	  } else {
@@ -353,7 +366,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	};
 
-	var rerenderArrayOnlyChild = function rerenderArrayOnlyChild(parentNode, array, oldArray, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
+	var rerenderArrayOnlyChild = function rerenderArrayOnlyChild(parentNode, array, oldArray) {
 	  var length = array.length;
 	  var oldLength = oldArray.length;
 	  if (!length) {
@@ -365,48 +378,26 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	};
 
-	var rerenderText = function rerenderText(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
+	var rerenderText = function rerenderText(isOnlyChild, value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
 	  if (value == null) {
-	    contextNode.nodeValue = EMPTY_STRING;
+	    contextNode.nodeValue = '';
 	  } else if (value.constructor === String || value.constructor === Number) {
 	    contextNode.nodeValue = value;
 	  } else {
-	    rerenderDynamic(value, null, contextNode, instance, rerenderFuncProp, rerenderContextNode);
+	    rerenderDynamic(isOnlyChild, value, null, contextNode, instance, rerenderFuncProp, rerenderContextNode);
 	  }
 	  return value;
 	};
 
-	var rerenderTextOnlyChild = function rerenderTextOnlyChild(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
-	  if (value == null) {
-	    contextNode.nodeValue = EMPTY_STRING;
-	  } else if (value.constructor === String || value.constructor === Number) {
-	    contextNode.nodeValue = value;
-	  } else {
-	    rerenderDynamicOnlyChild(value, null, contextNode, instance, rerenderFuncProp, rerenderContextNode);
-	  }
+	var rerenderDynamic = function rerenderDynamic(isOnlyChild, value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
+	  replaceNode(contextNode, createDynamic(isOnlyChild, contextNode.parentNode, value, instance, rerenderFuncProp, rerenderContextNode));
 	  return value;
 	};
 
-	var rerenderDynamic = function rerenderDynamic(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
-	  replaceNode(contextNode, createDynamic(value, instance, rerenderFuncProp, rerenderContextNode));
-	  return value;
-	};
-
-	var rerenderDynamicOnlyChild = function rerenderDynamicOnlyChild(value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
-	  replaceNode(contextNode, createDynamicOnlyChild(contextNode.parentNode, value, instance, rerenderFuncProp, rerenderContextNode));
-	  return value;
-	};
-
-	var rerenderInstance = function rerenderInstance(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode) {
+	var rerenderInstance = function rerenderInstance(isOnlyChild, value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode) {
 	  if (value && internalRerenderInstance(value, prevValue)) return prevValue;
 
-	  return rerenderDynamic(value, null, node, instance, rerenderFuncProp, rerenderContextNode);
-	};
-
-	var rerenderInstanceOnlyChild = function rerenderInstanceOnlyChild(value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode) {
-	  if (value && internalRerenderInstance(value, prevValue)) return prevValue;
-
-	  return rerenderDynamicOnlyChild(value, null, node, instance, rerenderFuncProp, rerenderContextNode);
+	  return rerenderDynamic(isOnlyChild, value, null, node, instance, rerenderFuncProp, rerenderContextNode);
 	};
 
 	var rerenderStatefulComponent = function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
@@ -429,23 +420,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	  replaceNode(node, newNode);
 	};
 
-	var rerenderArrayMaybe = function rerenderArrayMaybe(array, oldArray, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
-	  var parentNode = markerNode.parentNode;
+	var rerenderArrayMaybe = function rerenderArrayMaybe(isOnlyChild, array, oldArray, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
 	  if (array instanceof Array) {
-	    rerenderArray(parentNode, array, oldArray, markerNode);
+	    if (isOnlyChild) {
+	      rerenderArrayOnlyChild(markerNode, array, oldArray);
+	    } else {
+	      rerenderArray(markerNode.parentNode, array, oldArray, markerNode);
+	    }
 	  } else {
-	    renderArray(oldArray, parentNode);
-	    rerenderDynamic(array, null, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
-	  }
-	  return array;
-	};
-
-	var rerenderArrayMaybeOnlyChild = function rerenderArrayMaybeOnlyChild(array, oldArray, parentNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
-	  if (array instanceof Array) {
-	    rerenderArrayOnlyChild(parentNode, array, oldArray, parentNode);
-	  } else {
-	    removeArrayNodesOnlyChild(oldArray, parentNode);
-	    parentNode.appendChild(createDynamicOnlyChild(parentNode, array, valuesAndContext, rerenderFuncProp, rerenderContextNode));
+	    if (isOnlyChild) {
+	      removeArrayNodesOnlyChild(oldArray, markerNode);
+	      markerNode.appendChild(createDynamic(true, markerNode, array, valuesAndContext, rerenderFuncProp, rerenderContextNode));
+	    } else {
+	      removeArrayNodes(oldArray, markerNode.parentNode);
+	      rerenderDynamic(false, array, null, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
+	    }
 	  }
 	  return array;
 	};
@@ -472,7 +461,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return node;
 	};
 
-	var createDynamic = exports.createDynamic = function createDynamic(value, instance, rerenderFuncProp, rerenderContextNode) {
+	var createDynamic = exports.createDynamic = function createDynamic(isOnlyChild, parentNode, value, instance, rerenderFuncProp, rerenderContextNode) {
 	  var node = undefined,
 	      context = undefined,
 	      rerenderFunc = undefined;
@@ -491,34 +480,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    renderArrayToParent(node, value, value.length);
 
 	    rerenderFunc = rerenderArrayMaybe;
-	    context = node.appendChild(getMarkerNode());
-	  }
-
-	  instance[rerenderFuncProp] = rerenderFunc;
-	  instance[rerenderContextNode] = context;
-	  return node;
-	};
-
-	var createDynamicOnlyChild = exports.createDynamicOnlyChild = function createDynamicOnlyChild(onlyChildParentNode, value, instance, rerenderFuncProp, rerenderContextNode) {
-	  var node = undefined,
-	      context = undefined,
-	      rerenderFunc = undefined;
-	  var valueConstructor = undefined;
-	  if (value == null || (valueConstructor = value.constructor) === Boolean) {
-	    rerenderFunc = rerenderDynamicOnlyChild;
-	    context = node = getMarkerNode();
-	  } else if (valueConstructor === Object) {
-	    rerenderFunc = rerenderInstanceOnlyChild;
-	    context = node = render(value);
-	  } else if (valueConstructor === String || valueConstructor === Number) {
-	    rerenderFunc = rerenderTextOnlyChild;
-	    context = node = document.createTextNode(value);
-	  } else if (valueConstructor === Array) {
-	    node = document.createDocumentFragment();
-	    renderArrayToParent(node, value, value.length);
-
-	    rerenderFunc = rerenderArrayMaybeOnlyChild;
-	    context = onlyChildParentNode;
+	    context = isOnlyChild ? parentNode : node.appendChild(getMarkerNode());
 	  }
 
 	  instance[rerenderFuncProp] = rerenderFunc;
@@ -540,10 +502,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var internalRender = function internalRender(instance) {
 	  var spec = instance.$s;
-	  var recycled = spec.recycled;
-	  var recycledInstance = recycled && recycled[instance.key];
+	  var recycledInstance = getRecycle(spec, instance.key);
 	  if (recycledInstance) {
-	    recycled[instance.key] = null;
 	    spec.u(instance, recycledInstance);
 	    return recycledInstance;
 	  } else {
@@ -576,7 +536,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	exports.default = {
 	  createDynamic: createDynamic,
-	  createDynamicOnlyChild: createDynamicOnlyChild,
 	  createComponent: createComponent,
 	  render: render,
 	  rerender: rerender,
@@ -589,8 +548,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  rerenderText: rerenderText,
 	  rerenderInstance: rerenderInstance,
 	  rerenderDynamic: rerenderDynamic,
-	  rerenderArray: rerenderArrayMaybe,
-	  rerenderArrayOnlyChild: rerenderArrayMaybeOnlyChild
+	  rerenderArray: rerenderArrayMaybe
 	};
 
 /***/ }

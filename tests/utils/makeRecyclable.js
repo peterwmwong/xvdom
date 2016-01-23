@@ -2,6 +2,6 @@
 //                           attribute (ex. `<div recycle />`) to make specs as
 //                           recyclable.
 export default inst=>(
-  inst.$s.recycled = inst.$s.recycled || {},
+  inst.$s.r = inst.$s.r || {},
   inst
 );
