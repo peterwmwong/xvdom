@@ -6,12 +6,13 @@ $a - actions for stateful components
 $c - component for stateful components
 $p - props for components
 $t - state for stateful components
-$s - spec
+$s - spec (see below)
 
 Spec properties:
 
 c - create (or render)
 u - update (or update)
+r - keyed map of unmounted instanced that can be recycled
 
 */
 
@@ -76,24 +77,24 @@ const internalRerenderInstance = (inst, prevInst)=>
   );
 
 const internalRerenderStatefulComponent = (stateActions, inst, prevInst, parentInst, componentInstanceProp)=>{
-  if(internalRerenderInstance(inst, prevInst)) return;
+  if(internalRerenderInstance(inst, prevInst)){
+    const newNode = render(inst);
+    const node    = parentInst.$n;
 
-  const newNode = render(inst);
-  const node    = parentInst.$n;
+    inst.$c = prevInst.$c;
+    inst.$t = prevInst.$t;
+    inst.$p = prevInst.$p;
+    inst.$a = stateActions;
 
-  inst.$c = prevInst.$c;
-  inst.$t = prevInst.$t;
-  inst.$p = prevInst.$p;
-  inst.$a = stateActions;
+    parentInst.$n = newNode;
+    parentInst[componentInstanceProp] = inst;
 
-  parentInst.$n = newNode;
-  parentInst[componentInstanceProp] = inst;
+    stateActions.$$instance = inst;
 
-  stateActions.$$instance = inst;
-
-  newNode.xvdom = parentInst;
-  replaceNode(node, newNode);
-  recycle(inst);
+    newNode.xvdom = parentInst;
+    replaceNode(node, newNode);
+    recycle(inst);
+  }
 };
 
 const callAction = (stateActions, action, parentInst, componentInstanceProp, args)=>{
@@ -297,7 +298,8 @@ const rerenderArray_reconcile = (parentNode, array, length, oldArray, oldLength,
   }
 };
 
-const rerenderArray = (parentNode, array, oldArray, markerNode)=>{
+const rerenderArray = (markerNode, array, oldArray)=>{
+  const parentNode = markerNode.parentNode;
   const length = array.length;
   const oldLength = oldArray.length;
   if(!length){
@@ -370,13 +372,14 @@ const rerenderStatefulComponent = (component, props, prevProps, componentInstanc
 
 const rerenderComponent = (component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp)=>{
   const newCompInstance = component(props || EMPTY_OBJECT);
-  if(internalRerenderInstance(newCompInstance, componentInstance)) return;
-
-  const newNode = render(newCompInstance);
-  instance[componentInstanceProp] = newCompInstance;
-  instance[rerenderContextNode]   = newNode;
-  newNode.xvdom = instance;
-  replaceNode(node, newNode);
+  if(!internalRerenderInstance(newCompInstance, componentInstance)){
+    replaceNode(
+      node,
+      instance[rerenderContextNode] = (
+        instance[componentInstanceProp] = internalRender(newCompInstance)
+      ).$n
+    );
+  }
 };
 
 const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode)=>{
@@ -385,7 +388,7 @@ const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode, valuesAndC
       rerenderArrayOnlyChild(markerNode, array, oldArray);
     }
     else{
-      rerenderArray(markerNode.parentNode, array, oldArray, markerNode);
+      rerenderArray(markerNode, array, oldArray);
     }
   }
   else{
