@@ -1,5 +1,14 @@
-import './patch-statics.js';
-import './patch-dynamics.js';
-import './patch-rerender.js';
-import './patch-recycle.js';
-import './patch-components.js';
+import './render.jsx';
+import './render-recycle.jsx';
+import './renderArray.jsx';
+
+import './rerender.jsx';
+import './rerenderArray.jsx';
+import './rerenderText.js';
+import './rerenderDynamic.js';
+
+import './createDynamic.jsx';
+import './component.jsx';
+import './component-stateful.jsx';
+import './component-stateful-nested.jsx';
+import './integration.jsx';

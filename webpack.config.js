@@ -6,12 +6,14 @@ module.exports = {
   },
   output: {
     path    : 'dist',
-    filename: 'xvdom.js'
+    filename: 'xvdom.js',
+    library: 'xvdom',
+    libraryTarget: 'umd'
   },
   module: {
     loaders: [
       {
-        test   : /\.js?$/,
+        test   : /\.jsx?$/,
         exclude: /node_modules/,
         loader : 'babel-loader'
       }

@@ -7,5 +7,5 @@ config.entry.app = [
 ];
 config.devServer = {hot:false, inline:true};
 config.devtool   = 'source-map';
-
+config.output.libraryTarget = 'var';
 module.exports = config;
