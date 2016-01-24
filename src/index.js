@@ -78,7 +78,7 @@ const internalRerenderInstance = (inst, prevInst)=>
   );
 
 const internalRerenderStatefulComponent = (stateActions, inst, prevInst, parentInst, componentInstanceProp)=>{
-  if(internalRerenderInstance(inst, prevInst)){
+  if(!internalRerenderInstance(inst, prevInst)){
     const newNode = render(inst);
     const node    = parentInst.$n;
 
