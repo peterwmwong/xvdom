@@ -4,9 +4,10 @@ Instance properties:
 
 $a - actions for stateful components
 $c - component for stateful components
+$n = DOM node
 $p - props for components
-$t - state for stateful components
 $s - spec (see below)
+$t - state for stateful components
 
 Spec properties:
 
