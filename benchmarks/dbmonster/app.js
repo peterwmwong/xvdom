@@ -8,16 +8,17 @@
       return (
         (table.className = 'table table-striped latest-data'),
         table.appendChild(tbody),
-        tbody.appendChild(xvdom.createDynamic(inst.v0, inst, 'r0', 'c0')),
+        tbody.appendChild(xvdom.createDynamic(true, tbody, inst.v0, inst, 'r0', 'c0')),
         table
       );
     },
     u: function(inst, pInst){
       if(inst.v0 !== pInst.v0){
-        pInst.v0 = pInst.r0(inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
+        pInst.v0 = pInst.r0(true, inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
       }
-    }
-  }
+    },
+    r: null
+  };
 
   var TMPL_ROW = {
     c: function(inst){
@@ -27,20 +28,20 @@
       var span    = document.createElement('span');
       return (
         (td.className = 'dbname'),
-        td.appendChild(xvdom.createDynamic(inst.v0, inst, 'r0', 'c0')),
+        td.appendChild(xvdom.createDynamic(true, td, inst.v0, inst, 'r0', 'c0')),
         (span.className = inst.v1, inst.c1 = span),
-        span.appendChild(xvdom.createDynamic(inst.v2, inst, 'r2', 'c2')),
+        span.appendChild(xvdom.createDynamic(true, td, inst.v2, inst, 'r2', 'c2')),
         (tdQuery.className = 'query-count'),
         tdQuery.appendChild(span),
         tr.appendChild(td),
         tr.appendChild(tdQuery),
-        tr.appendChild(xvdom.createDynamic(inst.v3, inst, 'r3', 'c3')),
+        tr.appendChild(xvdom.createDynamic(true, tr, inst.v3, inst, 'r3', 'c3')),
         tr
       );
     },
     u: function(inst, pInst){
       if(inst.v0 !== pInst.v0){
-        pInst.v0 = pInst.r0(inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
+        pInst.v0 = pInst.r0(true, inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
       }
 
       if(inst.v1 !== pInst.v1){
@@ -48,17 +49,17 @@
       }
 
       if(inst.v2 !== pInst.v2){
-        pInst.v2 = pInst.r2(inst.v2, pInst.v2, pInst.c2, pInst, 'r2', 'c2');
+        pInst.v2 = pInst.r2(true, inst.v2, pInst.v2, pInst.c2, pInst, 'r2', 'c2');
       }
 
       if(inst.v3 !== pInst.v3){
-        pInst.v3 = pInst.r3(inst.v3, pInst.v3, pInst.c3, pInst, 'r3', 'c3');
+        pInst.v3 = pInst.r3(true, inst.v3, pInst.v3, pInst.c3, pInst, 'r3', 'c3');
       }
-    }
+    },
+    r: null
   };
 
   var TMPL_SAMPLE_CELLS = {
-    // recycled: [],
     c: function(inst){
       var td             = document.createElement('td');
       var popover        = document.createElement('div');
@@ -66,8 +67,8 @@
       var popoverArrow   = document.createElement('div');
       return (
         (td.className = 'Query elapsed'),
-        td.appendChild(xvdom.createDynamic(inst.v0, inst, 'r0', 'c0')),
-        popoverContent.appendChild(xvdom.createDynamic(inst.v1, inst, 'r1', 'c1')),
+        td.appendChild(xvdom.createDynamic(false, td, inst.v0, inst, 'r0', 'c0')),
+        popoverContent.appendChild(xvdom.createDynamic(true, popoverContent, inst.v1, inst, 'r1', 'c1')),
         (popoverContent.className = 'popover-content'),
         popover.appendChild(popoverContent),
         (popoverArrow.className = 'arrow'),
@@ -79,20 +80,21 @@
     },
     u: function(inst, pInst){
       if(inst.v0 !== pInst.v0){
-        pInst.v0 = pInst.r0(inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
+        pInst.v0 = pInst.r0(false, inst.v0, pInst.v0, pInst.c0, pInst, 'r0', 'c0');
       }
 
       if(inst.v1 !== pInst.v1){
-        pInst.v1 = pInst.r1(inst.v1, pInst.v1, pInst.c1, pInst, 'r1', 'c1');
+        pInst.v1 = pInst.r1(true, inst.v1, pInst.v1, pInst.c1, pInst, 'r1', 'c1');
       }
-    }
+    },
+    r: null
   };
 
   function renderQuery(query, j){
     return {
       key: j,
       $s:TMPL_SAMPLE_CELLS,
-      $n: null,
+      $n:null,
       next:null,
 
       v0:query.formatElapsed,
@@ -110,8 +112,7 @@
     return {
       key:i,
       $s:TMPL_ROW,
-      $n: null,
-      next:null,
+      $n:null,
 
       v0:db.dbname,
       c0:null,
@@ -133,10 +134,10 @@
 
 	function renderDatabases(array) {
     var length = array.length;
-		var newArray = [];
+		var newArray = new Array(length);
     var i=0;
 		while(i < length) {
-			newArray.push(renderDatabase(array[i], i));
+			newArray[i] = renderDatabase(array[i], i);
       ++i;
 		}
 		return newArray;
@@ -144,10 +145,10 @@
 
 	function renderQueries(array) {
     var length = array.length;
-		var newArray = [];
+		var newArray = new Array(length);
     var i=0;
 		while(i < length) {
-			newArray.push(renderQuery(array[i], i));
+			newArray[i] = renderQuery(array[i], i);
       ++i;
 		}
 		return newArray;
@@ -160,7 +161,6 @@
       key:null,
       $s:TMPL_TABLE,
       $n:null,
-      next:null,
 
       v0:renderDatabases(ENV.generateData().toArray()),
       c0:null,
