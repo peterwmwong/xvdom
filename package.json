@@ -5,10 +5,9 @@
   "main": "dist/xvdom.min.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
+    "build:benchmarks": "webpack --config webpack.benchmarks.config.js",
     "build:prod": "npm run build; uglifyjs --compress --mangle -- dist/xvdom.js > dist/xvdom.min.js;",
-    "test": "webpack-dev-server --config webpack-server.config.js",
-    "cpbench": "npm run build; cp dist/xvdom.js /p/js-repaint-perfs/lib/",
-    "vbench": "npm run build; cp dist/xvdom.js /p/vdom-benchmark-xvdom/web/"
+    "test": "webpack-dev-server --config webpack-server.config.js"
   },
   "author": "",
   "license": "ISC",
