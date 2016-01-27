@@ -1,6 +1,7 @@
 const COLS    = 100;
 const ROWS    = 100;
 const randInt = maxValue=>(Math.random()*maxValue)|0;
+const cellId  = (row, cell)=>`${row}-${cell}`;
 const genRows = ()=>{
   const rows = new Array(ROWS);
 
@@ -19,7 +20,7 @@ const Cell = (props, state)=>
 
 Cell.state = {
   onInit: ({initialValue, row, cell, cellUpdaters}, state, {update})=>{
-    cellUpdaters[`${row}-${cell}`] = update;
+    cellUpdaters[cellId(row, cell)] = update;
     return initialValue;
   },
   update: (props, state, actions, newValue)=>newValue
@@ -41,7 +42,7 @@ App.state = {
     const cellUpdaters = {};
     const update = ()=>{
       for(let i=0; i<300; ++i){
-        cellUpdaters[`${randInt(ROWS - 1)}-${randInt(COLS - 1)}`](randInt(COLS));
+        cellUpdaters[cellId(randInt(ROWS - 1), randInt(COLS - 1))](randInt(COLS));
       }
       requestAnimationFrame(update);
     };

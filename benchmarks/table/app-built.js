@@ -160,6 +160,10 @@
 	  return rows;
 	};
 
+	var cellId = function cellId(row, cell) {
+	  return row + '-' + cell;
+	};
+
 	var Cell = function Cell(props, state) {
 	  return {
 	    $s: _xvdomSpec,
@@ -184,7 +188,7 @@
 	    var cellUpdaters = _ref.cellUpdaters;
 	    var update = _ref2.update;
 
-	    cellUpdaters[row + '-' + cell] = update;
+	    cellUpdaters[cellId(row, cell)] = update;
 	    return initialValue;
 	  },
 	  update: function update(props, state, actions, newValue) {
@@ -243,7 +247,7 @@
 	    var cellUpdaters = {};
 	    var update = function update() {
 	      for (var i = 0; i < 300; ++i) {
-	        cellUpdaters[randInt(ROWS - 1) + '-' + randInt(COLS - 1)](randInt(COLS));
+	        cellUpdaters[cellId(randInt(ROWS - 1), randInt(COLS - 1))](randInt(COLS));
 	      }
 	      requestAnimationFrame(update);
 	    };
