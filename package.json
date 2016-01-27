@@ -5,7 +5,7 @@
   "main": "dist/xvdom.min.js",
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "build:benchmarks": "webpack --config webpack.benchmarks.config.js",
+    "build:benchmarks": "webpack --config webpack.benchmarks.config.js; webpack --config webpack.benchmark-table.config.js",
     "build:prod": "npm run build; uglifyjs --compress --mangle -- dist/xvdom.js > dist/xvdom.min.js;",
     "test": "webpack-dev-server --config webpack-server.config.js"
   },
