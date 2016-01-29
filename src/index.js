@@ -156,7 +156,7 @@ const renderArrayToParent = (parentNode, array, length)=>{
 const rerenderArray_reconcileWithMap = (parentNode, array, oldArray, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex)=>{
   const oldListNodeKeyMap = {};
   let insertBeforeNode = oldEndItem.$n;
-  let item, key, node, startItem;
+  let item, key, startItem;
 
   while(oldStartIndex <= oldEndIndex){
     item = oldArray[oldStartIndex++];
@@ -171,12 +171,13 @@ const rerenderArray_reconcileWithMap = (parentNode, array, oldArray, startIndex,
     if(item){
       if(item === oldEndItem) insertBeforeNode = insertBeforeNode.nextSibling;
       oldListNodeKeyMap[key] = null;
-      node = (array[startIndex] = internalRerender(item, startItem)).$n;
+      startItem = internalRerender(item, startItem);
     }
     else{
-      node = render(startItem);
+      startItem = internalRender(startItem);
     }
-    insertBefore(parentNode, node, insertBeforeNode);
+    array[startIndex] = startItem;
+    insertBefore(parentNode, startItem.$n, insertBeforeNode);
     ++startIndex;
   }
 

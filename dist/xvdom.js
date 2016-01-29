@@ -225,7 +225,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var insertBeforeNode = oldEndItem.$n;
 	  var item = undefined,
 	      key = undefined,
-	      node = undefined,
 	      startItem = undefined;
 
 	  while (oldStartIndex <= oldEndIndex) {
@@ -241,11 +240,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (item) {
 	      if (item === oldEndItem) insertBeforeNode = insertBeforeNode.nextSibling;
 	      oldListNodeKeyMap[key] = null;
-	      node = (array[startIndex] = internalRerender(item, startItem)).$n;
+	      startItem = internalRerender(item, startItem);
 	    } else {
-	      node = render(startItem);
+	      startItem = internalRender(startItem);
 	    }
-	    insertBefore(parentNode, node, insertBeforeNode);
+	    array[startIndex] = startItem;
+	    insertBefore(parentNode, startItem.$n, insertBeforeNode);
 	    ++startIndex;
 	  }
 
