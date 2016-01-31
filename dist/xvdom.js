@@ -66,6 +66,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+	exports.Pool = Pool;
 	/*
 
 	Instance properties:
@@ -85,36 +86,40 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	*/
 
-	var EMPTY_OBJECT = {};
-	var preInstance = { $p: null };
 	var MARKER_NODE = document.createComment('');
-
 	var getMarkerNode = function getMarkerNode() {
 	  return MARKER_NODE.cloneNode(false);
+	};
+	var preInstance = { $p: null };
+
+	function Pool() {}
+	Pool.prototype = {
+	  push: function push(instance) {
+	    var key = instance.key;
+	    instance.next = this[key];
+	    this[key] = instance;
+	  },
+	  pop: function pop(key) {
+	    var head = this[key];
+	    if (head) {
+	      this[key] = head.next;
+	      return head;
+	    }
+	  }
+	};
+
+	var DeadPool = exports.DeadPool = {
+	  push: function push() {},
+	  pop: function pop() {}
+	};
+
+	var recycle = function recycle(instance) {
+	  instance.$s.r.push(instance);
 	};
 
 	var replaceNode = function replaceNode(oldNode, newNode) {
 	  var parentNode = oldNode.parentNode;
 	  if (parentNode) parentNode.replaceChild(newNode, oldNode);
-	};
-
-	var recycle = function recycle(instance) {
-	  var pools = instance.$s.r;
-	  if (pools) {
-	    var key = instance.key;
-	    var pool = pools[key];
-
-	    if (!pool) pools[key] = [instance];else pool.push(instance);
-	  }
-	};
-
-	var getRecycle = function getRecycle(_ref, key) {
-	  var pools = _ref.r;
-
-	  if (pools) {
-	    var pool = pools[key];
-	    return pool && pool.pop();
-	  }
 	};
 
 	var insertBefore = function insertBefore(parentNode, node, beforeNode) {
@@ -413,7 +418,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	var rerenderComponent = function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
-	  var newCompInstance = component(props || EMPTY_OBJECT);
+	  var newCompInstance = component(props || {});
 	  if (!internalRerenderInstance(newCompInstance, componentInstance)) {
 	    replaceNode(node, instance[rerenderContextNode] = (instance[componentInstanceProp] = internalRender(newCompInstance)).$n);
 	  }
@@ -442,7 +447,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  preInstance.$p = props;
 	  var rawActions = component.state;
 	  var actions = createStateActions(rawActions, instance, componentInstanceProp, preInstance);
-	  var state = rawActions.onInit(props || EMPTY_OBJECT, undefined, actions);
+	  var state = rawActions.onInit(props || {}, undefined, actions);
 	  actions.$$doRerender = true;
 	  var inst = component(props, state, actions);
 	  var node = render(inst);
@@ -490,7 +495,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var createComponent = exports.createComponent = function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
 	  if (component.state) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
 
-	  var inst = component(props || EMPTY_OBJECT);
+	  var inst = component(props || {});
 	  var node = render(inst);
 
 	  instance[rerenderFuncProp] = rerenderComponent;
@@ -501,7 +506,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var internalRender = function internalRender(instance) {
 	  var spec = instance.$s;
-	  var recycledInstance = getRecycle(spec, instance.key);
+	  var recycledInstance = spec.r.pop(instance.key);
 	  if (recycledInstance) {
 	    spec.u(instance, recycledInstance);
 	    return recycledInstance;
@@ -538,7 +543,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  createComponent: createComponent,
 	  render: render,
 	  rerender: rerender,
-	  unmount: unmount
+	  unmount: unmount,
+	  Pool: Pool,
+	  DeadPool: DeadPool
 	};
 
 	// Internal API

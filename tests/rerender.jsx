@@ -1,6 +1,5 @@
 import assert                  from 'assert';
 import getHTMLString           from './utils/getHTMLString.js';
-import makeRecyclable          from './utils/makeRecyclable.js';
 import wrapSpecRenderFunctions from './utils/wrapSpecRenderFunctions';
 import spyOn                   from './utils/spyOn.js';
 import xvdom                   from '../src/index.js';
@@ -9,12 +8,10 @@ describe('rerender - node, instance', ()=>{
   let renderCallCount, rerenderCallCount, node;
 
   const render = ()=>
-    makeRecyclable(
-      wrapSpecRenderFunctions(
-        <span></span>,
-        ()=>renderCallCount++,
-        ()=>rerenderCallCount++
-      )
+    wrapSpecRenderFunctions(
+      <span recycle></span>,
+      ()=>renderCallCount++,
+      ()=>rerenderCallCount++
     );
 
   beforeEach(()=>{

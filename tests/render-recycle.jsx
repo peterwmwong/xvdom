@@ -1,11 +1,11 @@
 import assert         from 'assert';
 import getHTMLString  from './utils/getHTMLString.js';
-import makeRecyclable from './utils/makeRecyclable.js';
 import spyOn          from './utils/spyOn.js';
 import xvdom          from '../src/index.js';
 
 describe('rerender recycled - node, renderInstance', ()=>{
-  const render = (key, className)=>makeRecyclable(<div key={key} className={className} />);
+  const render = (key, className)=>
+    <div key={key} className={className} recycle />;
   let node0, node1;
 
   beforeEach(()=>{
@@ -52,7 +52,7 @@ describe('rerender recycled - node, renderInstance', ()=>{
     const renderArray = children=>
       <div>
         {children.map(child=>
-          makeRecyclable(<div key={child.key} className={child.className}></div>)
+          <div key={child.key} className={child.className} recycle></div>
         )}
       </div>;
 

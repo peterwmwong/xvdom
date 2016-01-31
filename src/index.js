@@ -17,33 +17,33 @@ r - keyed map of unmounted instanced that can be recycled
 
 */
 
-const EMPTY_OBJECT = {};
-const preInstance = {$p:null};
-const MARKER_NODE = document.createComment('');
-
+const MARKER_NODE   = document.createComment('');
 const getMarkerNode = ()=>MARKER_NODE.cloneNode(false);
+const preInstance   = {$p:null};
 
-const replaceNode = (oldNode, newNode)=>{
+export function Pool(){}
+Pool.prototype = {
+  push(instance){
+    const key = instance.key;
+    instance.next = this[key];
+    this[key] = instance;
+  },
+  pop(key){
+    const head = this[key];
+    if(head){
+      this[key] = head.next;
+      return head;
+    }
+  }
+};
+
+export const DeadPool = {push(){}, pop(){}};
+
+const recycle = instance=>{instance.$s.r.push(instance);};
+
+const replaceNode   = (oldNode, newNode)=>{
   const parentNode = oldNode.parentNode;
   if(parentNode) parentNode.replaceChild(newNode, oldNode);
-};
-
-const recycle = instance=>{
-  const pools = instance.$s.r;
-  if(pools){
-    const key = instance.key;
-    const pool = pools[key];
-
-    if(!pool) pools[key] = [instance];
-    else pool.push(instance);
-  }
-};
-
-const getRecycle = ({r:pools}, key)=>{
-  if(pools){
-    const pool = pools[key];
-    return pool && pool.pop();
-  }
 };
 
 const insertBefore = (parentNode, node, beforeNode)=>
@@ -373,7 +373,7 @@ const rerenderStatefulComponent = (component, props, prevProps, componentInstanc
 };
 
 const rerenderComponent = (component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp)=>{
-  const newCompInstance = component(props || EMPTY_OBJECT);
+  const newCompInstance = component(props || {});
   if(!internalRerenderInstance(newCompInstance, componentInstance)){
     replaceNode(
       node,
@@ -412,7 +412,7 @@ const createStatefulComponent = (component, props, instance, rerenderFuncProp, r
   preInstance.$p        = props;
   const rawActions      = component.state;
   const actions         = createStateActions(rawActions, instance, componentInstanceProp, preInstance);
-  const state           = rawActions.onInit(props || EMPTY_OBJECT, undefined, actions);
+  const state           = rawActions.onInit(props || {}, undefined, actions);
   actions.$$doRerender  = true;
   const inst            = component(props, state, actions);
   const node            = render(inst);
@@ -461,7 +461,7 @@ export const createDynamic = (isOnlyChild, parentNode, value, instance, rerender
 export const createComponent = (component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
   if(component.state) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
 
-  const inst = component(props || EMPTY_OBJECT);
+  const inst = component(props || {});
   const node = render(inst);
 
   instance[rerenderFuncProp]      = rerenderComponent;
@@ -472,7 +472,7 @@ export const createComponent = (component, props, instance, rerenderFuncProp, re
 
 const internalRender = instance=>{
   const spec = instance.$s;
-  const recycledInstance = getRecycle(spec, instance.key);
+  const recycledInstance = spec.r.pop(instance.key);
   if(recycledInstance){
     spec.u(instance, recycledInstance);
     return recycledInstance;
@@ -506,7 +506,9 @@ export default {
   createComponent,
   render,
   rerender,
-  unmount
+  unmount,
+  Pool,
+  DeadPool
 };
 
 // Internal API
