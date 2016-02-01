@@ -86,11 +86,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	*/
 
+	var PRE_INSTANCE = { $p: null };
 	var MARKER_NODE = document.createComment('');
-	var getMarkerNode = function getMarkerNode() {
-	  return MARKER_NODE.cloneNode(false);
+	var DEADPOOL = exports.DEADPOOL = {
+	  push: function push() {},
+	  pop: function pop() {}
 	};
-	var preInstance = { $p: null };
 
 	function Pool() {}
 	Pool.prototype = {
@@ -108,13 +109,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	};
 
-	var DeadPool = exports.DeadPool = {
-	  push: function push() {},
-	  pop: function pop() {}
-	};
-
 	var recycle = function recycle(instance) {
 	  instance.$s.r.push(instance);
+	};
+
+	var getMarkerNode = function getMarkerNode() {
+	  return MARKER_NODE.cloneNode(false);
 	};
 
 	var replaceNode = function replaceNode(oldNode, newNode) {
@@ -199,8 +199,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  };
 	};
 
-	var createStateActions = function createStateActions(rawActions, parentInst, componentInstanceProp, $$instance) {
-	  var stateActions = { $$doRerender: false, $$instance: $$instance };
+	var createStateActions = function createStateActions(rawActions, parentInst, componentInstanceProp) {
+	  var stateActions = { $$doRerender: false, $$instance: PRE_INSTANCE };
 	  for (var sa in rawActions) {
 	    stateActions[sa] = createAction(stateActions, rawActions[sa], parentInst, componentInstanceProp);
 	  }
@@ -444,9 +444,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	var createStatefulComponent = function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
-	  preInstance.$p = props;
+	  PRE_INSTANCE.$p = props;
 	  var rawActions = component.state;
-	  var actions = createStateActions(rawActions, instance, componentInstanceProp, preInstance);
+	  var actions = createStateActions(rawActions, instance, componentInstanceProp);
 	  var state = rawActions.onInit(props || {}, undefined, actions);
 	  actions.$$doRerender = true;
 	  var inst = component(props, state, actions);
@@ -545,7 +545,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  rerender: rerender,
 	  unmount: unmount,
 	  Pool: Pool,
-	  DeadPool: DeadPool
+	  DEADPOOL: DEADPOOL
 	};
 
 	// Internal API

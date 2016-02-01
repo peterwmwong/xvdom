@@ -17,9 +17,9 @@ r - keyed map of unmounted instanced that can be recycled
 
 */
 
-const MARKER_NODE   = document.createComment('');
-const getMarkerNode = ()=>MARKER_NODE.cloneNode(false);
-const preInstance   = {$p:null};
+const PRE_INSTANCE    = {$p:null};
+const MARKER_NODE     = document.createComment('');
+export const DEADPOOL = {push(){}, pop(){}};
 
 export function Pool(){}
 Pool.prototype = {
@@ -37,9 +37,9 @@ Pool.prototype = {
   }
 };
 
-export const DeadPool = {push(){}, pop(){}};
-
 const recycle = instance=>{instance.$s.r.push(instance);};
+
+const getMarkerNode = ()=>MARKER_NODE.cloneNode(false);
 
 const replaceNode   = (oldNode, newNode)=>{
   const parentNode = oldNode.parentNode;
@@ -121,8 +121,8 @@ const callAction = (stateActions, action, parentInst, componentInstanceProp, arg
 const createAction = (stateActions, action, parentInst, componentInstanceProp)=>
   (...args)=>callAction(stateActions, action, parentInst, componentInstanceProp, args);
 
-const createStateActions = (rawActions, parentInst, componentInstanceProp, $$instance)=>{
-  const stateActions = {$$doRerender:false, $$instance};
+const createStateActions = (rawActions, parentInst, componentInstanceProp)=>{
+  const stateActions = {$$doRerender:false, $$instance:PRE_INSTANCE};
   for(let sa in rawActions){
     stateActions[sa] = createAction(stateActions, rawActions[sa], parentInst, componentInstanceProp);
   }
@@ -409,9 +409,9 @@ const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode, valuesAndC
 };
 
 const createStatefulComponent = (component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
-  preInstance.$p        = props;
+  PRE_INSTANCE.$p       = props;
   const rawActions      = component.state;
-  const actions         = createStateActions(rawActions, instance, componentInstanceProp, preInstance);
+  const actions         = createStateActions(rawActions, instance, componentInstanceProp);
   const state           = rawActions.onInit(props || {}, undefined, actions);
   actions.$$doRerender  = true;
   const inst            = component(props, state, actions);
@@ -508,7 +508,7 @@ export default {
   rerender,
   unmount,
   Pool,
-  DeadPool
+  DEADPOOL
 };
 
 // Internal API
