@@ -409,11 +409,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	var rerenderStatefulComponent = function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
-	  var onProps = componentInstance.$a.onProps;
+	  var stateActions = componentInstance.$a;
+	  var onProps = stateActions.onProps;
 	  componentInstance.$p = props;
 
 	  if (onProps) onProps();else {
-	    internalRerenderStatefulComponent(componentInstance.$a, componentInstance.$c(props, componentInstance, componentInstance.$a), componentInstance, instance, componentInstanceProp);
+	    internalRerenderStatefulComponent(stateActions, componentInstance.$c(props, componentInstance.$t, stateActions), componentInstance, instance, componentInstanceProp);
 	  }
 	};
 

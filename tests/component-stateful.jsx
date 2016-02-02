@@ -36,11 +36,11 @@ StatefulCounter.state = {
   redirect:    (props, state, actions)=>actions.increment()
 };
 
-const NoOnPropsComp = props=>
-  props.message === 'hello' ? <h1>{props.message}</h1> : <h2>{props.message}</h2>;
+const NoOnPropsComp = (props, state)=>
+  props.message === 'hello' ? <h1>{props.message} {state}</h1> : <h2>{props.message} {state}</h2>;
 
 NoOnPropsComp.state = {
-  onInit: props=>({})
+  onInit: props=>'world'
 };
 
 describe('Stateful Components', ()=>{
@@ -60,6 +60,7 @@ describe('Stateful Components', ()=>{
         '<div>'+
           '<h1>'+
             'hello'+
+            'world'+
           '</h1>'+
         '</div>'
       );
@@ -71,6 +72,7 @@ describe('Stateful Components', ()=>{
         '<div>'+
           '<h2>'+
             'goodbye'+
+            'world'+
           '</h2>'+
         '</div>'
       );

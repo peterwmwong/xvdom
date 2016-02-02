@@ -357,14 +357,15 @@ const rerenderInstance = (isOnlyChild, value, prevValue, node, instance, rerende
 };
 
 const rerenderStatefulComponent = (component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp)=>{
-  const onProps = componentInstance.$a.onProps;
+  const stateActions = componentInstance.$a;
+  const onProps = stateActions.onProps;
   componentInstance.$p = props;
 
   if(onProps) onProps();
   else{
     internalRerenderStatefulComponent(
-      componentInstance.$a,
-      componentInstance.$c(props, componentInstance, componentInstance.$a),
+      stateActions,
+      componentInstance.$c(props, componentInstance.$t, stateActions),
       componentInstance,
       instance,
       componentInstanceProp
