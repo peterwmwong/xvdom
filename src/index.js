@@ -8,6 +8,7 @@ $n = DOM node
 $p - props for components
 $s - spec (see below)
 $t - state for stateful components
+$x - Pool linked list next pointer
 
 Spec properties:
 
@@ -21,20 +22,22 @@ const PRE_INSTANCE    = {$p:null};
 const MARKER_NODE     = document.createComment('');
 export const DEADPOOL = {push(){}, pop(){}};
 
-export function Pool(){}
-Pool.prototype = {
-  push(instance){
-    const key = instance.key;
-    instance.next = this[key];
-    this[key] = instance;
-  },
-  pop(key){
-    const head = this[key];
-    if(head){
-      this[key] = head.next;
-      return head;
+export const Pool = ()=>{
+  const map = new Map();
+  return {
+    push(instance){
+      const key = instance.key;
+      instance.$x = map.get(key);
+      map.set(key, instance);
+    },
+    pop(key){
+      const head = map.get(key);
+      if(head){
+        map.set(key, head.$x);
+        return head;
+      }
     }
-  }
+  };
 };
 
 const recycle = instance=>{instance.$s.r.push(instance);};
@@ -49,15 +52,17 @@ const replaceNode   = (oldNode, newNode)=>{
 const insertBefore = (parentNode, node, beforeNode)=>
   beforeNode ? parentNode.insertBefore(node, beforeNode) : parentNode.appendChild(node);
 
+const unmountInstance = (inst, parentNode)=>{
+  recycle(inst);
+  parentNode.removeChild(inst.$n);
+};
+
 const removeArrayNodes = (array, parentNode)=>{
   let length = array.length;
   let i = 0;
-  let item;
 
   while(i<length){
-    item = array[i++];
-    recycle(item);
-    parentNode.removeChild(item.$n);
+    unmountInstance(array[i++], parentNode);
   }
 };
 
@@ -154,23 +159,23 @@ const renderArrayToParent = (parentNode, array, length)=>{
 };
 
 const rerenderArray_reconcileWithMap = (parentNode, array, oldArray, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex)=>{
-  const oldListNodeKeyMap = {};
+  const oldListNodeKeyMap = new Map();
   let insertBeforeNode = oldEndItem.$n;
   let item, key, startItem;
 
   while(oldStartIndex <= oldEndIndex){
     item = oldArray[oldStartIndex++];
-    oldListNodeKeyMap[item.key] = item;
+    oldListNodeKeyMap.set(item.key, item);
   }
 
   while(startIndex <= endIndex){
     startItem = array[startIndex];
     key = startItem.key;
-    item = oldListNodeKeyMap[key];
+    item = oldListNodeKeyMap.get(key);
 
     if(item){
       if(item === oldEndItem) insertBeforeNode = insertBeforeNode.nextSibling;
-      oldListNodeKeyMap[key] = null;
+      oldListNodeKeyMap.delete(key);
       startItem = internalRerender(item, startItem);
     }
     else{
@@ -181,13 +186,9 @@ const rerenderArray_reconcileWithMap = (parentNode, array, oldArray, startIndex,
     ++startIndex;
   }
 
-  for(key in oldListNodeKeyMap){
-    item = oldListNodeKeyMap[key];
-    if(item){
-      recycle(item);
-      parentNode.removeChild(item.$n);
-    }
-  }
+  oldListNodeKeyMap.forEach(value=>{
+    unmountInstance(value, parentNode);
+  });
 };
 
 const rerenderArray_afterReconcile = (parentNode, array, oldArray, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode)=>{
@@ -204,9 +205,7 @@ const rerenderArray_afterReconcile = (parentNode, array, oldArray, startIndex, s
   }
   else if(startIndex > endIndex){
     while(oldStartIndex <= oldEndIndex){
-      oldStartItem = oldArray[oldStartIndex++];
-      recycle(oldStartItem);
-      parentNode.removeChild(oldStartItem.$n);
+      unmountInstance(oldArray[oldStartIndex++], parentNode);
     }
   }
   else{
@@ -497,10 +496,7 @@ const internalRerender = (prevInstance, instance)=>{
 
 export const rerender = (node, instance)=>internalRerender(node.xvdom, instance).$n;
 
-export const unmount = node=>{
-  if(node.xvdom) recycle(node.xvdom);
-  if(node.parentNode) node.parentNode.removeChild(node);
-};
+export const unmount = node=>{ unmountInstance(node.xvdom, node.parentNode); };
 
 export default {
   createDynamic,

@@ -3,10 +3,10 @@ import getHTMLString  from './utils/getHTMLString.js';
 import spyOn          from './utils/spyOn.js';
 import xvdom          from '../src/index.js';
 
-describe('rerender recycled - node, renderInstance', ()=>{
+describe('render recycled - node, renderInstance', ()=>{
   const render = (key, className)=>
     <div key={key} className={className} recycle />;
-  let node0, node1;
+  let parentNode, node0, node1;
 
   beforeEach(()=>{
     spyOn.uninstall();
@@ -15,6 +15,7 @@ describe('rerender recycled - node, renderInstance', ()=>{
     spyOn(Node.prototype, 'removeChild');
     spyOn(document, 'createElement');
 
+    parentNode = document.createElement('div');
     node0 = xvdom.render(render(0, '_0'));
     node1 = xvdom.render(render(1, '_1'));
     assert.equal(getHTMLString(node0),
@@ -23,6 +24,9 @@ describe('rerender recycled - node, renderInstance', ()=>{
     assert.equal(getHTMLString(node1),
       '<div class="_1"></div>'
     );
+
+    parentNode.appendChild(node0);
+    parentNode.appendChild(node1);
     xvdom.unmount(node0);
     xvdom.unmount(node1);
     spyOn.resetSpyCounts();

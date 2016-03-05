@@ -26,6 +26,40 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
     const render = (children, key)=>
       <div key={key}>{children}</div>;
 
+    it('Handles keys that are JS reserved words', ()=>{
+      const parentNode = xvdom.render(
+        render([
+          renderChild('a', 'a')
+        ])
+      );
+
+      assert.equal(getHTMLString(parentNode),
+        '<div>'+
+          '<div class="a"></div>'+
+        '</div>'
+      );
+
+      xvdom.rerender(parentNode,
+        render([
+          renderChild('constructor',    'constructor'),
+          renderChild('hasOwnProperty', 'hasOwnProperty'),
+          renderChild('toString',       'toString'),
+          renderChild('valueOf',        'valueOf'),
+          renderChild('__proto__',      '__proto__')
+        ])
+      );
+
+      assert.equal(getHTMLString(parentNode),
+        '<div>'+
+          '<div class="constructor"></div>'+
+          '<div class="hasOwnProperty"></div>'+
+          '<div class="toString"></div>'+
+          '<div class="valueOf"></div>'+
+          '<div class="__proto__"></div>'+
+        '</div>'
+      );
+    });
+
     it('Update array items', ()=>{
       const parentNode = xvdom.render(
         render([
