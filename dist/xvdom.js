@@ -66,7 +66,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.Pool = Pool;
 	/*
 
 	Instance properties:
@@ -77,6 +76,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	$p - props for components
 	$s - spec (see below)
 	$t - state for stateful components
+	$x - Pool linked list next pointer
 
 	Spec properties:
 
@@ -93,20 +93,22 @@ return /******/ (function(modules) { // webpackBootstrap
 	  pop: function pop() {}
 	};
 
-	function Pool() {}
-	Pool.prototype = {
-	  push: function push(instance) {
-	    var key = instance.key;
-	    instance.next = this[key];
-	    this[key] = instance;
-	  },
-	  pop: function pop(key) {
-	    var head = this[key];
-	    if (head) {
-	      this[key] = head.next;
-	      return head;
+	var Pool = exports.Pool = function Pool() {
+	  var map = new Map();
+	  return {
+	    push: function push(instance) {
+	      var key = instance.key;
+	      instance.$x = map.get(key);
+	      map.set(key, instance);
+	    },
+	    pop: function pop(key) {
+	      var head = map.get(key);
+	      if (head) {
+	        map.set(key, head.$x);
+	        return head;
+	      }
 	    }
-	  }
+	  };
 	};
 
 	var recycle = function recycle(instance) {
@@ -126,15 +128,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return beforeNode ? parentNode.insertBefore(node, beforeNode) : parentNode.appendChild(node);
 	};
 
+	var unmountInstance = function unmountInstance(inst, parentNode) {
+	  recycle(inst);
+	  parentNode.removeChild(inst.$n);
+	};
+
 	var removeArrayNodes = function removeArrayNodes(array, parentNode) {
 	  var length = array.length;
 	  var i = 0;
-	  var item = undefined;
 
 	  while (i < length) {
-	    item = array[i++];
-	    recycle(item);
-	    parentNode.removeChild(item.$n);
+	    unmountInstance(array[i++], parentNode);
 	  }
 	};
 
@@ -226,7 +230,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	var rerenderArray_reconcileWithMap = function rerenderArray_reconcileWithMap(parentNode, array, oldArray, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex) {
-	  var oldListNodeKeyMap = {};
+	  var oldListNodeKeyMap = new Map();
 	  var insertBeforeNode = oldEndItem.$n;
 	  var item = undefined,
 	      key = undefined,
@@ -234,17 +238,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  while (oldStartIndex <= oldEndIndex) {
 	    item = oldArray[oldStartIndex++];
-	    oldListNodeKeyMap[item.key] = item;
+	    oldListNodeKeyMap.set(item.key, item);
 	  }
 
 	  while (startIndex <= endIndex) {
 	    startItem = array[startIndex];
 	    key = startItem.key;
-	    item = oldListNodeKeyMap[key];
+	    item = oldListNodeKeyMap.get(key);
 
 	    if (item) {
 	      if (item === oldEndItem) insertBeforeNode = insertBeforeNode.nextSibling;
-	      oldListNodeKeyMap[key] = null;
+	      oldListNodeKeyMap.delete(key);
 	      startItem = internalRerender(item, startItem);
 	    } else {
 	      startItem = internalRender(startItem);
@@ -254,13 +258,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    ++startIndex;
 	  }
 
-	  for (key in oldListNodeKeyMap) {
-	    item = oldListNodeKeyMap[key];
-	    if (item) {
-	      recycle(item);
-	      parentNode.removeChild(item.$n);
-	    }
-	  }
+	  oldListNodeKeyMap.forEach(function (value) {
+	    unmountInstance(value, parentNode);
+	  });
 	};
 
 	var rerenderArray_afterReconcile = function rerenderArray_afterReconcile(parentNode, array, oldArray, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode) {
@@ -272,9 +272,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  } else if (startIndex > endIndex) {
 	    while (oldStartIndex <= oldEndIndex) {
-	      oldStartItem = oldArray[oldStartIndex++];
-	      recycle(oldStartItem);
-	      parentNode.removeChild(oldStartItem.$n);
+	      unmountInstance(oldArray[oldStartIndex++], parentNode);
 	    }
 	  } else {
 	    rerenderArray_reconcileWithMap(parentNode, array, oldArray, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex);
@@ -535,8 +533,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	var unmount = exports.unmount = function unmount(node) {
-	  if (node.xvdom) recycle(node.xvdom);
-	  if (node.parentNode) node.parentNode.removeChild(node);
+	  unmountInstance(node.xvdom, node.parentNode);
 	};
 
 	exports.default = {
