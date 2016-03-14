@@ -1,6 +1,6 @@
 import assert        from 'assert';
 import getHTMLString from './utils/getHTMLString.js';
-import xvdom, {_}    from '../src/index.js';
+import xvdom    from '../src/index.js';
 
 describe('createDynamic - isOnlyChild, value, instance, rerenderIndex, rerenderContextIndex', ()=>{
   let instance, parentNode, resultNode;
@@ -27,7 +27,7 @@ describe('createDynamic - isOnlyChild, value, instance, rerenderIndex, rerenderC
       });
 
       it('sets rerender function and context', ()=>{
-        assert.equal(instance.r0, _.rerenderDynamic);
+        assert.equal(instance.r0, xvdom.rerenderDynamic);
         assert.equal(instance.c0, parentNode.firstChild);
       });
     });
@@ -48,7 +48,7 @@ describe('createDynamic - isOnlyChild, value, instance, rerenderIndex, rerenderC
     });
 
     it('sets rerender function and context', ()=>{
-      assert.equal(instance.r0, _.rerenderText);
+      assert.equal(instance.r0, xvdom.rerenderText);
       assert.equal(instance.c0, parentNode.firstChild);
     });
   });
@@ -68,7 +68,7 @@ describe('createDynamic - isOnlyChild, value, instance, rerenderIndex, rerenderC
     });
 
     it('sets rerender function and context', ()=>{
-      assert.equal(instance.r0, _.rerenderText);
+      assert.equal(instance.r0, xvdom.rerenderText);
       assert.equal(instance.c0, parentNode.firstChild);
     });
   });
@@ -88,7 +88,7 @@ describe('createDynamic - isOnlyChild, value, instance, rerenderIndex, rerenderC
     });
 
     it('sets rerender function and context', ()=>{
-      assert.equal(instance.r0, _.rerenderInstance);
+      assert.equal(instance.r0, xvdom.rerenderInstance);
       assert.equal(instance.c0, parentNode.firstChild);
     });
   });
@@ -118,7 +118,7 @@ describe('createDynamic - isOnlyChild, value, instance, rerenderIndex, rerenderC
     });
 
     it('sets rerender function and context', ()=>{
-      assert.equal(instance.r0, _.rerenderArray);
+      assert.equal(instance.r0, xvdom.rerenderArrayMaybe);
       assert.equal(instance.c0, parentNode);
     });
   });

@@ -20,9 +20,9 @@ r - keyed map of unmounted instanced that can be recycled
 
 const PRE_INSTANCE    = {$p:null};
 const MARKER_NODE     = document.createComment('');
-export const DEADPOOL = {push(){}, pop(){}};
+const DEADPOOL = {push(){}, pop(){}};
 
-export const Pool = ()=>{
+const Pool = ()=>{
   const map = new Map();
   return {
     push(instance){
@@ -430,7 +430,7 @@ const createStatefulComponent = (component, props, instance, rerenderFuncProp, r
   return node;
 };
 
-export const createDynamic = (isOnlyChild, parentNode, value, instance, rerenderFuncProp, rerenderContextNode)=>{
+const createDynamic = (isOnlyChild, parentNode, value, instance, rerenderFuncProp, rerenderContextNode)=>{
   let node, context, rerenderFunc;
   let valueConstructor;
   if(value == null || ((valueConstructor = value.constructor) === Boolean)){
@@ -458,7 +458,7 @@ export const createDynamic = (isOnlyChild, parentNode, value, instance, rerender
   return node;
 };
 
-export const createComponent = (component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
+const createComponent = (component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
   if(component.state) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
 
   const inst = component(props || {});
@@ -483,7 +483,7 @@ const internalRender = instance=>{
   }
 };
 
-export const render = instance=>internalRender(instance).$n;
+const render = instance=>internalRender(instance).$n;
 
 const internalRerender = (prevInstance, instance)=>{
   if(internalRerenderInstance(instance, prevInstance)) return prevInstance;
@@ -494,24 +494,20 @@ const internalRerender = (prevInstance, instance)=>{
   return instance;
 };
 
-export const rerender = (node, instance)=>internalRerender(node.xvdom, instance).$n;
+const rerender = (node, instance)=>internalRerender(node.xvdom, instance).$n;
 
-export const unmount = node=>{ unmountInstance(node.xvdom, node.parentNode); };
+const unmount = node=>{ unmountInstance(node.xvdom, node.parentNode); };
 
 export default {
+  DEADPOOL,
+  Pool,
+  rerenderText,
+  rerenderDynamic,
+  rerenderInstance,
+  rerenderArrayMaybe,
   createDynamic,
   createComponent,
   render,
   rerender,
-  unmount,
-  Pool,
-  DEADPOOL
-};
-
-// Internal API
-export const _ = {
-  rerenderText,
-  rerenderInstance,
-  rerenderDynamic,
-  rerenderArray: rerenderArrayMaybe
+  unmount
 };
