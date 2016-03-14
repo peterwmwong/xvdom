@@ -232,9 +232,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	var rerenderArray_reconcileWithMap = function rerenderArray_reconcileWithMap(parentNode, array, oldArray, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex) {
 	  var oldListNodeKeyMap = new Map();
 	  var insertBeforeNode = oldEndItem.$n;
-	  var item = undefined,
-	      key = undefined,
-	      startItem = undefined;
+	  var item = void 0,
+	      key = void 0,
+	      startItem = void 0;
 
 	  while (oldStartIndex <= oldEndIndex) {
 	    item = oldArray[oldStartIndex++];
@@ -288,9 +288,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var startItem = 0 !== length && array[0];
 	  var oldStartItem = 0 !== oldLength && oldArray[0];
 	  var insertBeforeNode = markerNode;
-	  var oldEndItem = undefined,
-	      endItem = undefined,
-	      node = undefined;
+	  var oldEndItem = void 0,
+	      endItem = void 0,
+	      node = void 0;
 
 	  outer: while (successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex) {
 	    successful = false;
@@ -465,10 +465,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	var createDynamic = exports.createDynamic = function createDynamic(isOnlyChild, parentNode, value, instance, rerenderFuncProp, rerenderContextNode) {
-	  var node = undefined,
-	      context = undefined,
-	      rerenderFunc = undefined;
-	  var valueConstructor = undefined;
+	  var node = void 0,
+	      context = void 0,
+	      rerenderFunc = void 0;
+	  var valueConstructor = void 0;
 	  if (value == null || (valueConstructor = value.constructor) === Boolean) {
 	    rerenderFunc = rerenderDynamic;
 	    context = node = getMarkerNode();
