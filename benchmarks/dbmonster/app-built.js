@@ -72,7 +72,7 @@
 	      pInst.a = pInst.b(true, inst.a, pInst.a, pInst.c, pInst, "b", "c");
 	    }
 	  },
-	  r: null
+	  r: xvdom.DEADPOOL
 	};
 	var _xvdomSpec2 = {
 	  c: function c(inst) {
@@ -121,7 +121,7 @@
 	      pInst.i = pInst.j(false, inst.i, pInst.i, pInst.k, pInst, "j", "k");
 	    }
 	  },
-	  r: null
+	  r: xvdom.DEADPOOL
 	};
 	var _xvdomSpec = {
 	  c: function c(inst) {
@@ -160,22 +160,13 @@
 	      pInst.d = pInst.e(true, inst.d, pInst.d, pInst.f, pInst, "e", "f");
 	    }
 	  },
-	  r: null
+	  r: xvdom.DEADPOOL
 	};
 	var renderQuery = function renderQuery(query, j) {
 	  return {
 	    $s: _xvdomSpec,
-	    $n: null,
-	    $c: null,
-	    $t: null,
-	    $a: null,
-	    $p: null,
 	    a: query.formatElapsed,
-	    b: null,
-	    c: null,
 	    d: query.query,
-	    e: null,
-	    f: null,
 	    key: j
 	  };
 	};
@@ -196,22 +187,10 @@
 	  var lastSample = _ref.lastSample;
 	  return {
 	    $s: _xvdomSpec2,
-	    $n: null,
-	    $c: null,
-	    $t: null,
-	    $a: null,
-	    $p: null,
 	    a: dbname,
-	    b: null,
-	    c: null,
 	    d: lastSample.countClassName,
-	    e: null,
 	    f: lastSample.nbQueries,
-	    g: null,
-	    h: null,
 	    i: renderQueries(lastSample.topFiveQueries),
-	    j: null,
-	    k: null,
 	    key: i
 	  };
 	};
@@ -227,18 +206,11 @@
 	  return newArray;
 	};
 
-	var dbmonApp = undefined;
+	var dbmonApp = void 0;
 	var render = function render() {
 	  var instance = {
 	    $s: _xvdomSpec3,
-	    $n: null,
-	    $c: null,
-	    $t: null,
-	    $a: null,
-	    $p: null,
-	    a: renderDatabases(ENV.generateData().toArray()),
-	    b: null,
-	    c: null
+	    a: renderDatabases(ENV.generateData().toArray())
 	  };
 
 	  Monitoring.renderRate.ping();

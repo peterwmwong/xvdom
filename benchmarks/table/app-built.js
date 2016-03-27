@@ -60,7 +60,7 @@
 	    return _n;
 	  },
 	  u: function u() {},
-	  r: null
+	  r: xvdom.DEADPOOL
 	};
 	var _xvdomSpec4 = {
 	  c: function c(inst) {
@@ -75,7 +75,7 @@
 	      pInst.a = pInst.b(true, inst.a, pInst.a, pInst.c, pInst, 'b', 'c');
 	    }
 	  },
-	  r: null
+	  r: xvdom.DEADPOOL
 	};
 	var _xvdomSpec3 = {
 	  c: function c(inst) {
@@ -90,7 +90,7 @@
 	      pInst.a = pInst.b(true, inst.a, pInst.a, pInst.c, pInst, 'b', 'c');
 	    }
 	  },
-	  r: null
+	  r: xvdom.DEADPOOL
 	};
 	var _xvdomSpec2 = {
 	  c: function c(inst) {
@@ -117,7 +117,7 @@
 	      pInst.p0cellUpdaters = inst.p0cellUpdaters;
 	    }
 	  },
-	  r: null
+	  r: xvdom.DEADPOOL
 	};
 	var _xvdomSpec = {
 	  c: function c(inst) {
@@ -140,12 +140,15 @@
 	      pInst.c = pInst.d(true, inst.c, pInst.c, pInst.e, pInst, 'd', 'e');
 	    }
 	  },
-	  r: null
+	  r: xvdom.DEADPOOL
 	};
 	var COLS = 100;
 	var ROWS = 100;
 	var randInt = function randInt(maxValue) {
 	  return Math.random() * maxValue | 0;
+	};
+	var cellId = function cellId(row, cell) {
+	  return row + '-' + cell;
 	};
 	var genRows = function genRows() {
 	  var rows = new Array(ROWS);
@@ -160,23 +163,11 @@
 	  return rows;
 	};
 
-	var cellId = function cellId(row, cell) {
-	  return row + '-' + cell;
-	};
-
 	var Cell = function Cell(props, state) {
 	  return {
 	    $s: _xvdomSpec,
-	    $n: null,
-	    $c: null,
-	    $t: null,
-	    $a: null,
-	    $p: null,
 	    a: state > 50 ? 'high' : 'low',
-	    b: null,
-	    c: state,
-	    d: null,
-	    e: null
+	    c: state
 	  };
 	};
 
@@ -201,30 +192,12 @@
 	  var cellUpdaters = _ref3.cellUpdaters;
 	  return {
 	    $s: _xvdomSpec4,
-	    $n: null,
-	    $c: null,
-	    $t: null,
-	    $a: null,
-	    $p: null,
 	    a: rows.map(function (row, i) {
 	      return {
 	        $s: _xvdomSpec3,
-	        $n: null,
-	        $c: null,
-	        $t: null,
-	        $a: null,
-	        $p: null,
 	        a: row.map(function (cell, j) {
 	          return {
 	            $s: _xvdomSpec2,
-	            $n: null,
-	            $c: null,
-	            $t: null,
-	            $a: null,
-	            $p: null,
-	            b: null,
-	            c: null,
-	            d: null,
 	            p0initialValue: cell,
 	            p0row: i,
 	            p0cell: j,
@@ -232,13 +205,9 @@
 	            key: j
 	          };
 	        }),
-	        b: null,
-	        c: null,
 	        key: i
 	      };
-	    }),
-	    b: null,
-	    c: null
+	    })
 	  };
 	};
 
@@ -257,15 +226,7 @@
 	};
 
 	window.app.appendChild(xvdom.render({
-	  $s: _xvdomSpec5,
-	  $n: null,
-	  $c: null,
-	  $t: null,
-	  $a: null,
-	  $p: null,
-	  b: null,
-	  c: null,
-	  d: null
+	  $s: _xvdomSpec5
 	}));
 
 /***/ }

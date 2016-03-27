@@ -12,13 +12,13 @@ const renderQuery = (query, j)=>
 const renderQueries = (array)=>{
   const length = array.length;
 	const newArray = new Array(length);
-  var i=0;
-	while(i < length) {
+  let i=0;
+	while(i < length){
 		newArray[i] = renderQuery(array[i], i);
     ++i;
 	}
 	return newArray;
-}
+};
 
 const renderDatabase = ({dbname, lastSample}, i)=>
   <tr key={i}>
@@ -37,7 +37,7 @@ const renderDatabases = (array)=>{
   const length = array.length;
 	const newArray = new Array(length);
   let i=0;
-	while(i < length) {
+	while(i < length){
 		newArray[i] = renderDatabase(array[i], i);
     ++i;
 	}

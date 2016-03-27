@@ -63,9 +63,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 	/*
 
 	Instance properties:
@@ -178,17 +176,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	var callAction = function callAction(stateActions, action, parentInst, componentInstanceProp, args) {
-	  var inst = stateActions.$$instance;
-	  var props = inst.$p;
-	  var state = inst.$t;
+	  var $$instance = stateActions.$$instance;
+	  var $$doRerender = stateActions.$$doRerender;
+	  var props = $$instance.$p;
+	  var state = $$instance.$t;
 
-	  var shouldRerender = stateActions.$$doRerender;
+
 	  stateActions.$$doRerender = false;
-	  var newState = action.apply(undefined, [props, state, stateActions].concat(args));
-	  stateActions.$$doRerender = shouldRerender;
-	  inst.$t = newState;
-	  if (state !== newState && shouldRerender) {
-	    internalRerenderStatefulComponent(stateActions, inst.$c(props, newState, stateActions), inst, parentInst, componentInstanceProp);
+	  var newState = $$instance.$t = action.apply(undefined, [props, state, stateActions].concat(args));
+	  stateActions.$$doRerender = $$doRerender;
+
+	  if (state !== newState && $$doRerender) {
+	    internalRerenderStatefulComponent(stateActions, $$instance.$c(props, newState, stateActions), $$instance, parentInst, componentInstanceProp);
 	  }
 	  return newState;
 	};
@@ -279,18 +278,18 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	};
 
-	var rerenderArray_reconcile = function rerenderArray_reconcile(parentNode, array, length, oldArray, oldLength, markerNode) {
+	var rerenderArray_reconcile = function rerenderArray_reconcile(parentNode, array, endIndex, oldArray, oldEndIndex, markerNode) {
 	  var oldStartIndex = 0;
 	  var startIndex = 0;
 	  var successful = true;
-	  var endIndex = length - 1;
-	  var oldEndIndex = oldLength - 1;
-	  var startItem = 0 !== length && array[0];
-	  var oldStartItem = 0 !== oldLength && oldArray[0];
+	  var startItem = array[0];
+	  var oldStartItem = oldArray[0];
 	  var insertBeforeNode = markerNode;
 	  var oldEndItem = void 0,
 	      endItem = void 0,
 	      node = void 0;
+	  endIndex--;
+	  oldEndIndex--;
 
 	  outer: while (successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex) {
 	    successful = false;
