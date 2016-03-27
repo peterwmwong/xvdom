@@ -104,18 +104,18 @@ const internalRerenderStatefulComponent = (stateActions, inst, prevInst, parentI
 };
 
 const callAction = (stateActions, action, parentInst, componentInstanceProp, args)=>{
-  const inst                = stateActions.$$instance;
-  const {$p:props, $t:state}= inst;
-  const shouldRerender      = stateActions.$$doRerender;
+  const {$$instance, $$doRerender} = stateActions;
+  const {$p:props, $t:state} = $$instance;
+
   stateActions.$$doRerender = false;
-  const newState            = action.apply(undefined, [props, state, stateActions].concat(args));
-  stateActions.$$doRerender = shouldRerender;
-  inst.$t = newState;
-  if(state !== newState && shouldRerender){
+  const newState = $$instance.$t = action(...[props, state, stateActions, ...args]);
+  stateActions.$$doRerender = $$doRerender;
+
+  if(state !== newState && $$doRerender){
     internalRerenderStatefulComponent(
       stateActions,
-      inst.$c(props, newState, stateActions),
-      inst,
+      $$instance.$c(props, newState, stateActions),
+      $$instance,
       parentInst,
       componentInstanceProp
     );
@@ -213,16 +213,16 @@ const rerenderArray_afterReconcile = (parentNode, array, oldArray, startIndex, s
   }
 };
 
-const rerenderArray_reconcile = (parentNode, array, length, oldArray, oldLength, markerNode)=>{
-  let oldStartIndex = 0;
-  let startIndex    = 0;
-  let successful    = true;
-  let endIndex      = length - 1;
-  let oldEndIndex   = oldLength - 1;
-  let startItem     = 0 !== length && array[0];
-  let oldStartItem  = 0 !== oldLength && oldArray[0];
+const rerenderArray_reconcile = (parentNode, array, endIndex, oldArray, oldEndIndex, markerNode)=>{
+  let oldStartIndex    = 0;
+  let startIndex       = 0;
+  let successful       = true;
+  let startItem        = array[0];
+  let oldStartItem     = oldArray[0];
   let insertBeforeNode = markerNode;
   let oldEndItem, endItem, node;
+  endIndex--;
+  oldEndIndex--;
 
   outer: while(successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex){
     successful = false;
