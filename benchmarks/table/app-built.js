@@ -55,7 +55,7 @@
 
 	var _xvdomSpec5 = {
 	  c: function c(inst) {
-	    var _n = xvdom.createComponent(App, null, inst, 'b', 'c', 'd');
+	    var _n = xvdom.createComponent(App, null, inst, 'a', 'b', 'c');
 
 	    return _n;
 	  },
@@ -95,26 +95,26 @@
 	var _xvdomSpec2 = {
 	  c: function c(inst) {
 	    var _n = xvdom.createComponent(Cell, {
-	      initialValue: inst.p0initialValue,
-	      row: inst.p0row,
-	      cell: inst.p0cell,
-	      cellUpdaters: inst.p0cellUpdaters
-	    }, inst, 'b', 'c', 'd');
+	      initialValue: inst.a,
+	      row: inst.b,
+	      cell: inst.c,
+	      cellUpdaters: inst.d
+	    }, inst, 'e', 'f', 'g');
 
 	    return _n;
 	  },
 	  u: function u(inst, pInst) {
-	    if (inst.p0cell !== pInst.p0cell || inst.p0row !== pInst.p0row || inst.p0initialValue !== pInst.p0initialValue || inst.p0cellUpdaters !== pInst.p0cellUpdaters) {
-	      pInst.b(Cell, {
-	        initialValue: inst.p0initialValue,
-	        row: inst.p0row,
-	        cell: inst.p0cell,
-	        cellUpdaters: inst.p0cellUpdaters
-	      }, null, pInst.d, pInst.c, pInst, 'c', 'd');
-	      pInst.p0initialValue = inst.p0initialValue;
-	      pInst.p0row = inst.p0row;
-	      pInst.p0cell = inst.p0cell;
-	      pInst.p0cellUpdaters = inst.p0cellUpdaters;
+	    if (inst.c !== pInst.c || inst.b !== pInst.b || inst.a !== pInst.a || inst.d !== pInst.d) {
+	      pInst.e(Cell, {
+	        initialValue: inst.a,
+	        row: inst.b,
+	        cell: inst.c,
+	        cellUpdaters: inst.d
+	      }, null, pInst.g, pInst.f, pInst, 'f', 'g');
+	      pInst.a = inst.a;
+	      pInst.b = inst.b;
+	      pInst.c = inst.c;
+	      pInst.d = inst.d;
 	    }
 	  },
 	  r: xvdom.DEADPOOL
@@ -198,10 +198,10 @@
 	        a: row.map(function (cell, j) {
 	          return {
 	            $s: _xvdomSpec2,
-	            p0initialValue: cell,
-	            p0row: i,
-	            p0cell: j,
-	            p0cellUpdaters: cellUpdaters,
+	            a: cell,
+	            b: i,
+	            c: j,
+	            d: cellUpdaters,
 	            key: j
 	          };
 	        }),
