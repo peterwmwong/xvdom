@@ -3,13 +3,9 @@ import xvdom from '../../dist/xvdom.min.js';
 import {DatabaseList} from './data.js';
 
 const MUTATION_RATE = 0.5;
-const N = 50;
-const dbs = new DatabaseList(N);
+const dbs = new DatabaseList(50);
 
-const entryFormatElapsed = (v)=>
-  v <= 60
-    ? v.toFixed(2)
-    : `${(v / 60) | 0}:${v % 60}`;
+const entryFormatElapsed = (v)=> v.toFixed(2)
 
 const counterClasses = (count)=>
     count >= 20 ? 'label label-important'

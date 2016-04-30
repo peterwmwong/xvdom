@@ -181,11 +181,10 @@
 
 
 	var MUTATION_RATE = 0.5;
-	var N = 50;
-	var dbs = new _data.DatabaseList(N);
+	var dbs = new _data.DatabaseList(50);
 
 	var entryFormatElapsed = function entryFormatElapsed(v) {
-	  return v <= 60 ? v.toFixed(2) : (v / 60 | 0) + ':' + v % 60;
+	  return v.toFixed(2);
 	};
 
 	var counterClasses = function counterClasses(count) {
@@ -795,11 +794,6 @@
 
 	  return DB;
 	}();
-
-	/**
-	 * @final
-	 */
-
 
 	var DatabaseList = exports.DatabaseList = function () {
 	  function DatabaseList(n) {
