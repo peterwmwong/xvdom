@@ -1,3 +1,4 @@
+import {startFPSMonitor, initProfiler, startProfile, endProfile} from 'perf-monitor';
 import xvdom from '../../dist/xvdom.min.js';
 import {DatabaseList} from './data.js';
 
@@ -6,16 +7,18 @@ const N = 50;
 const dbs = new DatabaseList(N);
 
 const entryFormatElapsed = (v)=>
-  v <= 60 ? v.toFixed(2) : `${(v / 60) | 0}:${v % 60}`;
+  v <= 60
+    ? v.toFixed(2)
+    : `${(v / 60) | 0}:${v % 60}`;
 
 const counterClasses = (count)=>
-    (count >= 20) ? 'label label-important'
-  : (count >= 10) ? 'label label-warning'
+    count >= 20 ? 'label label-important'
+  : count >= 10 ? 'label label-warning'
   : 'label label-success';
 
 const queryClasses = (elapsed)=>
-    (elapsed >= 20) ? 'Query elapsed warn_long'
-  : (elapsed >= 10) ? 'Query elapsed warn'
+    elapsed >= 20 ? 'Query elapsed warn_long'
+  : elapsed >= 10 ? 'Query elapsed warn'
   : 'Query elapsed short';
 
 const map = (array, fn)=> {
@@ -65,18 +68,18 @@ const renderTable = (data)=>
 
 
 let dbmonApp;
-perfMonitor.startFPSMonitor();
-perfMonitor.initProfiler('data');
-perfMonitor.initProfiler('view');
+startFPSMonitor();
+initProfiler('data');
+initProfiler('view');
 
 const render = ()=>{
-  perfMonitor.startProfile('data');
+  startProfile('data');
   dbs.randomUpdate(MUTATION_RATE);
-  perfMonitor.endProfile('data');
+  endProfile('data');
 
-  perfMonitor.startProfile('view');
+  startProfile('view');
   xvdom.rerender(dbmonApp, renderTable(dbs.dbs));
-  perfMonitor.endProfile('view');
+  endProfile('view');
 
   requestAnimationFrame(render);
 }

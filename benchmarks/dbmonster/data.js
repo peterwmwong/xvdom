@@ -56,9 +56,6 @@ export class DB {
   }
 }
 
-/**
- * @final
- */
 export class DatabaseList {
   constructor(n) {
     this.dbs = [];
