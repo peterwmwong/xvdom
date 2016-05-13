@@ -85,12 +85,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	*/
 
 	var PRE_INSTANCE = { $p: null };
+	var EMPTY_PROPS = {};
 	var MARKER_NODE = document.createComment('');
 	var DEADPOOL = exports.DEADPOOL = {
 	  push: function push() {},
 	  pop: function pop() {}
 	};
 
+	// TODO: Benchmark whether this is slower than Function/Prototype
 	var Pool = exports.Pool = function Pool() {
 	  var map = new Map();
 	  return {
@@ -416,7 +418,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	var rerenderComponent = function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
-	  var newCompInstance = component(props || {});
+	  var newCompInstance = component(props || EMPTY_PROPS);
 	  if (!internalRerenderInstance(newCompInstance, componentInstance)) {
 	    replaceNode(node, instance[rerenderContextNode] = (instance[componentInstanceProp] = internalRender(newCompInstance)).$n);
 	  }
@@ -445,7 +447,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  PRE_INSTANCE.$p = props;
 	  var rawActions = component.state;
 	  var actions = createStateActions(rawActions, instance, componentInstanceProp);
-	  var state = rawActions.onInit(props || {}, undefined, actions);
+	  var state = rawActions.onInit(props, undefined, actions);
 	  actions.$$doRerender = true;
 	  var inst = component(props, state, actions);
 	  var node = render(inst);
@@ -490,16 +492,20 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return node;
 	};
 
-	var createComponent = exports.createComponent = function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
-	  if (component.state) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
-
-	  var inst = component(props || {});
+	var createNoStateComponent = exports.createNoStateComponent = function createNoStateComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
+	  var inst = component(props);
 	  var node = render(inst);
 
 	  instance[rerenderFuncProp] = rerenderComponent;
 	  instance[componentInstanceProp] = inst;
 	  instance[rerenderContextNode] = node;
 	  return node;
+	};
+
+	// TODO: Consider JSX transform passes in `component.state` to reduce polymorphic IC
+	var createComponent = exports.createComponent = function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
+	  var createFn = component.state ? createStatefulComponent : createNoStateComponent;
+	  return createFn(component, props || EMPTY_PROPS, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
 	};
 
 	var internalRender = function internalRender(instance) {

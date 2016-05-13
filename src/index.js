@@ -19,9 +19,11 @@ r - keyed map of unmounted instanced that can be recycled
 */
 
 const PRE_INSTANCE    = {$p:null};
+const EMPTY_PROPS     = {};
 const MARKER_NODE     = document.createComment('');
 export const DEADPOOL = {push(){}, pop(){}};
 
+// TODO: Benchmark whether this is slower than Function/Prototype
 export const Pool = ()=>{
   const map = new Map();
   return {
@@ -373,7 +375,7 @@ const rerenderStatefulComponent = (component, props, prevProps, componentInstanc
 };
 
 const rerenderComponent = (component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp)=>{
-  const newCompInstance = component(props || {});
+  const newCompInstance = component(props || EMPTY_PROPS);
   if(!internalRerenderInstance(newCompInstance, componentInstance)){
     replaceNode(
       node,
@@ -412,7 +414,7 @@ const createStatefulComponent = (component, props, instance, rerenderFuncProp, r
   PRE_INSTANCE.$p       = props;
   const rawActions      = component.state;
   const actions         = createStateActions(rawActions, instance, componentInstanceProp);
-  const state           = rawActions.onInit(props || {}, undefined, actions);
+  const state           = rawActions.onInit(props, undefined, actions);
   actions.$$doRerender  = true;
   const inst            = component(props, state, actions);
   const node            = render(inst);
@@ -458,16 +460,27 @@ export const createDynamic = (isOnlyChild, parentNode, value, instance, rerender
   return node;
 };
 
-export const createComponent = (component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
-  if(component.state) return createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
-
-  const inst = component(props || {});
+export const createNoStateComponent = (component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
+  const inst = component(props);
   const node = render(inst);
 
   instance[rerenderFuncProp]      = rerenderComponent;
   instance[componentInstanceProp] = inst;
   instance[rerenderContextNode]   = node;
   return node;
+};
+
+// TODO: Consider JSX transform passes in `component.state` to reduce polymorphic IC
+export const createComponent = (component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
+  const createFn = component.state ? createStatefulComponent : createNoStateComponent;
+  return createFn(
+    component,
+    (props || EMPTY_PROPS),
+    instance,
+    rerenderFuncProp,
+    rerenderContextNode,
+    componentInstanceProp
+  );
 };
 
 const internalRender = instance=>{
