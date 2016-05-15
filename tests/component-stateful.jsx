@@ -5,19 +5,21 @@ import xvdom                   from '../src/index.js';
 
 let renderCountSpec1, renderCountSpec2;
 
-const StatefulCounter = (props, state, actions)=>{
+const StatefulCounter = (component)=>{
+  const {props, state} = component;
+  // TODO: Remove and just use callArgs.length for assertions
   StatefulCounter.callCount = StatefulCounter.callCount + 1;
-  StatefulCounter.callsArgs.push([props, state, actions]);
+  StatefulCounter.callsArgs.push(component);
   if(!state.forceFirst && state.count % 2){
     return wrapSpecRenderFunctions(
-      <a>{`initialCount2: ${props.initialCount}, count2: ${state.count}`}</a>,
+      <a>initialCount2: {props.initialCount}, count2: {state.count}</a>,
       ()=>renderCountSpec2++,
       ()=>{}
     );
   }
   else{
     return wrapSpecRenderFunctions(
-      <span>{`initialCount: ${props.initialCount}, count: ${state.count}`}</span>,
+      <span>initialCount: {props.initialCount}, count: {state.count}</span>,
       ()=>renderCountSpec1++,
       ()=>{}
     );
@@ -25,22 +27,20 @@ const StatefulCounter = (props, state, actions)=>{
 };
 
 StatefulCounter.state = {
-  onInit:      (props, state, actions)=>actions.onInit2(),
-  onInit2:      props=>({count: props.initialCount || 0}),
-  onProps:     (props, state, actions)=>({...state, forceFirst: props.forceFirst}),
-  incrementBy: (props, state, actions, amt)=>({count: state.count + amt}),
-  increment:   (props, state, actions)=>({count: state.count + 1}),
-  decrement:   (props, state, actions)=>({count: state.count - 1}),
-  noop:        (props, state, actions)=>state,
-  noopUndef:   (props, state, actions)=>undefined,
-  redirect:    (props, state, actions)=>actions.increment()
+  onInit:      ({props})            =>({count: props.initialCount || 0}),
+  onProps:     ({props, state})     =>({...state, forceFirst: props.forceFirst}),
+  incrementBy: ({props, state}, amt)=>({count: state.count + amt}),
+  increment:   ({props, state})     =>({count: state.count + 1}),
+  decrement:   ({props, state})     =>({count: state.count - 1}),
+  noop:        ({props, state})     =>state,
+  noopUndef:   ({props, state})     =>undefined
 };
 
-const NoOnPropsComp = (props, state)=>
+const NoOnPropsComp = ({props, state})=>
   props.message === 'hello' ? <h1>{props.message} {state}</h1> : <h2>{props.message} {state}</h2>;
 
 NoOnPropsComp.state = {
-  onInit: props=>'world'
+  onInit: ({props})=> 'world'
 };
 
 describe('Stateful Components', ()=>{
@@ -106,9 +106,9 @@ describe('Stateful Components', ()=>{
 
     describe('calling state actions', ()=>{
       it('rerenders if action generates a new state', ()=>{
-        let [/*props*/, /*state*/, {increment}] = StatefulCounter.callsArgs[0];
-        increment();
+        const component = StatefulCounter.callsArgs[0];
 
+        component.send('increment');
         assert.equal(getHTMLString(parentNode),
           '<div>'+
             '<span>'+
@@ -117,10 +117,7 @@ describe('Stateful Components', ()=>{
           '</div>'
         );
 
-        let [/*props*/, /*state*/, {incrementBy}] = StatefulCounter.callsArgs[1];
-
-        assert.deepEqual(incrementBy(5), {count: 783});
-
+        component.send('incrementBy', 5);
         assert.equal(getHTMLString(parentNode),
           '<div>'+
             '<a>'+
@@ -129,10 +126,7 @@ describe('Stateful Components', ()=>{
           '</div>'
         );
 
-        let [/*props*/, /*state*/, {decrement}] = StatefulCounter.callsArgs[2];
-
-        assert.deepEqual(decrement(), {count: 782});
-
+        component.send('decrement');
         assert.equal(getHTMLString(parentNode),
           '<div>'+
             '<span>'+
@@ -140,35 +134,22 @@ describe('Stateful Components', ()=>{
             '</span>'+
           '</div>'
         );
-
-        let [/*props*/, /*state*/, {redirect}] = StatefulCounter.callsArgs[2];
-
         assert.equal(StatefulCounter.callCount, 4);
-        assert.deepEqual(redirect(), {count: 783});
-        assert.equal(StatefulCounter.callCount, 5);
-
-        assert.equal(getHTMLString(parentNode),
-          '<div>'+
-            '<a>'+
-              'initialCount2: 777, count2: 783'+
-            '</a>'+
-          '</div>'
-        );
       });
 
       it('does not blow up if unmounted', ()=>{
         xvdom.unmount(node);
 
-        const [/*props*/, /*state*/, {increment}] = StatefulCounter.callsArgs[0];
+        const component = StatefulCounter.callsArgs[0];
         assert.equal(StatefulCounter.callCount, 1);
-        increment();
+        component.send('increment');
         assert.equal(StatefulCounter.callCount, 2);
       });
 
       it('does not rerender if action yields the same state', ()=>{
-        const [/*props*/, /*state*/, {noop}] = StatefulCounter.callsArgs[0];
+        const component = StatefulCounter.callsArgs[0];
         assert.equal(StatefulCounter.callCount, 1);
-        noop();
+        component.send('noop');
         assert.equal(StatefulCounter.callCount, 1);
         assert.equal(getHTMLString(parentNode),
           '<div>'+
@@ -214,7 +195,6 @@ describe('Stateful Components', ()=>{
           '</a>'+
         '</div>'
       );
-
     });
   });
 });

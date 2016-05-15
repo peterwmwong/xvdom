@@ -18,7 +18,6 @@ r - keyed map of unmounted instanced that can be recycled
 
 */
 
-const PRE_INSTANCE    = {$p:null};
 const EMPTY_PROPS     = {};
 const MARKER_NODE     = document.createComment('');
 export const DEADPOOL = {push(){}, pop(){}};
@@ -83,58 +82,6 @@ const internalRerenderInstance = (inst, prevInst)=>
     inst.$s.u(inst, prevInst),
     true
   );
-
-const internalRerenderStatefulComponent = (stateActions, inst, prevInst, parentInst, componentInstanceProp)=>{
-  if(!internalRerenderInstance(inst, prevInst)){
-    const newNode = render(inst);
-    const node    = parentInst.$n;
-
-    inst.$c = prevInst.$c;
-    inst.$t = prevInst.$t;
-    inst.$p = prevInst.$p;
-    inst.$a = stateActions;
-
-    parentInst.$n = newNode;
-    parentInst[componentInstanceProp] = inst;
-
-    stateActions.$$instance = inst;
-
-    newNode.xvdom = parentInst;
-    replaceNode(node, newNode);
-    recycle(inst);
-  }
-};
-
-const callAction = (stateActions, action, parentInst, componentInstanceProp, args)=>{
-  const {$$instance, $$doRerender} = stateActions;
-  const {$p:props, $t:state} = $$instance;
-
-  stateActions.$$doRerender = false;
-  const newState = $$instance.$t = action(...[props, state, stateActions, ...args]);
-  stateActions.$$doRerender = $$doRerender;
-
-  if(state !== newState && $$doRerender){
-    internalRerenderStatefulComponent(
-      stateActions,
-      $$instance.$c(props, newState, stateActions),
-      $$instance,
-      parentInst,
-      componentInstanceProp
-    );
-  }
-  return newState;
-};
-
-const createAction = (stateActions, action, parentInst, componentInstanceProp)=>
-  (...args)=>callAction(stateActions, action, parentInst, componentInstanceProp, args);
-
-const createStateActions = (rawActions, parentInst, componentInstanceProp)=>{
-  const stateActions = {$$doRerender:false, $$instance:PRE_INSTANCE};
-  for(let sa in rawActions){
-    stateActions[sa] = createAction(stateActions, rawActions[sa], parentInst, componentInstanceProp);
-  }
-  return stateActions;
-};
 
 const renderArrayToParentBefore = (parentNode, array, length, markerNode)=>{
   let i = 0;
@@ -357,23 +304,6 @@ const rerenderInstance = (isOnlyChild, value, prevValue, node, instance, rerende
   return rerenderDynamic(isOnlyChild, value, null, node, instance, rerenderFuncProp, rerenderContextNode);
 };
 
-const rerenderStatefulComponent = (component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp)=>{
-  const stateActions = componentInstance.$a;
-  const onProps = stateActions.onProps;
-  componentInstance.$p = props;
-
-  if(onProps) onProps();
-  else{
-    internalRerenderStatefulComponent(
-      stateActions,
-      componentInstance.$c(props, componentInstance.$t, stateActions),
-      componentInstance,
-      instance,
-      componentInstanceProp
-    );
-  }
-};
-
 const rerenderComponent = (component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp)=>{
   const newCompInstance = component(props || EMPTY_PROPS);
   if(!internalRerenderInstance(newCompInstance, componentInstance)){
@@ -410,26 +340,64 @@ const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode, valuesAndC
   return array;
 };
 
-const createStatefulComponent = (component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
-  PRE_INSTANCE.$p       = props;
-  const rawActions      = component.state;
-  const actions         = createStateActions(rawActions, instance, componentInstanceProp);
-  const state           = rawActions.onInit(props, undefined, actions);
-  actions.$$doRerender  = true;
-  const inst            = component(props, state, actions);
-  const node            = render(inst);
+// TODO: Update JSX transform to just pass api and props
+const rerenderStatefulComponent = (_, props, _2, api)=>{
+  const {actions:{onProps}, props:prevProps} = api;
+  api.props = props;
+  if(onProps){
+    api.send('onProps', prevProps);
+  }
+  else{
+    api._rerender();
+  }
+};
 
-  actions.$$instance = inst;
+function ComponentAPI(component, props, actions, parentInst){
+  this.actions    = actions;
+  this.component  = component;
+  this.parentInst = parentInst;
+  this.props      = props;
 
-  inst.$c = component;
-  inst.$t = state;
-  inst.$a = actions;
-  inst.$p = props;
+  //TODO: process.ENV === 'development', console.error(`Stateful components require atleast an 'onInit' function to provide the initial state (see)`);
+  this.state      = actions.onInit(this);
+  this.node       = render(this.instance = component(this));
+}
 
-  instance[rerenderFuncProp]      = rerenderStatefulComponent;
-  instance[componentInstanceProp] = inst;
-  instance[rerenderContextNode]   = node;
-  return node;
+ComponentAPI.prototype._rerender = function(){
+  const {component, instance:prevInst} = this;
+  const inst = component(this);
+  if(internalRerenderInstance(inst, prevInst)) return;
+
+  replaceNode(
+    this.node,
+    (this.node = render(this.instance = inst))
+  );
+  this.node.xvdom = this.parentInst;
+  recycle(inst);
+};
+
+ComponentAPI.prototype.send = function(action, context){
+  const actionFn = this.actions[action];
+  // TODO: process.ENV === 'development', console.error(`Action not found #{action}`);
+  if(!actionFn) return;
+
+  const newState = actionFn(this, context);
+  if(newState === this.state) return;
+
+  this.state = newState;
+  this._rerender();
+};
+
+ComponentAPI.prototype.bindSend = function(action){
+  const boundActions = this._boundActions || (this._boundActions = {});
+  return boundActions[action] || (boundActions[action] = this.send.bind(this, action));
+};
+
+const createStatefulComponent = (component, state, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
+  const api = new ComponentAPI(component, props, state, instance, componentInstanceProp);
+  instance[rerenderFuncProp]           = rerenderStatefulComponent;
+  instance[componentInstanceProp]      = api;
+  return instance[rerenderContextNode] = api.node;
 };
 
 export const createDynamic = (isOnlyChild, parentNode, value, instance, rerenderFuncProp, rerenderContextNode)=>{
@@ -460,21 +428,22 @@ export const createDynamic = (isOnlyChild, parentNode, value, instance, rerender
   return node;
 };
 
-export const createNoStateComponent = (component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
+export const createNoStateComponent = (component, _, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
   const inst = component(props);
   const node = render(inst);
 
-  instance[rerenderFuncProp]      = rerenderComponent;
-  instance[componentInstanceProp] = inst;
-  instance[rerenderContextNode]   = node;
-  return node;
+  instance[rerenderFuncProp]           = rerenderComponent;
+  instance[componentInstanceProp]      = inst;
+  return instance[rerenderContextNode] = node;
 };
 
 // TODO: Consider JSX transform passes in `component.state` to reduce polymorphic IC
 export const createComponent = (component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
-  const createFn = component.state ? createStatefulComponent : createNoStateComponent;
+  const state = component.state;
+  const createFn = state ? createStatefulComponent : createNoStateComponent;
   return createFn(
     component,
+    state,
     (props || EMPTY_PROPS),
     instance,
     rerenderFuncProp,
@@ -491,7 +460,7 @@ const internalRender = instance=>{
     return recycledInstance;
   }
   else{
-    (instance.$n  = spec.c(instance)).xvdom = instance;
+    (instance.$n = spec.c(instance)).xvdom = instance;
     return instance;
   }
 };
