@@ -360,7 +360,7 @@ function ComponentAPI(component, props, actions, parentInst){
 
   //TODO: process.ENV === 'development', console.error(`Stateful components require atleast an 'onInit' function to provide the initial state (see)`);
   this.state      = actions.onInit(this);
-  this.node       = render(this.instance = component(this));
+  this.node       = internalRenderNoRecycle(this.instance = component(this));
 }
 
 ComponentAPI.prototype._rerender = function(){
@@ -370,7 +370,7 @@ ComponentAPI.prototype._rerender = function(){
 
   replaceNode(
     this.node,
-    (this.node = render(this.instance = inst))
+    (this.node = internalRenderNoRecycle(this.instance = inst))
   );
   this.node.xvdom = this.parentInst;
   recycle(inst);
@@ -409,7 +409,7 @@ export const createDynamic = (isOnlyChild, parentNode, value, instance, rerender
   }
   else if(valueConstructor === Object){
     rerenderFunc = rerenderInstance;
-    context = node = render(value);
+    context = node = internalRenderNoRecycle(value);
   }
   else if(valueConstructor === String || valueConstructor === Number){
     rerenderFunc = rerenderText;
@@ -430,7 +430,7 @@ export const createDynamic = (isOnlyChild, parentNode, value, instance, rerender
 
 export const createNoStateComponent = (component, _, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
   const inst = component(props);
-  const node = render(inst);
+  const node = internalRenderNoRecycle(inst);
 
   instance[rerenderFuncProp]           = rerenderComponent;
   instance[componentInstanceProp]      = inst;
@@ -452,6 +452,13 @@ export const createComponent = (component, props, instance, rerenderFuncProp, re
   );
 };
 
+const internalRenderNoRecycle = (instance)=> {
+  const node  = instance.$s.c(instance);
+  instance.$n = node;
+  node.xvdom  = instance;
+  return node;
+};
+
 const internalRender = instance=>{
   const spec = instance.$s;
   const recycledInstance = spec.r.pop(instance.key);
@@ -460,7 +467,7 @@ const internalRender = instance=>{
     return recycledInstance;
   }
   else{
-    (instance.$n = spec.c(instance)).xvdom = instance;
+    internalRenderNoRecycle(instance);
     return instance;
   }
 };
