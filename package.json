@@ -13,6 +13,9 @@
     "build:prod":
       "npm run build; uglifyjs --compress --mangle -- dist/xvdom.js > dist/xvdom.min.js;",
 
+    "build:benchmarks-stateful-components":
+      "cd benchmarks/stateful-components; webpack --config webpack.config.js; uglifyjs --compress --mangle -- app-built.js > app-built.min.js",
+
     "test":
       "webpack-dev-server --config webpack-server.config.js"
   },
