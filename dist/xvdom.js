@@ -84,8 +84,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	*/
 
-	var PRE_INSTANCE = { $p: null };
-	var EMPTY_PROPS = {};
+	// Creates an empty object with no built in properties (ie. `constructor`).
+	function Hash() {}
+	Hash.prototype = Object.create(null);
+
+	var EMPTY_PROPS = new Hash();
 	var MARKER_NODE = document.createComment('');
 	var DEADPOOL = exports.DEADPOOL = {
 	  push: function push() {},
@@ -93,22 +96,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	// TODO: Benchmark whether this is slower than Function/Prototype
-	var Pool = exports.Pool = function Pool() {
-	  var map = new Map();
-	  return {
-	    push: function push(instance) {
-	      var key = instance.key;
-	      instance.$x = map.get(key);
-	      map.set(key, instance);
-	    },
-	    pop: function pop(key) {
-	      var head = map.get(key);
-	      if (head) {
-	        map.set(key, head.$x);
-	        return head;
-	      }
-	    }
-	  };
+	function Pool() {
+	  this.map = new Hash();
+	};
+
+	Pool.prototype.push = function (instance) {
+	  var key = instance.key;
+	  var map = this.map;
+
+	  instance.$x = map[key];
+	  map[key] = instance;
+	};
+
+	Pool.prototype.pop = function (key) {
+	  var head = this.map[key];
+	  if (!head) return;
+	  this.map[key] = head.$x;
+	  return head;
 	};
 
 	var recycle = function recycle(instance) {
@@ -154,62 +158,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var internalRerenderInstance = function internalRerenderInstance(inst, prevInst) {
 	  return prevInst.$s === inst.$s && (inst.$s.u(inst, prevInst), true);
-	};
-
-	var internalRerenderStatefulComponent = function internalRerenderStatefulComponent(stateActions, inst, prevInst, parentInst, componentInstanceProp) {
-	  if (!internalRerenderInstance(inst, prevInst)) {
-	    var newNode = render(inst);
-	    var node = parentInst.$n;
-
-	    inst.$c = prevInst.$c;
-	    inst.$t = prevInst.$t;
-	    inst.$p = prevInst.$p;
-	    inst.$a = stateActions;
-
-	    parentInst.$n = newNode;
-	    parentInst[componentInstanceProp] = inst;
-
-	    stateActions.$$instance = inst;
-
-	    newNode.xvdom = parentInst;
-	    replaceNode(node, newNode);
-	    recycle(inst);
-	  }
-	};
-
-	var callAction = function callAction(stateActions, action, parentInst, componentInstanceProp, args) {
-	  var $$instance = stateActions.$$instance;
-	  var $$doRerender = stateActions.$$doRerender;
-	  var props = $$instance.$p;
-	  var state = $$instance.$t;
-
-
-	  stateActions.$$doRerender = false;
-	  var newState = $$instance.$t = action.apply(undefined, [props, state, stateActions].concat(args));
-	  stateActions.$$doRerender = $$doRerender;
-
-	  if (state !== newState && $$doRerender) {
-	    internalRerenderStatefulComponent(stateActions, $$instance.$c(props, newState, stateActions), $$instance, parentInst, componentInstanceProp);
-	  }
-	  return newState;
-	};
-
-	var createAction = function createAction(stateActions, action, parentInst, componentInstanceProp) {
-	  return function () {
-	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-	      args[_key] = arguments[_key];
-	    }
-
-	    return callAction(stateActions, action, parentInst, componentInstanceProp, args);
-	  };
-	};
-
-	var createStateActions = function createStateActions(rawActions, parentInst, componentInstanceProp) {
-	  var stateActions = { $$doRerender: false, $$instance: PRE_INSTANCE };
-	  for (var sa in rawActions) {
-	    stateActions[sa] = createAction(stateActions, rawActions[sa], parentInst, componentInstanceProp);
-	  }
-	  return stateActions;
 	};
 
 	var renderArrayToParentBefore = function renderArrayToParentBefore(parentNode, array, length, markerNode) {
@@ -407,18 +355,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return rerenderDynamic(isOnlyChild, value, null, node, instance, rerenderFuncProp, rerenderContextNode);
 	};
 
-	var rerenderStatefulComponent = function rerenderStatefulComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
-	  var stateActions = componentInstance.$a;
-	  var onProps = stateActions.onProps;
-	  componentInstance.$p = props;
-
-	  if (onProps) onProps();else {
-	    internalRerenderStatefulComponent(stateActions, componentInstance.$c(props, componentInstance.$t, stateActions), componentInstance, instance, componentInstanceProp);
-	  }
-	};
-
+	// TODO: Figure out whether we're using all these arguments
 	var rerenderComponent = function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
-	  var newCompInstance = component(props || EMPTY_PROPS);
+	  var newCompInstance = component({ props: props || EMPTY_PROPS });
 	  if (!internalRerenderInstance(newCompInstance, componentInstance)) {
 	    replaceNode(node, instance[rerenderContextNode] = (instance[componentInstanceProp] = internalRender(newCompInstance)).$n);
 	  }
@@ -443,26 +382,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return array;
 	};
 
-	var createStatefulComponent = function createStatefulComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
-	  PRE_INSTANCE.$p = props;
-	  var rawActions = component.state;
-	  var actions = createStateActions(rawActions, instance, componentInstanceProp);
-	  var state = rawActions.onInit(props, undefined, actions);
-	  actions.$$doRerender = true;
-	  var inst = component(props, state, actions);
-	  var node = render(inst);
+	// TODO: Update JSX transform to just pass api and props
+	var rerenderStatefulComponent = function rerenderStatefulComponent(_, newProps, _2, api) {
+	  var onProps = api._actions.onProps;
+	  var props = api.props;
 
-	  actions.$$instance = inst;
+	  api.props = newProps;
 
-	  inst.$c = component;
-	  inst.$t = state;
-	  inst.$a = actions;
-	  inst.$p = props;
-
-	  instance[rerenderFuncProp] = rerenderStatefulComponent;
-	  instance[componentInstanceProp] = inst;
-	  instance[rerenderContextNode] = node;
-	  return node;
+	  if (onProps) componentSend(api, 'onProps', props);else componentRerender(api);
 	};
 
 	var createDynamic = exports.createDynamic = function createDynamic(isOnlyChild, parentNode, value, instance, rerenderFuncProp, rerenderContextNode) {
@@ -475,7 +402,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    context = node = getMarkerNode();
 	  } else if (valueConstructor === Object) {
 	    rerenderFunc = rerenderInstance;
-	    context = node = render(value);
+	    context = node = internalRenderNoRecycle(value);
 	  } else if (valueConstructor === String || valueConstructor === Number) {
 	    rerenderFunc = rerenderText;
 	    context = node = document.createTextNode(value);
@@ -492,20 +419,75 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return node;
 	};
 
-	var createNoStateComponent = exports.createNoStateComponent = function createNoStateComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
-	  var inst = component(props);
-	  var node = render(inst);
+	var componentRerender = function componentRerender(api) {
+	  var _component = api._component;
+	  var _parentInst = api._parentInst;
+
+	  var instance = internalRerender(api._instance, _component(api));
+	  api._instance = instance;
+	  instance.$n.xvdom = _parentInst;
+	};
+
+	var componentSend = function componentSend(api, action, context) {
+	  var actionFn = api._actions[action];
+	  // TODO: process.ENV === 'development', console.error(`Action not found #{action}`);
+	  if (!actionFn) return;
+
+	  var newState = actionFn(api, context);
+	  if (newState !== api.state) {
+	    api.state = newState;
+	    componentRerender(api);
+	  }
+	};
+
+	function ComponentAPI(component, props, actions, parentInst) {
+	  var _this = this;
+
+	  var boundActions = new Hash();
+
+	  this._actions = actions;
+	  this._component = component;
+	  this._parentInst = parentInst;
+	  this.props = props;
+
+	  //TODO: process.ENV === 'development', console.error(`Stateful components require atleast an 'onInit' function to provide the initial state (see)`);
+	  this.state = actions.onInit(this);
+	  this._node = internalRenderNoRecycle(this._instance = component(this));
+
+	  // For performance, purposely not using `.bind()` on a prototype function.
+	  this.bindSend = function (action) {
+	    return boundActions[action] || (boundActions[action] = function (context) {
+	      componentSend(_this, action, context);
+	    });
+	  };
+	}
+
+	var createStatefulComponent = function createStatefulComponent(component, state, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
+	  var api = new ComponentAPI(component, props, state, instance, componentInstanceProp);
+	  instance[rerenderFuncProp] = rerenderStatefulComponent;
+	  instance[componentInstanceProp] = api;
+	  return instance[rerenderContextNode] = api._node;
+	};
+
+	var createNoStateComponent = exports.createNoStateComponent = function createNoStateComponent(component, _, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
+	  var inst = component({ props: props });
+	  var node = internalRenderNoRecycle(inst);
 
 	  instance[rerenderFuncProp] = rerenderComponent;
 	  instance[componentInstanceProp] = inst;
-	  instance[rerenderContextNode] = node;
-	  return node;
+	  return instance[rerenderContextNode] = node;
 	};
 
-	// TODO: Consider JSX transform passes in `component.state` to reduce polymorphic IC
-	var createComponent = exports.createComponent = function createComponent(component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
-	  var createFn = component.state ? createStatefulComponent : createNoStateComponent;
-	  return createFn(component, props || EMPTY_PROPS, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
+	var createComponent = exports.createComponent = function createComponent(component, componentState, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
+	  var createFn = componentState ? createStatefulComponent : createNoStateComponent;
+	  return createFn(component, componentState, props || EMPTY_PROPS, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
+	};
+
+	var internalRenderNoRecycle = function internalRenderNoRecycle(instance) {
+	  var node = instance.$s.c(instance);
+	  instance.$n = node;
+	  node.xvdom = instance;
+	  return node;
 	};
 
 	var internalRender = function internalRender(instance) {
@@ -515,7 +497,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    spec.u(instance, recycledInstance);
 	    return recycledInstance;
 	  } else {
-	    (instance.$n = spec.c(instance)).xvdom = instance;
+	    internalRenderNoRecycle(instance);
 	    return instance;
 	  }
 	};

@@ -27,8 +27,7 @@ const MARKER_NODE     = document.createComment('');
 export const DEADPOOL = {push(){}, pop(){}};
 
 // TODO: Benchmark whether this is slower than Function/Prototype
-export const Pool = function(){
-  if(!(this instanceof Pool)) return new Pool();
+function Pool(){
   this.map = new Hash();
 };
 
@@ -309,6 +308,7 @@ const rerenderInstance = (isOnlyChild, value, prevValue, node, instance, rerende
   return rerenderDynamic(isOnlyChild, value, null, node, instance, rerenderFuncProp, rerenderContextNode);
 };
 
+// TODO: Figure out whether we're using all these arguments
 const rerenderComponent = (component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp)=>{
   const newCompInstance = component({props: props || EMPTY_PROPS});
   if(!internalRerenderInstance(newCompInstance, componentInstance)){
@@ -436,13 +436,11 @@ export const createNoStateComponent = (component, _, props, instance, rerenderFu
   return instance[rerenderContextNode] = node;
 };
 
-// TODO: Consider JSX transform passes in `component.state` to reduce polymorphic IC
-export const createComponent = (component, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
-  const state = component.state;
-  const createFn = state ? createStatefulComponent : createNoStateComponent;
+export const createComponent = (component, componentState, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
+  const createFn = componentState ? createStatefulComponent : createNoStateComponent;
   return createFn(
     component,
-    state,
+    componentState,
     (props || EMPTY_PROPS),
     instance,
     rerenderFuncProp,
