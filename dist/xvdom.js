@@ -357,7 +357,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	// TODO: Figure out whether we're using all these arguments
 	var rerenderComponent = function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
-	  var newCompInstance = component({ props: props || EMPTY_PROPS });
+	  var newCompInstance = component(props || EMPTY_PROPS);
 	  if (!internalRerenderInstance(newCompInstance, componentInstance)) {
 	    replaceNode(node, instance[rerenderContextNode] = (instance[componentInstanceProp] = internalRender(newCompInstance)).$n);
 	  }
@@ -470,7 +470,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	var createNoStateComponent = exports.createNoStateComponent = function createNoStateComponent(component, _, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
-	  var inst = component({ props: props });
+	  var inst = component(props);
 	  var node = internalRenderNoRecycle(inst);
 
 	  instance[rerenderFuncProp] = rerenderComponent;

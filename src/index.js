@@ -310,7 +310,7 @@ const rerenderInstance = (isOnlyChild, value, prevValue, node, instance, rerende
 
 // TODO: Figure out whether we're using all these arguments
 const rerenderComponent = (component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp)=>{
-  const newCompInstance = component({props: props || EMPTY_PROPS});
+  const newCompInstance = component(props || EMPTY_PROPS);
   if(!internalRerenderInstance(newCompInstance, componentInstance)){
     replaceNode(
       node,
@@ -428,7 +428,7 @@ const createStatefulComponent = (component, state, props, instance, rerenderFunc
 };
 
 export const createNoStateComponent = (component, _, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
-  const inst = component({props});
+  const inst = component(props);
   const node = internalRenderNoRecycle(inst);
 
   instance[rerenderFuncProp]           = rerenderComponent;
