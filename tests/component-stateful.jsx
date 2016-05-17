@@ -3,7 +3,7 @@ import wrapSpecRenderFunctions from './utils/wrapSpecRenderFunctions.js';
 import getHTMLString           from './utils/getHTMLString.js';
 import xvdom                   from '../src/index.js';
 
-let renderCountSpec1, renderCountSpec2;
+let renderCountSpec1, renderCountSpec2, onInitBindSend;
 
 const StatefulCounter = (component)=>{
   const {props, state} = component;
@@ -27,7 +27,10 @@ const StatefulCounter = (component)=>{
 };
 
 StatefulCounter.state = {
-  onInit:      ({props})            =>({count: props.initialCount || 0}),
+  onInit:      ({props, bindSend})=>{
+    onInitBindSend = bindSend;
+    return {count: props.initialCount || 0};
+  },
   onProps:     ({props, state})     =>({...state, forceFirst: props.forceFirst}),
   incrementBy: ({props, state}, amt)=>({count: state.count + amt}),
   increment:   ({props, state})     =>({count: state.count + 1}),
@@ -92,6 +95,10 @@ describe('Stateful Components', ()=>{
       parentNode = document.createElement('div');
       node = xvdom.render(render(777));
       parentNode.appendChild(node);
+    });
+
+    it('onInit receives bindSend', ()=>{
+      assert.strictEqual(onInitBindSend, StatefulCounter.callsArgs[0].bindSend);
     });
 
     it('renders', ()=>{

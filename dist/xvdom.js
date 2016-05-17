@@ -450,16 +450,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	  this._parentInst = parentInst;
 	  this.props = props;
 
-	  //TODO: process.ENV === 'development', console.error(`Stateful components require atleast an 'onInit' function to provide the initial state (see)`);
-	  this.state = actions.onInit(this);
-	  this._node = internalRenderNoRecycle(this._instance = component(this));
-
 	  // For performance, purposely not using `.bind()` on a prototype function.
 	  this.bindSend = function (action) {
 	    return boundActions[action] || (boundActions[action] = function (context) {
 	      componentSend(_this, action, context);
 	    });
 	  };
+
+	  //TODO: process.ENV === 'development', console.error(`Stateful components require atleast an 'onInit' function to provide the initial state (see)`);
+	  this.state = actions.onInit(this);
+	  this._node = internalRenderNoRecycle(this._instance = component(this));
 	}
 
 	var createStatefulComponent = function createStatefulComponent(component, state, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
