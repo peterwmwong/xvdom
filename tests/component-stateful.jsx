@@ -106,9 +106,9 @@ describe('Stateful Components', ()=>{
 
     describe('calling state actions', ()=>{
       it('rerenders if action generates a new state', ()=>{
-        const component = StatefulCounter.callsArgs[0];
+        const {bindSend} = StatefulCounter.callsArgs[0];
 
-        component.send('increment');
+        bindSend('increment')();
         assert.equal(getHTMLString(parentNode),
           '<div>'+
             '<span>'+
@@ -117,7 +117,7 @@ describe('Stateful Components', ()=>{
           '</div>'
         );
 
-        component.send('incrementBy', 5);
+        bindSend('incrementBy')(5);
         assert.equal(getHTMLString(parentNode),
           '<div>'+
             '<a>'+
@@ -126,7 +126,7 @@ describe('Stateful Components', ()=>{
           '</div>'
         );
 
-        component.send('decrement');
+        bindSend('decrement')();
         assert.equal(getHTMLString(parentNode),
           '<div>'+
             '<span>'+
@@ -140,16 +140,16 @@ describe('Stateful Components', ()=>{
       it('does not blow up if unmounted', ()=>{
         xvdom.unmount(node);
 
-        const component = StatefulCounter.callsArgs[0];
+        const {bindSend} = StatefulCounter.callsArgs[0];
         assert.equal(StatefulCounter.callCount, 1);
-        component.send('increment');
+        bindSend('increment')();
         assert.equal(StatefulCounter.callCount, 2);
       });
 
       it('does not rerender if action yields the same state', ()=>{
-        const component = StatefulCounter.callsArgs[0];
+        const {bindSend} = StatefulCounter.callsArgs[0];
         assert.equal(StatefulCounter.callCount, 1);
-        component.send('noop');
+        bindSend('noop')();
         assert.equal(StatefulCounter.callCount, 1);
         assert.equal(getHTMLString(parentNode),
           '<div>'+

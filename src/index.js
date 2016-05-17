@@ -18,27 +18,32 @@ r - keyed map of unmounted instanced that can be recycled
 
 */
 
-const EMPTY_PROPS     = {};
+// Creates an empty object with no built in properties (ie. `constructor`).
+function Hash(){}
+Hash.prototype = Object.create(null);
+
+const EMPTY_PROPS     = new Hash();
 const MARKER_NODE     = document.createComment('');
 export const DEADPOOL = {push(){}, pop(){}};
 
 // TODO: Benchmark whether this is slower than Function/Prototype
-export const Pool = ()=>{
-  const map = new Map();
-  return {
-    push(instance){
-      const key = instance.key;
-      instance.$x = map.get(key);
-      map.set(key, instance);
-    },
-    pop(key){
-      const head = map.get(key);
-      if(head){
-        map.set(key, head.$x);
-        return head;
-      }
-    }
-  };
+export const Pool = function(){
+  if(!(this instanceof Pool)) return new Pool();
+  this.map = new Hash();
+};
+
+Pool.prototype.push = function(instance){
+  const {key} = instance;
+  const {map} = this;
+  instance.$x = map[key];
+  map[key] = instance;
+};
+
+Pool.prototype.pop = function(key){
+  const head = this.map[key];
+  if(!head) return;
+  this.map[key] = head.$x;
+  return head;
 };
 
 const recycle = instance=>{instance.$s.r.push(instance);};
@@ -305,7 +310,7 @@ const rerenderInstance = (isOnlyChild, value, prevValue, node, instance, rerende
 };
 
 const rerenderComponent = (component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp)=>{
-  const newCompInstance = component(props || EMPTY_PROPS);
+  const newCompInstance = component({props: props || EMPTY_PROPS});
   if(!internalRerenderInstance(newCompInstance, componentInstance)){
     replaceNode(
       node,
@@ -341,63 +346,12 @@ const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode, valuesAndC
 };
 
 // TODO: Update JSX transform to just pass api and props
-const rerenderStatefulComponent = (_, props, _2, api)=>{
-  const {actions:{onProps}, props:prevProps} = api;
-  api.props = props;
-  if(onProps){
-    api.send('onProps', prevProps);
-  }
-  else{
-    api._rerender();
-  }
-};
+const rerenderStatefulComponent = (_, newProps, _2, api)=>{
+  const {_actions:{onProps}, props} = api;
+  api.props = newProps;
 
-function ComponentAPI(component, props, actions, parentInst){
-  this.actions    = actions;
-  this.component  = component;
-  this.parentInst = parentInst;
-  this.props      = props;
-
-  //TODO: process.ENV === 'development', console.error(`Stateful components require atleast an 'onInit' function to provide the initial state (see)`);
-  this.state      = actions.onInit(this);
-  this.node       = internalRenderNoRecycle(this.instance = component(this));
-}
-
-ComponentAPI.prototype._rerender = function(){
-  const {component, instance:prevInst} = this;
-  const inst = component(this);
-  if(internalRerenderInstance(inst, prevInst)) return;
-
-  replaceNode(
-    this.node,
-    (this.node = internalRenderNoRecycle(this.instance = inst))
-  );
-  this.node.xvdom = this.parentInst;
-  recycle(inst);
-};
-
-ComponentAPI.prototype.send = function(action, context){
-  const actionFn = this.actions[action];
-  // TODO: process.ENV === 'development', console.error(`Action not found #{action}`);
-  if(!actionFn) return;
-
-  const newState = actionFn(this, context);
-  if(newState === this.state) return;
-
-  this.state = newState;
-  this._rerender();
-};
-
-ComponentAPI.prototype.bindSend = function(action){
-  const boundActions = this._boundActions || (this._boundActions = {});
-  return boundActions[action] || (boundActions[action] = this.send.bind(this, action));
-};
-
-const createStatefulComponent = (component, state, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
-  const api = new ComponentAPI(component, props, state, instance, componentInstanceProp);
-  instance[rerenderFuncProp]           = rerenderStatefulComponent;
-  instance[componentInstanceProp]      = api;
-  return instance[rerenderContextNode] = api.node;
+  if(onProps) componentSend(api, 'onProps', props);
+  else componentRerender(api);
 };
 
 export const createDynamic = (isOnlyChild, parentNode, value, instance, rerenderFuncProp, rerenderContextNode)=>{
@@ -428,8 +382,53 @@ export const createDynamic = (isOnlyChild, parentNode, value, instance, rerender
   return node;
 };
 
+const componentRerender = (api)=> {
+  const {_component, _parentInst} = api;
+  const instance = internalRerender(api._instance, _component(api));
+  api._instance = instance;
+  instance.$n.xvdom = _parentInst;
+};
+
+const componentSend = (api, action, context)=> {
+  const actionFn = api._actions[action];
+  // TODO: process.ENV === 'development', console.error(`Action not found #{action}`);
+  if(!actionFn) return;
+
+  const newState = actionFn(api, context);
+  if(newState !== api.state){
+    api.state = newState;
+    componentRerender(api);
+  }
+};
+
+function ComponentAPI(component, props, actions, parentInst){
+  const boundActions  = new Hash();
+
+  this._actions       = actions;
+  this._component     = component;
+  this._parentInst    = parentInst;
+  this.props          = props;
+
+  //TODO: process.ENV === 'development', console.error(`Stateful components require atleast an 'onInit' function to provide the initial state (see)`);
+  this.state          = actions.onInit(this);
+  this._node          = internalRenderNoRecycle(this._instance = component(this));
+
+  // For performance, purposely not using `.bind()` on a prototype function.
+  this.bindSend = (action)=>
+    boundActions[action] || (
+      boundActions[action] = (context)=>{ componentSend(this, action, context); }
+    );
+}
+
+const createStatefulComponent = (component, state, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
+  const api = new ComponentAPI(component, props, state, instance, componentInstanceProp);
+  instance[rerenderFuncProp]           = rerenderStatefulComponent;
+  instance[componentInstanceProp]      = api;
+  return instance[rerenderContextNode] = api._node;
+};
+
 export const createNoStateComponent = (component, _, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
-  const inst = component(props);
+  const inst = component({props});
   const node = internalRenderNoRecycle(inst);
 
   instance[rerenderFuncProp]           = rerenderComponent;

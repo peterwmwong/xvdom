@@ -2,19 +2,19 @@ import assert        from 'assert';
 import getHTMLString from './utils/getHTMLString.js';
 import xvdom         from '../src/index.js';
 
-const Counter = ({type, count})=>(
+const Counter = ({props:{type, count}})=>(
   (Counter.callCount = Counter.callCount ? Counter.callCount + 1 : 1),
   type === 2 ?
     <a>count2: {count}</a> :
     <span>count: {count}</span>
 );
 
-const NoPropsComp = (props)=>(
+const NoPropsComp = ({props})=>(
   NoPropsComp.callArgs.push(props),
   <span>test</span>
 );
 
-const Container = ({count})=><Counter type={count % 3} count={count} />;
+const Container = ({props:{count}})=><Counter type={count % 3} count={count} />;
 
 describe('Component', ()=>{
 

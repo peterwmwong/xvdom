@@ -39,7 +39,7 @@ describe('Stateful Components Nested', ()=>{
       '</div>'
     );
 
-    leafNode.send('toggle');
+    leafNode.bindSend('toggle')();
 
     assert.equal(getHTMLString(parentNode),
       '<div>'+
@@ -49,7 +49,7 @@ describe('Stateful Components Nested', ()=>{
       '</div>'
     );
 
-    node.send('increment');
+    node.bindSend('increment')();
 
     assert.equal(getHTMLString(parentNode),
       '<div>'+
@@ -60,7 +60,7 @@ describe('Stateful Components Nested', ()=>{
     );
 
 
-    leafNode.send('toggle');
+    leafNode.bindSend('toggle')();
 
     assert.equal(getHTMLString(parentNode),
       '<div>'+
