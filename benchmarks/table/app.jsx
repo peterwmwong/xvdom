@@ -1,3 +1,5 @@
+import xvdom from '../../dist/xvdom.min.js';
+
 const COLS    = 100;
 const ROWS    = 100;
 const randInt = maxValue=>(Math.random()*maxValue)|0;
@@ -15,18 +17,18 @@ const genRows = ()=>{
   return rows;
 };
 
-const Cell = (props, state)=>
+const Cell = ({state})=>
   <td className={state > 50 ? 'high' : 'low'}>{state}</td>;
 
 Cell.state = {
-  onInit: ({initialValue, row, cell, cellUpdaters}, state, {update})=>{
-    cellUpdaters[cellId(row, cell)] = update;
+  onInit: ({props: {initialValue, row, cell, cellUpdaters}, bindSend})=>{
+    cellUpdaters[cellId(row, cell)] = bindSend('update');
     return initialValue;
   },
-  update: (props, state, actions, newValue)=>newValue
+  update: (component, newValue)=>newValue
 };
 
-const App = (props, {rows, cellUpdaters})=>
+const App = ({state: {rows, cellUpdaters}})=>
   <table>
     {rows.map((row, i)=>
       <tr key={i}>
@@ -38,7 +40,7 @@ const App = (props, {rows, cellUpdaters})=>
   </table>;
 
 App.state = {
-  onInit: (props, state, actions)=>{
+  onInit: ()=>{
     const cellUpdaters = {};
     const update = ()=>{
       for(let i=0; i<300; ++i){

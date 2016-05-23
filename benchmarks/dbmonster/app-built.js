@@ -78,6 +78,8 @@
 	    return _n;
 	  },
 	  u: function u(inst, pInst) {
+	    var v;
+
 	    if (inst.a !== pInst.a) {
 	      pInst.a = pInst.b(true, inst.a, pInst.a, pInst.c, pInst, 'b', 'c');
 	    }
@@ -114,13 +116,17 @@
 	    return _n;
 	  },
 	  u: function u(inst, pInst) {
+	    var v;
+
 	    if (inst.a !== pInst.a) {
 	      pInst.a = pInst.b(true, inst.a, pInst.a, pInst.c, pInst, 'b', 'c');
 	    }
 
-	    if (inst.d !== pInst.d) {
-	      pInst.e.className = inst.d;
-	      pInst.d = inst.d;
+	    v = inst.d;
+
+	    if (v !== pInst.d) {
+	      pInst.e.className = v;
+	      pInst.d = v;
 	    }
 
 	    if (inst.f !== pInst.f) {
@@ -163,9 +169,12 @@
 	    return _n;
 	  },
 	  u: function u(inst, pInst) {
-	    if (inst.a !== pInst.a) {
-	      pInst.b.className = inst.a;
-	      pInst.a = inst.a;
+	    var v;
+	    v = inst.a;
+
+	    if (v !== pInst.a) {
+	      pInst.b.className = v;
+	      pInst.a = v;
 	    }
 
 	    if (inst.c !== pInst.c) {
@@ -519,182 +528,172 @@
 	  "object" == ( false ? "undefined" : _typeof(exports)) && "object" == ( false ? "undefined" : _typeof(module)) ? module.exports = e() :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (e), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : "object" == (typeof exports === "undefined" ? "undefined" : _typeof(exports)) ? exports.xvdom = e() : n.xvdom = e();
 	}(undefined, function () {
 	  return function (n) {
-	    function e(t) {
-	      if (r[t]) return r[t].exports;var o = r[t] = { exports: {}, id: t, loaded: !1 };return n[t].call(o.exports, o, o.exports, e), o.loaded = !0, o.exports;
-	    }var r = {};return e.m = n, e.c = r, e.p = "", e(0);
-	  }([function (n, e, r) {
-	    n.exports = r(1);
+	    function e(r) {
+	      if (t[r]) return t[r].exports;var o = t[r] = { exports: {}, id: r, loaded: !1 };return n[r].call(o.exports, o, o.exports, e), o.loaded = !0, o.exports;
+	    }var t = {};return e.m = n, e.c = t, e.p = "", e(0);
+	  }([function (n, e, t) {
+	    n.exports = t(1);
 	  }, function (n, e) {
 	    "use strict";
-	    e.__esModule = !0;var r = { $p: null },
-	        t = document.createComment(""),
-	        o = e.DEADPOOL = { push: function push() {}, pop: function pop() {} },
-	        u = e.Pool = function () {
-	      var n = new Map();return { push: function push(e) {
-	          var r = e.key;e.$x = n.get(r), n.set(r, e);
-	        }, pop: function pop(e) {
-	          var r = n.get(e);return r ? (n.set(e, r.$x), r) : void 0;
-	        } };
-	    },
-	        i = function i(n) {
+	    function t() {}function r() {
+	      this.map = new t();
+	    }e.__esModule = !0, t.prototype = Object.create(null);var o = new t(),
+	        u = document.createComment(""),
+	        i = e.DEADPOOL = { push: function push() {}, pop: function pop() {} };r.prototype.push = function (n) {
+	      var e = n.key,
+	          t = this.map;n.$x = t[e], t[e] = n;
+	    }, r.prototype.pop = function (n) {
+	      var e = this.map[n];if (e) return this.map[n] = e.$x, e;
+	    };var c = function c(n) {
 	      n.$s.r.push(n);
 	    },
-	        c = function c() {
-	      return t.cloneNode(!1);
+	        f = function f() {
+	      return u.cloneNode(!1);
 	    },
-	        f = function f(n, e) {
-	      var r = n.parentNode;r && r.replaceChild(e, n);
+	        a = function a(n, e) {
+	      var t = n.parentNode;t && t.replaceChild(e, n);
 	    },
-	        a = function a(n, e, r) {
-	      return r ? n.insertBefore(e, r) : n.appendChild(e);
+	        p = function p(n, e, t) {
+	      return t ? n.insertBefore(e, t) : n.appendChild(e);
 	    },
 	        d = function d(n, e) {
-	      i(n), e.removeChild(n.$n);
+	      c(n), e.removeChild(n.$n);
 	    },
-	        $ = function $(n, e) {
-	      for (var r = n.length, t = 0; r > t;) {
-	        d(n[t++], e);
+	        s = function s(n, e) {
+	      for (var t = n.length, r = 0; t > r;) {
+	        d(n[r++], e);
 	      }
-	    },
-	        p = function p(n, e) {
-	      for (var r = n.length, t = 0; r > t;) {
-	        i(n[t++]);
-	      }e.textContent = "";
 	    },
 	        l = function l(n, e) {
+	      for (var t = n.length, r = 0; t > r;) {
+	        c(n[r++]);
+	      }e.textContent = "";
+	    },
+	        v = function v(n, e) {
 	      return e.$s === n.$s && (n.$s.u(n, e), !0);
 	    },
-	        v = function v(n, e, r, t, o) {
-	      if (!l(e, r)) {
-	        var u = w(e),
-	            c = t.$n;e.$c = r.$c, e.$t = r.$t, e.$p = r.$p, e.$a = n, t.$n = u, t[o] = e, n.$$instance = e, u.xvdom = t, f(c, u), i(e);
+	        m = function m(n, e, t, r) {
+	      for (var o = 0; t > o;) {
+	        p(n, (e[o] = B(e[o])).$n, r), ++o;
 	      }
-	    },
-	        s = function s(n, e, r, t, o) {
-	      var u = n.$$instance,
-	          i = n.$$doRerender,
-	          c = u.$p,
-	          f = u.$t;n.$$doRerender = !1;var a = u.$t = e.apply(void 0, [c, f, n].concat(o));return n.$$doRerender = i, f !== a && i && v(n, u.$c(c, a, n), u, r, t), a;
-	    },
-	        m = function m(n, e, r, t) {
-	      return function () {
-	        for (var o = arguments.length, u = Array(o), i = 0; o > i; i++) {
-	          u[i] = arguments[i];
-	        }return s(n, e, r, t, u);
-	      };
 	    },
 	        y = function y(n, e, t) {
-	      var o = { $$doRerender: !1, $$instance: r };for (var u in n) {
-	        o[u] = m(o, n[u], e, t);
-	      }return o;
-	    },
-	        x = function x(n, e, r, t) {
-	      for (var o = 0; r > o;) {
-	        a(n, (e[o] = _(e[o])).$n, t), ++o;
+	      for (var r = 0; t > r;) {
+	        n.appendChild((e[r] = B(e[r])).$n), ++r;
 	      }
 	    },
-	        h = function h(n, e, r) {
-	      for (var t = 0; r > t;) {
-	        n.appendChild((e[t] = _(e[t])).$n), ++t;
-	      }
-	    },
-	        k = function k(n, e, r, t, o, u, i, c, f) {
-	      for (var $ = new Map(), p = c.$n, l = void 0, v = void 0, s = void 0; f >= i;) {
-	        l = r[i++], $.set(l.key, l);
-	      }for (; o >= t;) {
-	        s = e[t], v = s.key, l = $.get(v), l ? (l === c && (p = p.nextSibling), $["delete"](v), s = B(l, s)) : s = _(s), e[t] = s, a(n, s.$n, p), ++t;
-	      }$.forEach(function (e) {
+	        $ = function $(n, e, t, r, o, u, i, c, f) {
+	      for (var a = new Map(), s = c.$n, l = void 0, v = void 0, m = void 0; f >= i;) {
+	        l = t[i++], a.set(l.key, l);
+	      }for (; o >= r;) {
+	        m = e[r], v = m.key, l = a.get(v), l ? (l === c && (s = s.nextSibling), a["delete"](v), m = M(l, m)) : m = B(m), e[r] = m, p(n, m.$n, s), ++r;
+	      }a.forEach(function (e) {
 	        d(e, n);
 	      });
 	    },
-	        g = function g(n, e, r, t, o, u, i, c, f, $, p, l) {
-	      if (c > $) for (; u >= t;) {
-	        o = e[t], a(n, (e[t] = _(o)).$n, l), ++t;
-	      } else if (t > u) for (; $ >= c;) {
-	        d(r[c++], n);
-	      } else k(n, e, r, t, u, f, c, p, $);
+	        h = function h(n, e, t, r, o, u, i, c, f, a, s, l) {
+	      if (c > a) for (; u >= r;) {
+	        o = e[r], p(n, (e[r] = B(o)).$n, l), ++r;
+	      } else if (r > u) for (; a >= c;) {
+	        d(t[c++], n);
+	      } else $(n, e, t, r, u, f, c, s, a);
 	    },
-	        b = function b(n, e, r, t, o, u) {
+	        x = function x(n, e, t, r, o, u) {
 	      var i = 0,
 	          c = 0,
 	          f = !0,
-	          d = e[0],
-	          $ = t[0],
-	          p = u,
+	          a = e[0],
+	          d = r[0],
+	          s = u,
 	          l = void 0,
 	          v = void 0,
-	          s = void 0;r--, o--;n: for (; f && o >= i && r >= c;) {
-	        for (f = !1; $.key === d.key;) {
-	          if (e[c] = B($, d), i++, c++, i > o || c > r) break n;$ = t[i], d = e[c], f = !0;
-	        }for (l = t[o], v = e[r]; l.key === v.key;) {
-	          if (p = (e[r] = B(l, v)).$n, o--, r--, i > o || c > r) break n;l = t[o], v = e[r], f = !0;
-	        }for (; $.key === v.key;) {
-	          if (s = (e[r] = B($, v)).$n, l.key !== v.key && (p = a(n, s, p)), i++, r--, i > o || c > r) break n;$ = t[i], v = e[r], f = !0;
-	        }for (; l.key === d.key;) {
-	          if (a(n, (e[c] = B(l, d)).$n, $.$n), o--, c++, i > o || c > r) break n;l = t[o], d = e[c], f = !0;
+	          m = void 0;t--, o--;n: for (; f && o >= i && t >= c;) {
+	        for (f = !1; d.key === a.key;) {
+	          if (e[c] = M(d, a), i++, c++, i > o || c > t) break n;d = r[i], a = e[c], f = !0;
+	        }for (l = r[o], v = e[t]; l.key === v.key;) {
+	          if (s = (e[t] = M(l, v)).$n, o--, t--, i > o || c > t) break n;l = r[o], v = e[t], f = !0;
+	        }for (; d.key === v.key;) {
+	          if (m = (e[t] = M(d, v)).$n, l.key !== v.key && (s = p(n, m, s)), i++, t--, i > o || c > t) break n;d = r[i], v = e[t], f = !0;
+	        }for (; l.key === a.key;) {
+	          if (p(n, (e[c] = M(l, a)).$n, d.$n), o--, c++, i > o || c > t) break n;l = r[o], a = e[c], f = !0;
 	        }
-	      }(r >= c || o >= i) && g(n, e, t, c, d, r, v, i, $, o, l, p);
+	      }(t >= c || o >= i) && h(n, e, r, c, a, t, v, i, d, o, l, s);
 	    },
-	        C = function C(n, e, r) {
-	      var t = n.parentNode,
+	        k = function k(n, e, t) {
+	      var r = n.parentNode,
 	          o = e.length,
-	          u = r.length;o ? u ? b(t, e, o, r, u, n) : x(t, e, o, n) : $(r, t);
+	          u = t.length;o ? u ? x(r, e, o, t, u, n) : m(r, e, o, n) : s(t, r);
 	    },
-	        N = function N(n, e, r) {
-	      var t = e.length,
-	          o = r.length;t ? o ? b(n, e, t, r, o, null) : h(n, e, t) : p(r, n);
+	        b = function b(n, e, t) {
+	      var r = e.length,
+	          o = t.length;r ? o ? x(n, e, r, t, o, null) : y(n, e, r) : l(t, n);
 	    },
-	        D = function D(n, e, r, t, o, u, i) {
-	      return null == e ? t.nodeValue = "" : e.constructor === String || e.constructor === Number ? t.nodeValue = e : A(n, e, null, t, o, u, i), e;
+	        g = function g(n, e, t, r, o, u, i) {
+	      return null == e ? r.nodeValue = "" : e.constructor === String || e.constructor === Number ? r.nodeValue = e : C(n, e, null, r, o, u, i), e;
 	    },
-	        A = function A(n, e, r, t, o, u, i) {
-	      return f(t, M(n, t.parentNode, e, o, u, i)), e;
+	        C = function C(n, e, t, r, o, u, i) {
+	      return a(r, P(n, r.parentNode, e, o, u, i)), e;
 	    },
-	        O = function O(n, e, r, t, o, u, i) {
-	      return e && l(e, r) ? r : A(n, e, null, t, o, u, i);
+	        N = function N(n, e, t, r, o, u, i) {
+	      return e && v(e, t) ? t : C(n, e, null, r, o, u, i);
 	    },
-	        P = function P(n, e, r, t, o, u, i, c) {
-	      var f = t.$a,
-	          a = f.onProps;t.$p = e, a ? a() : v(f, t.$c(e, t.$t, f), t, u, c);
+	        _ = function _(n, e, t, r, u) {
+	      var i = n(e || o);v(i, t) || a(t.$n, (r[u] = B(i)).$n);
 	    },
-	        R = function R(n, e, r, t, o, u, i, c) {
-	      var a = n(e || {});l(a, t) || f(o, u[i] = (u[c] = _(a)).$n);
+	        D = function D(n, e, t, r, o, u, i) {
+	      return e instanceof Array ? n ? b(r, e, t) : k(r, e, t) : n ? (l(t, r), r.appendChild(P(!0, r, e, o, u, i))) : (s(t, r.parentNode), C(!1, e, null, r, o, u, i)), e;
 	    },
-	        j = function j(n, e, r, t, o, u, i) {
-	      return e instanceof Array ? n ? N(t, e, r) : C(t, e, r) : n ? (p(r, t), t.appendChild(M(!0, t, e, o, u, i))) : ($(r, t.parentNode), A(!1, e, null, t, o, u, i)), e;
+	        O = function O(n, e, t) {
+	      var r = t._onProps,
+	          o = t.props;t.props = e, r ? A(n, t, r, o) : j(n, t);
 	    },
-	        E = function E(n, e, t, o, u, i) {
-	      r.$p = e;var c = n.state,
-	          f = y(c, t, i),
-	          a = c.onInit(e || {}, void 0, f);f.$$doRerender = !0;var d = n(e, a, f),
-	          $ = w(d);return f.$$instance = d, d.$c = n, d.$t = a, d.$a = f, d.$p = e, t[o] = P, t[i] = d, t[u] = $, $;
-	    },
-	        M = e.createDynamic = function (n, e, r, t, o, u) {
+	        P = e.createDynamic = function (n, e, t, r, o, u) {
 	      var i = void 0,
-	          f = void 0,
+	          c = void 0,
 	          a = void 0,
-	          d = void 0;return null == r || (d = r.constructor) === Boolean ? (a = A, f = i = c()) : d === Object ? (a = O, f = i = w(r)) : d === String || d === Number ? (a = D, f = i = document.createTextNode(r)) : d === Array && (i = document.createDocumentFragment(), h(i, r, r.length), a = j, f = n ? e : i.appendChild(c())), t[o] = a, t[u] = f, i;
+	          p = void 0;return null == t || (p = t.constructor) === Boolean ? (a = C, c = i = f()) : p === Object ? (a = N, c = i = E(t)) : p === String || p === Number ? (a = g, c = i = document.createTextNode(t)) : p === Array && (i = document.createDocumentFragment(), y(i, t, t.length), a = D, c = n ? e : i.appendChild(f())), r[o] = a, r[u] = c, i;
 	    },
-	        S = e.createComponent = function (n, e, r, t, o, u) {
-	      if (n.state) return E(n, e, r, t, o, u);var i = n(e || {}),
-	          c = w(i);return r[t] = R, r[u] = i, r[o] = c, c;
+	        j = function j(n, e) {
+	      var t = M(e._instance, n(e));e._instance = t, t.$n.xvdom = e._parentInst;
 	    },
-	        _ = function _(n) {
+	        A = function A(n, e, t, r) {
+	      if (t) {
+	        var o = t(e, r);o !== e.state && (e.state = o, j(n, e));
+	      }
+	    },
+	        S = function S(n, e, r, o, u, i) {
+	      var c = new t(),
+	          f = { _onProps: i.onProps, _parentInst: r, props: e, bindSend: function bindSend(e) {
+	          return c[e] || (c[e] = function (t) {
+	            A(n, f, i[e], t);
+	          });
+	        } };return f.state = i.onInit(f), r[o] = O, r[u] = f, E(f._instance = n(f));
+	    },
+	        w = e.createNoStateComponent = function (n, e, t, r, o) {
+	      return t[r] = _, E(t[o] = n(e));
+	    },
+	        I = e.createComponent = function (n, e, t, r, u, i) {
+	      var c = e ? S : w;return c(n, t || o, r, u, i, e);
+	    },
+	        E = function E(n) {
+	      var e = n.$s.c(n);return n.$n = e, e.xvdom = n, e;
+	    },
+	        B = function B(n) {
 	      var e = n.$s,
-	          r = e.r.pop(n.key);return r ? (e.u(n, r), r) : ((n.$n = e.c(n)).xvdom = n, n);
+	          t = e.r.pop(n.key);return t ? (e.u(n, t), t) : (E(n), n);
 	    },
-	        w = e.render = function (n) {
-	      return _(n).$n;
+	        L = e.render = function (n) {
+	      return B(n).$n;
 	    },
-	        B = function B(n, e) {
-	      return l(e, n) ? n : (e = _(e), f(n.$n, e.$n), i(n), e);
+	        M = function M(n, e) {
+	      return v(e, n) ? n : (e = B(e), a(n.$n, e.$n), c(n), e);
 	    },
-	        I = e.rerender = function (n, e) {
-	      return B(n.xvdom, e).$n;
+	        T = e.rerender = function (n, e) {
+	      return M(n.xvdom, e).$n;
 	    },
-	        L = e.unmount = function (n) {
+	        V = e.unmount = function (n) {
 	      d(n.xvdom, n.parentNode);
-	    };e["default"] = { createDynamic: M, createComponent: S, render: w, rerender: I, unmount: L, Pool: u, DEADPOOL: o };e._ = { rerenderText: D, rerenderInstance: O, rerenderDynamic: A, rerenderArray: j };
+	    };e["default"] = { createDynamic: P, createComponent: I, render: L, rerender: T, unmount: V, Pool: r, DEADPOOL: i };e._ = { rerenderText: g, rerenderInstance: N, rerenderDynamic: C, rerenderArray: D };
 	  }]);
 	});
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)(module)))
