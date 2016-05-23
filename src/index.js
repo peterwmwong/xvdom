@@ -346,12 +346,12 @@ const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode, valuesAndC
 };
 
 // TODO: Update JSX transform to just pass api and props
-const rerenderStatefulComponent = (_, newProps, _2, api)=>{
-  const {_actions:{onProps}, props} = api;
+const rerenderStatefulComponent = (component, newProps, _2, api)=>{
+  const {_onProps, props} = api;
   api.props = newProps;
 
-  if(onProps) componentSend(api, 'onProps', props);
-  else componentRerender(api);
+  if(_onProps) componentSend(component, api, _onProps, props);
+  else componentRerender(component, api);
 };
 
 export const createDynamic = (isOnlyChild, parentNode, value, instance, rerenderFuncProp, rerenderContextNode)=>{
@@ -382,49 +382,42 @@ export const createDynamic = (isOnlyChild, parentNode, value, instance, rerender
   return node;
 };
 
-const componentRerender = (api)=> {
-  const {_component, _parentInst} = api;
-  const instance = internalRerender(api._instance, _component(api));
+const componentRerender = (component, api)=> {
+  const instance = internalRerender(api._instance, component(api));
   api._instance = instance;
-  instance.$n.xvdom = _parentInst;
+  instance.$n.xvdom = api._parentInst;
 };
 
-const componentSend = (api, action, context)=> {
-  const actionFn = api._actions[action];
+const componentSend = (component, api, actionFn, context)=> {
   // TODO: process.ENV === 'development', console.error(`Action not found #{action}`);
   if(!actionFn) return;
 
   const newState = actionFn(api, context);
   if(newState !== api.state){
     api.state = newState;
-    componentRerender(api);
+    componentRerender(component, api);
   }
 };
 
-function ComponentAPI(component, props, actions, parentInst){
+const createStatefulComponent = (component, actions, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
   const boundActions  = new Hash();
 
-  this._actions       = actions;
-  this._component     = component;
-  this._parentInst    = parentInst;
-  this.props          = props;
+  const api = {
+    _onProps:    actions.onProps,
+    _parentInst: instance,
 
-  // For performance, purposely not using `.bind()` on a prototype function.
-  this.bindSend = (action)=>
-    boundActions[action] || (
-      boundActions[action] = (context)=>{ componentSend(this, action, context); }
-    );
+    props,
+    bindSend: (action)=> boundActions[action] || (
+      boundActions[action] = (context)=>{ componentSend(component, api, actions[action], context); }
+    )
+  };
 
   //TODO: process.ENV === 'development', console.error(`Stateful components require atleast an 'onInit' function to provide the initial state (see)`);
-  this.state          = actions.onInit(this);
-  this._node          = internalRenderNoRecycle(this._instance = component(this));
-}
+  api.state = actions.onInit(api);
 
-const createStatefulComponent = (component, state, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
-  const api = new ComponentAPI(component, props, state, instance, componentInstanceProp);
-  instance[rerenderFuncProp]           = rerenderStatefulComponent;
-  instance[componentInstanceProp]      = api;
-  return instance[rerenderContextNode] = api._node;
+  instance[rerenderFuncProp]      = rerenderStatefulComponent;
+  instance[componentInstanceProp] = api;
+  return internalRenderNoRecycle(api._instance = component(api));
 };
 
 export const createNoStateComponent = (component, _, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
