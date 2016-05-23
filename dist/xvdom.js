@@ -356,10 +356,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	// TODO: Figure out whether we're using all these arguments
-	var rerenderComponent = function rerenderComponent(component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp) {
+	var rerenderComponent = function rerenderComponent(component, props, componentInstance, instance, componentInstanceProp) {
 	  var newCompInstance = component(props || EMPTY_PROPS);
 	  if (!internalRerenderInstance(newCompInstance, componentInstance)) {
-	    replaceNode(node, instance[rerenderContextNode] = (instance[componentInstanceProp] = internalRender(newCompInstance)).$n);
+	    replaceNode(componentInstance.$n, (instance[componentInstanceProp] = internalRender(newCompInstance)).$n);
 	  }
 	};
 
@@ -382,8 +382,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return array;
 	};
 
-	// TODO: Update JSX transform to just pass api and props
-	var rerenderStatefulComponent = function rerenderStatefulComponent(component, newProps, _2, api) {
+	var rerenderStatefulComponent = function rerenderStatefulComponent(component, newProps, api) {
 	  var _onProps = api._onProps;
 	  var props = api.props;
 
@@ -436,7 +435,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	};
 
-	var createStatefulComponent = function createStatefulComponent(component, actions, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
+	var createStatefulComponent = function createStatefulComponent(component, props, instance, rerenderFuncProp, componentInstanceProp, actions) {
 	  var boundActions = new Hash();
 
 	  var api = {
@@ -459,18 +458,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return internalRenderNoRecycle(api._instance = component(api));
 	};
 
-	var createNoStateComponent = exports.createNoStateComponent = function createNoStateComponent(component, _, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
-	  var inst = component(props);
-	  var node = internalRenderNoRecycle(inst);
-
+	var createNoStateComponent = exports.createNoStateComponent = function createNoStateComponent(component, props, instance, rerenderFuncProp, componentInstanceProp) {
 	  instance[rerenderFuncProp] = rerenderComponent;
-	  instance[componentInstanceProp] = inst;
-	  return instance[rerenderContextNode] = node;
+	  return internalRenderNoRecycle(instance[componentInstanceProp] = component(props));
 	};
 
-	var createComponent = exports.createComponent = function createComponent(component, componentState, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp) {
-	  var createFn = componentState ? createStatefulComponent : createNoStateComponent;
-	  return createFn(component, componentState, props || EMPTY_PROPS, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp);
+	var createComponent = exports.createComponent = function createComponent(component, actions, props, instance, rerenderFuncProp, componentInstanceProp) {
+	  var createFn = actions ? createStatefulComponent : createNoStateComponent;
+	  return createFn(component, props || EMPTY_PROPS, instance, rerenderFuncProp, componentInstanceProp, actions);
 	};
 
 	var internalRenderNoRecycle = function internalRenderNoRecycle(instance) {
