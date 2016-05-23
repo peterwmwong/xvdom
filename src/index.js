@@ -309,14 +309,12 @@ const rerenderInstance = (isOnlyChild, value, prevValue, node, instance, rerende
 };
 
 // TODO: Figure out whether we're using all these arguments
-const rerenderComponent = (component, props, prevProps, componentInstance, node, instance, rerenderContextNode, componentInstanceProp)=>{
+const rerenderComponent = (component, props, componentInstance, instance, componentInstanceProp)=>{
   const newCompInstance = component(props || EMPTY_PROPS);
   if(!internalRerenderInstance(newCompInstance, componentInstance)){
     replaceNode(
-      node,
-      instance[rerenderContextNode] = (
-        instance[componentInstanceProp] = internalRender(newCompInstance)
-      ).$n
+      componentInstance.$n,
+      (instance[componentInstanceProp] = internalRender(newCompInstance)).$n
     );
   }
 };
@@ -345,8 +343,7 @@ const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode, valuesAndC
   return array;
 };
 
-// TODO: Update JSX transform to just pass api and props
-const rerenderStatefulComponent = (component, newProps, _2, api)=>{
+const rerenderStatefulComponent = (component, newProps, api)=>{
   const {_onProps, props} = api;
   api.props = newProps;
 
@@ -399,7 +396,7 @@ const componentSend = (component, api, actionFn, context)=> {
   }
 };
 
-const createStatefulComponent = (component, actions, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
+const createStatefulComponent = (component, props, instance, rerenderFuncProp, componentInstanceProp, actions)=>{
   const boundActions  = new Hash();
 
   const api = {
@@ -420,25 +417,22 @@ const createStatefulComponent = (component, actions, props, instance, rerenderFu
   return internalRenderNoRecycle(api._instance = component(api));
 };
 
-export const createNoStateComponent = (component, _, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
-  const inst = component(props);
-  const node = internalRenderNoRecycle(inst);
-
-  instance[rerenderFuncProp]           = rerenderComponent;
-  instance[componentInstanceProp]      = inst;
-  return instance[rerenderContextNode] = node;
+export const createNoStateComponent = (component, props, instance, rerenderFuncProp, componentInstanceProp)=>{
+  instance[rerenderFuncProp] = rerenderComponent;
+  return internalRenderNoRecycle(
+    instance[componentInstanceProp] = component(props)
+  );
 };
 
-export const createComponent = (component, componentState, props, instance, rerenderFuncProp, rerenderContextNode, componentInstanceProp)=>{
-  const createFn = componentState ? createStatefulComponent : createNoStateComponent;
+export const createComponent = (component, actions, props, instance, rerenderFuncProp, componentInstanceProp)=>{
+  const createFn = actions ? createStatefulComponent : createNoStateComponent;
   return createFn(
     component,
-    componentState,
     (props || EMPTY_PROPS),
     instance,
     rerenderFuncProp,
-    rerenderContextNode,
-    componentInstanceProp
+    componentInstanceProp,
+    actions
   );
 };
 
