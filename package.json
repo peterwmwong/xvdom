@@ -16,6 +16,9 @@
     "build:benchmarks-stateful-components":
       "cd benchmarks/stateful-components; webpack --config webpack.config.js; uglifyjs --compress --mangle -- app-built.js > app-built.min.js",
 
+    "build:benchmarks-dynamics":
+      "cd benchmarks/dynamics; webpack --config webpack.config.js; uglifyjs --compress --mangle -- app-built.js > app-built.min.js",
+
     "test":
       "webpack-dev-server --config webpack-server.config.js"
   },
