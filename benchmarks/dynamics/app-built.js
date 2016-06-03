@@ -1438,14 +1438,19 @@
 	  }
 	};
 
-	var createValues = function createValues(counts, numValues) {
-	  var sum = Object.keys(counts).reduce(function (sum, key) {
+	var createValues = function createValues(counts, numValues, reverse) {
+	  var keys = (reverse ? function (a) {
+	    return a.reverse();
+	  } : function (a) {
+	    return a;
+	  })(Object.keys(counts));
+	  var sum = keys.reduce(function (sum, key) {
 	    return sum + counts[key];
 	  }, 0);
 	  var values = [];
 	  var i = 0;
 
-	  Object.keys(counts).forEach(function (key) {
+	  keys.forEach(function (key) {
 	    var numOfDynamics = 100 * (counts[key] / sum) | 0;
 	    while (numOfDynamics--) {
 	      values[i++] = DYNAMIC_FACTORIES[key](i);
@@ -1454,8 +1459,6 @@
 
 	  return values;
 	};
-
-	var VALUES = createValues(COUNTS, 100);
 
 	var Comp = function Comp(_ref) {
 	  var values = _ref.values;
@@ -1564,29 +1567,47 @@
 	  };
 	};
 
-	var render = function render() {
-	  return _index2.default.render({
+	var renderInstance = function renderInstance(values) {
+	  return {
 	    $s: _xvdomSpec3,
-	    a: VALUES
-	  });
+	    a: values
+	  };
+	};
+
+	var render = function render() {
+	  return _index2.default.render(renderInstance(createValues(COUNTS, 100)));
+	};
+
+	var rerender = function rerender(node) {
+	  return _index2.default.rerender(node, renderInstance(createValues(COUNTS, 100, true)));
 	};
 
 	var benchmark = function benchmark() {
 	  var i = 0;
+	  var node = void 0;
 	  while (i++ < 1000) {
-	    render();
+	    node = render();
+	    rerender(node);
 	  }
 	};
 
 	if (window.location.search === '?test') {
 	  var EXPECTED_TEXT_CONTENT = 'helloKhelloLhelloMhelloNhelloOhelloPhelloQhelloRhelloShelloThelloUhelloVhelloWhelloXhelloYhelloZhelloAhelloBhelloChelloDhelloEhelloFhelloGhelloHhelloIhelloJhelloKhelloLhelloMhelloNhelloOhelloPhelloQhelloRhelloShelloThelloUhelloVhelloWhelloXhelloYprefixhelloZprefixhelloAprefixhelloBprefixhelloCprefixhelloDprefixhelloEprefixhelloFprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixprefixprefixprefixprefixprefixprefixprefix';
-	  var textContent = render().textContent.replace(/\s+/g, '');
+	  var EXPECTED_TEXT_CONTENT_RERENDER = 'hellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohelloOhelloPhelloQhelloRhelloShelloThelloUhelloVhelloWhelloXhelloYprefixhelloZprefixhelloAprefixhelloBprefixhelloCprefixhelloDprefixhelloEprefixhelloFprefixhelloGprefixhelloHprefixhelloIprefixhelloJprefixhelloKprefixhelloLprefixhelloMprefixhelloNprefixhelloOprefixhelloPprefixhelloQprefixhelloRprefixhelloSprefixhelloTprefixhelloUprefixhelloVprefixhelloWprefixhelloXprefixhelloYprefixhelloZprefixhelloAprefixhelloBprefixhelloCprefixhelloDprefixhelloEprefixhelloFprefixhelloGprefixhelloHprefixhelloIprefixhelloJprefixprefixprefixprefixprefixprefixprefixprefixprefixprefixprefixprefixprefix';
+	  var node = render();
+	  var textContent = node.textContent.replace(/\s+/g, '');
 	  var pass = textContent === EXPECTED_TEXT_CONTENT;
 	  console.log(pass ? 'SUCCESS' : 'FAIL: expected textContent to be...\n"' + EXPECTED_TEXT_CONTENT + '"\nbut got...\n"' + textContent + '"');
+
+	  rerender(node);
+
+	  var textContentRerender = node.textContent.replace(/\s+/g, '');
+	  var passRerender = textContentRerender === EXPECTED_TEXT_CONTENT_RERENDER;
+	  console.log(passRerender ? 'RERENDER SUCCESS' : 'RERENDER FAIL: expected textContent to be...\n"' + EXPECTED_TEXT_CONTENT_RERENDER + '"\nbut got...\n"' + textContentRerender + '"');
 	} else {
-	  console.profile('benchmark');
+	  console.time('render');
 	  benchmark();
-	  console.profileEnd('benchmark');
+	  console.timeEnd('render');
 	}
 
 /***/ },

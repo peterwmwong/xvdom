@@ -20,12 +20,13 @@ const DYNAMIC_FACTORIES = {
   number:   (i)=> i
 };
 
-const createValues = (counts, numValues)=>{
-  const sum = Object.keys(counts).reduce(((sum, key) => sum + counts[key]), 0);
+const createValues = (counts, numValues, reverse)=>{
+  const keys = (reverse ? (a=>a.reverse()) : (a=>a))(Object.keys(counts));
+  const sum = keys.reduce(((sum, key) => sum + counts[key]), 0);
   const values = [];
   let i=0;
 
-  Object.keys(counts).forEach(key =>{
+  keys.forEach(key =>{
     let numOfDynamics = (100 * (counts[key] / sum))|0;
     while(numOfDynamics--){
       values[i++] = DYNAMIC_FACTORIES[key](i);
@@ -34,8 +35,6 @@ const createValues = (counts, numValues)=>{
 
   return values;
 };
-
-const VALUES = createValues(COUNTS, 100);
 
 const Comp = ({values})=>(
   <div>
@@ -292,27 +291,47 @@ const Comp = ({values})=>(
   </div>
 );
 
-const render = ()=> xvdom.render(<Comp values={VALUES} />);
+const renderInstance = (values)=> <Comp values={values} />;
+
+const render = ()=>
+  xvdom.render(renderInstance(createValues(COUNTS, 100)));
+
+const rerender = (node)=>
+  xvdom.rerender(node, renderInstance(createValues(COUNTS, 100, true)));
 
 const benchmark = ()=>{
   let i=0;
+  let node;
   while(i++ < 1000){
-    render();
+    node = render();
+    rerender(node);
   }
 };
 
 if(window.location.search === '?test'){
-  const EXPECTED_TEXT_CONTENT = 'helloKhelloLhelloMhelloNhelloOhelloPhelloQhelloRhelloShelloThelloUhelloVhelloWhelloXhelloYhelloZhelloAhelloBhelloChelloDhelloEhelloFhelloGhelloHhelloIhelloJhelloKhelloLhelloMhelloNhelloOhelloPhelloQhelloRhelloShelloThelloUhelloVhelloWhelloXhelloYprefixhelloZprefixhelloAprefixhelloBprefixhelloCprefixhelloDprefixhelloEprefixhelloFprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixprefixprefixprefixprefixprefixprefixprefix';
-  const textContent = render().textContent.replace(/\s+/g, '');
+  const EXPECTED_TEXT_CONTENT          = 'helloKhelloLhelloMhelloNhelloOhelloPhelloQhelloRhelloShelloThelloUhelloVhelloWhelloXhelloYhelloZhelloAhelloBhelloChelloDhelloEhelloFhelloGhelloHhelloIhelloJhelloKhelloLhelloMhelloNhelloOhelloPhelloQhelloRhelloShelloThelloUhelloVhelloWhelloXhelloYprefixhelloZprefixhelloAprefixhelloBprefixhelloCprefixhelloDprefixhelloEprefixhelloFprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixprefixprefixprefixprefixprefixprefixprefix';
+  const EXPECTED_TEXT_CONTENT_RERENDER = 'hellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohelloOhelloPhelloQhelloRhelloShelloThelloUhelloVhelloWhelloXhelloYprefixhelloZprefixhelloAprefixhelloBprefixhelloCprefixhelloDprefixhelloEprefixhelloFprefixhelloGprefixhelloHprefixhelloIprefixhelloJprefixhelloKprefixhelloLprefixhelloMprefixhelloNprefixhelloOprefixhelloPprefixhelloQprefixhelloRprefixhelloSprefixhelloTprefixhelloUprefixhelloVprefixhelloWprefixhelloXprefixhelloYprefixhelloZprefixhelloAprefixhelloBprefixhelloCprefixhelloDprefixhelloEprefixhelloFprefixhelloGprefixhelloHprefixhelloIprefixhelloJprefixprefixprefixprefixprefixprefixprefixprefixprefixprefixprefixprefixprefix';
+  const node = render();
+  const textContent = node.textContent.replace(/\s+/g, '');
   const pass = textContent === EXPECTED_TEXT_CONTENT;
   console.log(
     pass
       ? 'SUCCESS'
       : `FAIL: expected textContent to be...\n"${EXPECTED_TEXT_CONTENT}"\nbut got...\n"${textContent}"`
   );
+
+  rerender(node);
+
+  const textContentRerender = node.textContent.replace(/\s+/g, '');
+  const passRerender = textContentRerender === EXPECTED_TEXT_CONTENT_RERENDER;
+  console.log(
+    passRerender
+      ? 'RERENDER SUCCESS'
+      : `RERENDER FAIL: expected textContent to be...\n"${EXPECTED_TEXT_CONTENT_RERENDER}"\nbut got...\n"${textContentRerender}"`
+  );
 }
 else {
-  console.profile('benchmark');
+  console.time('render');
   benchmark();
-  console.profileEnd('benchmark');
+  console.timeEnd('render');
 }
