@@ -36,258 +36,48 @@ const createValues = (counts, numValues, reverse)=>{
   return values;
 };
 
+const CompPart = ({start, values})=>(
+  <div>
+    <span>{values[0 + start]}</span>
+    <span>{values[1 + start]}</span>
+    <span>{values[2 + start]}</span>
+    <span>{values[3 + start]}</span>
+    <span>{values[4 + start]}</span>
+  </div>
+);
+
+const CompPartPrefix = ({start, values})=>(
+  <div>
+    <span><span>prefix</span>{values[0 + start]}</span>
+    <span><span>prefix</span>{values[1 + start]}</span>
+    <span><span>prefix</span>{values[2 + start]}</span>
+    <span><span>prefix</span>{values[3 + start]}</span>
+    <span><span>prefix</span>{values[4 + start]}</span>
+  </div>
+);
+
 const Comp = ({values})=>(
   <div>
-    <span>{values[0]}</span>
-    <span>{values[1]}</span>
-    <span>{values[2]}</span>
-    <span>{values[3]}</span>
-    <span>{values[4]}</span>
-    <span>{values[5]}</span>
-    <span>{values[6]}</span>
-    <span>{values[7]}</span>
-    <span>{values[8]}</span>
-    <span>{values[9]}</span>
-    <span>{values[10]}</span>
-    <span>{values[11]}</span>
-    <span>{values[12]}</span>
-    <span>{values[13]}</span>
-    <span>{values[14]}</span>
-    <span>{values[15]}</span>
-    <span>{values[16]}</span>
-    <span>{values[17]}</span>
-    <span>{values[18]}</span>
-    <span>{values[19]}</span>
-    <span>{values[20]}</span>
-    <span>{values[21]}</span>
-    <span>{values[22]}</span>
-    <span>{values[23]}</span>
-    <span>{values[24]}</span>
-    <span>{values[25]}</span>
-    <span>{values[26]}</span>
-    <span>{values[27]}</span>
-    <span>{values[28]}</span>
-    <span>{values[29]}</span>
-    <span>{values[30]}</span>
-    <span>{values[31]}</span>
-    <span>{values[32]}</span>
-    <span>{values[33]}</span>
-    <span>{values[34]}</span>
-    <span>{values[35]}</span>
-    <span>{values[36]}</span>
-    <span>{values[37]}</span>
-    <span>{values[38]}</span>
-    <span>{values[39]}</span>
-    <span>{values[40]}</span>
-    <span>{values[41]}</span>
-    <span>{values[42]}</span>
-    <span>{values[43]}</span>
-    <span>{values[44]}</span>
-    <span>{values[45]}</span>
-    <span>{values[46]}</span>
-    <span>{values[47]}</span>
-    <span>{values[48]}</span>
-    <span>{values[49]}</span>
-    <span>
-      <span>prefix</span>
-      {values[50]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[51]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[52]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[53]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[54]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[55]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[56]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[57]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[58]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[59]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[60]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[61]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[62]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[63]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[64]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[65]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[66]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[67]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[68]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[69]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[70]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[71]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[72]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[73]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[74]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[75]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[76]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[77]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[78]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[79]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[80]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[81]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[82]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[83]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[84]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[85]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[86]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[87]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[88]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[89]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[90]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[91]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[92]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[93]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[94]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[95]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[96]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[97]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[98]}
-    </span>
-    <span>
-      <span>prefix</span>
-      {values[99]}
-    </span>
+    <CompPart values={values} start={0} />
+    <CompPart values={values} start={5} />
+    <CompPart values={values} start={10} />
+    <CompPart values={values} start={15} />
+    <CompPart values={values} start={20} />
+    <CompPart values={values} start={25} />
+    <CompPart values={values} start={30} />
+    <CompPart values={values} start={35} />
+    <CompPart values={values} start={40} />
+    <CompPart values={values} start={45} />
+    <CompPartPrefix values={values} start={50} />
+    <CompPartPrefix values={values} start={55} />
+    <CompPartPrefix values={values} start={60} />
+    <CompPartPrefix values={values} start={65} />
+    <CompPartPrefix values={values} start={70} />
+    <CompPartPrefix values={values} start={75} />
+    <CompPartPrefix values={values} start={80} />
+    <CompPartPrefix values={values} start={85} />
+    <CompPartPrefix values={values} start={90} />
+    <CompPartPrefix values={values} start={95} />
   </div>
 );
 
@@ -312,9 +102,11 @@ const test = ()=>{
   const EXPECTED_TEXT_CONTENT          = 'helloKhelloLhelloMhelloNhelloOhelloPhelloQhelloRhelloShelloThelloUhelloVhelloWhelloXhelloYhelloZhelloAhelloBhelloChelloDhelloEhelloFhelloGhelloHhelloIhelloJhelloKhelloLhelloMhelloNhelloOhelloPhelloQhelloRhelloShelloThelloUhelloVhelloWhelloXhelloYprefixhelloZprefixhelloAprefixhelloBprefixhelloCprefixhelloDprefixhelloEprefixhelloFprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixprefixprefixprefixprefixprefixprefixprefix';
   const EXPECTED_TEXT_CONTENT_RERENDER = 'hellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohelloOhelloPhelloQhelloRhelloShelloThelloUhelloVhelloWhelloXhelloYprefixhelloZprefixhelloAprefixhelloBprefixhelloCprefixhelloDprefixhelloEprefixhelloFprefixhelloGprefixhelloHprefixhelloIprefixhelloJprefixhelloKprefixhelloLprefixhelloMprefixhelloNprefixhelloOprefixhelloPprefixhelloQprefixhelloRprefixhelloSprefixhelloTprefixhelloUprefixhelloVprefixhelloWprefixhelloXprefixhelloYprefixhelloZprefixhelloAprefixhelloBprefixhelloCprefixhelloDprefixhelloEprefixhelloFprefixhelloGprefixhelloHprefixhelloIprefixhelloJprefixprefixprefixprefixprefixprefixprefixprefixprefixprefixprefixprefixprefix';
   const node = render();
-  const textContent = node.textContent.replace(/\s+/g, '');
-  const pass = textContent === EXPECTED_TEXT_CONTENT;
-  console.log(
+
+  let textContent = node.textContent.replace(/\s+/g, '');
+  let pass = textContent === EXPECTED_TEXT_CONTENT;
+  let message = '';
+  message += (
     pass
       ? 'SUCCESS'
       : `FAIL: expected textContent to be...\n"${EXPECTED_TEXT_CONTENT}"\nbut got...\n"${textContent}"`
@@ -322,18 +114,24 @@ const test = ()=>{
 
   rerender(node);
 
-  const textContentRerender = node.textContent.replace(/\s+/g, '');
-  const passRerender = textContentRerender === EXPECTED_TEXT_CONTENT_RERENDER;
-  console.log(
-    passRerender
+  textContent = node.textContent.replace(/\s+/g, '');
+  pass = textContent === EXPECTED_TEXT_CONTENT_RERENDER;
+  message += (
+    pass
       ? 'RERENDER SUCCESS'
-      : `RERENDER FAIL: expected textContent to be...\n"${EXPECTED_TEXT_CONTENT_RERENDER}"\nbut got...\n"${textContentRerender}"`
+      : `RERENDER FAIL: expected textContent to be...\n"${EXPECTED_TEXT_CONTENT_RERENDER}"\nbut got...\n"${textContent}"`
   );
+
+  document.write(message);
 };
 
-if(window.location.search === '?test') test();
-else {
-  console.time('render');
+const runBenchmark = ()=>{
+  var end;
+  var start = window.performance.now();
   benchmark();
-  console.timeEnd('render');
+  end = window.performance.now();
+  document.write((end - start).toFixed(3) + 'ms');
 }
+
+if(window.location.search === '?test') test();
+else runBenchmark();
