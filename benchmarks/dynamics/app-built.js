@@ -59,9 +59,11 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+	var _xvdomCreateComponent = _index2.default.createComponent,
+	    _xvdomCreateDynamic = _index2.default.createDynamic;
 	var _xvdomSpec5 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp, Comp.state, {
+	    var _n = _xvdomCreateComponent(Comp, Comp.state, {
 	      values: inst.a
 	    }, inst, 'b', 'c');
 
@@ -84,140 +86,140 @@
 	    var _n = document.createElement('div'),
 	        _n2;
 
-	    _n2 = _index2.default.createComponent(CompPart, CompPart.state, {
+	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
 	      values: inst.a,
 	      start: 0
 	    }, inst, 'b', 'c');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPart, CompPart.state, {
+	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
 	      values: inst.d,
 	      start: 5
 	    }, inst, 'e', 'f');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPart, CompPart.state, {
+	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
 	      values: inst.g,
 	      start: 10
 	    }, inst, 'h', 'i');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPart, CompPart.state, {
+	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
 	      values: inst.j,
 	      start: 15
 	    }, inst, 'k', 'l');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPart, CompPart.state, {
+	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
 	      values: inst.m,
 	      start: 20
 	    }, inst, 'n', 'o');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPart, CompPart.state, {
+	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
 	      values: inst.p,
 	      start: 25
 	    }, inst, 'q', 'r');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPart, CompPart.state, {
+	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
 	      values: inst.s,
 	      start: 30
 	    }, inst, 't', 'u');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPart, CompPart.state, {
+	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
 	      values: inst.v,
 	      start: 35
 	    }, inst, 'w', 'x');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPart, CompPart.state, {
+	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
 	      values: inst.y,
 	      start: 40
 	    }, inst, 'z', 'A');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPart, CompPart.state, {
+	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
 	      values: inst.B,
 	      start: 45
 	    }, inst, 'C', 'D');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPartPrefix, CompPartPrefix.state, {
+	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
 	      values: inst.E,
 	      start: 50
 	    }, inst, 'F', 'G');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPartPrefix, CompPartPrefix.state, {
+	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
 	      values: inst.H,
 	      start: 55
 	    }, inst, 'I', 'J');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPartPrefix, CompPartPrefix.state, {
+	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
 	      values: inst.K,
 	      start: 60
 	    }, inst, 'L', 'M');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPartPrefix, CompPartPrefix.state, {
+	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
 	      values: inst.N,
 	      start: 65
 	    }, inst, 'O', 'P');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPartPrefix, CompPartPrefix.state, {
+	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
 	      values: inst.Q,
 	      start: 70
 	    }, inst, 'R', 'S');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPartPrefix, CompPartPrefix.state, {
+	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
 	      values: inst.T,
 	      start: 75
 	    }, inst, 'U', 'V');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPartPrefix, CompPartPrefix.state, {
+	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
 	      values: inst.W,
 	      start: 80
 	    }, inst, 'X', 'Y');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPartPrefix, CompPartPrefix.state, {
+	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
 	      values: inst.Z,
 	      start: 85
 	    }, inst, 'a1', 'b1');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPartPrefix, CompPartPrefix.state, {
+	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
 	      values: inst.c1,
 	      start: 90
 	    }, inst, 'd1', 'e1');
 
 	    _n.appendChild(_n2);
 
-	    _n2 = _index2.default.createComponent(CompPartPrefix, CompPartPrefix.state, {
+	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
 	      values: inst.f1,
 	      start: 95
 	    }, inst, 'g1', 'h1');
@@ -408,7 +410,7 @@
 
 	    _n2.appendChild(_n3);
 
-	    _n2.appendChild(_index2.default.createDynamic(false, _n2, inst.a, inst, 'b', 'c'));
+	    _n2.appendChild(_xvdomCreateDynamic(false, _n2, inst.a, inst, 'b', 'c'));
 
 	    _n.appendChild(_n2);
 
@@ -419,7 +421,7 @@
 
 	    _n2.appendChild(_n4);
 
-	    _n2.appendChild(_index2.default.createDynamic(false, _n2, inst.d, inst, 'e', 'f'));
+	    _n2.appendChild(_xvdomCreateDynamic(false, _n2, inst.d, inst, 'e', 'f'));
 
 	    _n.appendChild(_n2);
 
@@ -430,7 +432,7 @@
 
 	    _n2.appendChild(_n5);
 
-	    _n2.appendChild(_index2.default.createDynamic(false, _n2, inst.g, inst, 'h', 'i'));
+	    _n2.appendChild(_xvdomCreateDynamic(false, _n2, inst.g, inst, 'h', 'i'));
 
 	    _n.appendChild(_n2);
 
@@ -441,7 +443,7 @@
 
 	    _n2.appendChild(_n6);
 
-	    _n2.appendChild(_index2.default.createDynamic(false, _n2, inst.j, inst, 'k', 'l'));
+	    _n2.appendChild(_xvdomCreateDynamic(false, _n2, inst.j, inst, 'k', 'l'));
 
 	    _n.appendChild(_n2);
 
@@ -452,7 +454,7 @@
 
 	    _n2.appendChild(_n7);
 
-	    _n2.appendChild(_index2.default.createDynamic(false, _n2, inst.m, inst, 'n', 'o'));
+	    _n2.appendChild(_xvdomCreateDynamic(false, _n2, inst.m, inst, 'n', 'o'));
 
 	    _n.appendChild(_n2);
 
@@ -490,31 +492,31 @@
 
 	    _n2 = document.createElement('span');
 
-	    _n2.appendChild(_index2.default.createDynamic(true, _n2, inst.a, inst, 'b', 'c'));
+	    _n2.appendChild(_xvdomCreateDynamic(true, _n2, inst.a, inst, 'b', 'c'));
 
 	    _n.appendChild(_n2);
 
 	    _n2 = document.createElement('span');
 
-	    _n2.appendChild(_index2.default.createDynamic(true, _n2, inst.d, inst, 'e', 'f'));
+	    _n2.appendChild(_xvdomCreateDynamic(true, _n2, inst.d, inst, 'e', 'f'));
 
 	    _n.appendChild(_n2);
 
 	    _n2 = document.createElement('span');
 
-	    _n2.appendChild(_index2.default.createDynamic(true, _n2, inst.g, inst, 'h', 'i'));
+	    _n2.appendChild(_xvdomCreateDynamic(true, _n2, inst.g, inst, 'h', 'i'));
 
 	    _n.appendChild(_n2);
 
 	    _n2 = document.createElement('span');
 
-	    _n2.appendChild(_index2.default.createDynamic(true, _n2, inst.j, inst, 'k', 'l'));
+	    _n2.appendChild(_xvdomCreateDynamic(true, _n2, inst.j, inst, 'k', 'l'));
 
 	    _n.appendChild(_n2);
 
 	    _n2 = document.createElement('span');
 
-	    _n2.appendChild(_index2.default.createDynamic(true, _n2, inst.m, inst, 'n', 'o'));
+	    _n2.appendChild(_xvdomCreateDynamic(true, _n2, inst.m, inst, 'n', 'o'));
 
 	    _n.appendChild(_n2);
 

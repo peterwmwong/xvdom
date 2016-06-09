@@ -59,9 +59,11 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+	var _xvdomCreateComponent = _index2.default.createComponent,
+	    _xvdomCreateDynamic = _index2.default.createDynamic;
 	var _xvdomSpec19 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp1, Comp1.state, {
+	    var _n = _xvdomCreateComponent(Comp1, Comp1.state, {
 	      value: 100
 	    }, inst, 'a', 'b');
 
@@ -72,7 +74,7 @@
 	};
 	var _xvdomSpec18 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp2, Comp2.state, {
+	    var _n = _xvdomCreateComponent(Comp2, Comp2.state, {
 	      value: inst.a
 	    }, inst, 'b', 'c');
 
@@ -92,7 +94,7 @@
 	};
 	var _xvdomSpec17 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp3, Comp3.state, {
+	    var _n = _xvdomCreateComponent(Comp3, Comp3.state, {
 	      value: inst.a
 	    }, inst, 'b', 'c');
 
@@ -112,7 +114,7 @@
 	};
 	var _xvdomSpec16 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp4, Comp4.state, {
+	    var _n = _xvdomCreateComponent(Comp4, Comp4.state, {
 	      value: inst.a
 	    }, inst, 'b', 'c');
 
@@ -132,7 +134,7 @@
 	};
 	var _xvdomSpec15 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp5, Comp5.state, {
+	    var _n = _xvdomCreateComponent(Comp5, Comp5.state, {
 	      value: inst.a
 	    }, inst, 'b', 'c');
 
@@ -152,7 +154,7 @@
 	};
 	var _xvdomSpec14 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp6, Comp6.state, {
+	    var _n = _xvdomCreateComponent(Comp6, Comp6.state, {
 	      value: inst.a
 	    }, inst, 'b', 'c');
 
@@ -172,7 +174,7 @@
 	};
 	var _xvdomSpec13 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp7, Comp7.state, {
+	    var _n = _xvdomCreateComponent(Comp7, Comp7.state, {
 	      value: inst.a
 	    }, inst, 'b', 'c');
 
@@ -192,7 +194,7 @@
 	};
 	var _xvdomSpec12 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp8, Comp8.state, {
+	    var _n = _xvdomCreateComponent(Comp8, Comp8.state, {
 	      value: inst.a
 	    }, inst, 'b', 'c');
 
@@ -212,7 +214,7 @@
 	};
 	var _xvdomSpec11 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp9, Comp9.state, {
+	    var _n = _xvdomCreateComponent(Comp9, Comp9.state, {
 	      value: inst.a
 	    }, inst, 'b', 'c');
 
@@ -232,7 +234,7 @@
 	};
 	var _xvdomSpec10 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp10, Comp10.state, {
+	    var _n = _xvdomCreateComponent(Comp10, Comp10.state, {
 	      value: inst.a
 	    }, inst, 'b', 'c');
 
@@ -252,7 +254,7 @@
 	};
 	var _xvdomSpec9 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp11, Comp11.state, {
+	    var _n = _xvdomCreateComponent(Comp11, Comp11.state, {
 	      value: inst.a
 	    }, inst, 'b', 'c');
 
@@ -272,7 +274,7 @@
 	};
 	var _xvdomSpec8 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp12, Comp12.state, {
+	    var _n = _xvdomCreateComponent(Comp12, Comp12.state, {
 	      value: inst.a
 	    }, inst, 'b', 'c');
 
@@ -292,7 +294,7 @@
 	};
 	var _xvdomSpec7 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp13, Comp13.state, {
+	    var _n = _xvdomCreateComponent(Comp13, Comp13.state, {
 	      value: inst.a
 	    }, inst, 'b', 'c');
 
@@ -312,7 +314,7 @@
 	};
 	var _xvdomSpec6 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp14, Comp14.state, {
+	    var _n = _xvdomCreateComponent(Comp14, Comp14.state, {
 	      value: inst.a
 	    }, inst, 'b', 'c');
 
@@ -332,7 +334,7 @@
 	};
 	var _xvdomSpec5 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp15, Comp15.state, {
+	    var _n = _xvdomCreateComponent(Comp15, Comp15.state, {
 	      value: inst.a
 	    }, inst, 'b', 'c');
 
@@ -352,7 +354,7 @@
 	};
 	var _xvdomSpec4 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(Comp16, Comp16.state, {
+	    var _n = _xvdomCreateComponent(Comp16, Comp16.state, {
 	      value: inst.a
 	    }, inst, 'b', 'c');
 
@@ -374,7 +376,7 @@
 	  c: function c(inst) {
 	    var _n = document.createElement('div');
 
-	    _n.appendChild(_index2.default.createDynamic(true, _n, inst.a, inst, 'b', 'c'));
+	    _n.appendChild(_xvdomCreateDynamic(true, _n, inst.a, inst, 'b', 'c'));
 
 	    return _n;
 	  },
@@ -389,7 +391,7 @@
 	};
 	var _xvdomSpec2 = {
 	  c: function c(inst) {
-	    var _n = _index2.default.createComponent(LeafNode, LeafNode.state, {
+	    var _n = _xvdomCreateComponent(LeafNode, LeafNode.state, {
 	      value: inst.a
 	    }, inst, 'b', 'c');
 
@@ -411,7 +413,7 @@
 	  c: function c(inst) {
 	    var _n = document.createElement('div');
 
-	    _n.appendChild(_index2.default.createDynamic(true, _n, inst.a, inst, 'b', 'c'));
+	    _n.appendChild(_xvdomCreateDynamic(true, _n, inst.a, inst, 'b', 'c'));
 
 	    return _n;
 	  },
