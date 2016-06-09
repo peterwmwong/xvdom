@@ -1,125 +1,207 @@
 import assert        from 'assert';
 import getHTMLString from './utils/getHTMLString.js';
-import xvdom, {_}    from '../src/index.js';
+import xvdom         from '../src/index.js';
 
-describe('createDynamic - isOnlyChild, value, instance, rerenderIndex, rerenderContextIndex', ()=>{
-  let instance, parentNode, resultNode;
+const INVISIBLE_DYNAMIC_VALUES = [null, undefined, true, false];
 
-  beforeEach(()=>{
-    parentNode = document.createElement('div');
-  });
+describe('createDynamic - isOnlyChild, parentNode, value, replace', ()=>{
+  let parentNode;
 
-  [null, undefined, true, false].forEach(value=>{
-    describe(`${value} - empty text node`, ()=>{
-      beforeEach(()=>{
-        instance = <div>{value}</div>;
-        resultNode = xvdom.createDynamic(true, parentNode, instance.v0, instance, 'r0', 'c0');
-        parentNode.appendChild(resultNode);
+  const otherChild = (isOnlyChild)=>
+    isOnlyChild ? '' : '<span></span>';
+
+  const _render = (isOnlyChild, value)=>
+    isOnlyChild
+      ? <div>{value}</div>
+      : <div><span></span>{value}</div>;
+
+  const render = (isOnlyChild, value)=>
+    parentNode = xvdom.render(_render(isOnlyChild, value));
+
+  const rerender = (isOnlyChild, value)=>{
+    const tmpRootNode = document.createElement('div');
+    tmpRootNode.appendChild(parentNode);
+    xvdom.rerender(parentNode, _render(isOnlyChild, value));
+    parentNode = tmpRootNode.firstChild;
+  };
+
+  const itRerenders = (isOnlyChild, expectedEmpty)=>{
+    describe('rerenders', ()=>{
+      INVISIBLE_DYNAMIC_VALUES.forEach(value=>{
+        it(`${value}`, ()=>{
+          rerender(isOnlyChild, value);
+          assert.equal(getHTMLString(parentNode),
+            '<div>'+
+              otherChild(isOnlyChild)+
+              expectedEmpty +
+            '</div>'
+          );
+        });
       });
 
-      it('renders text node with string', ()=>{
-        assert.ok(resultNode instanceof Comment);
+      it('strings', ()=>{
+        rerender(isOnlyChild, 'rerender hello');
         assert.equal(getHTMLString(parentNode),
           '<div>'+
-            '<!---->'+
+            otherChild(isOnlyChild)+
+            'rerender hello'+
           '</div>'
         );
       });
 
-      it('sets rerender function and context', ()=>{
-        assert.equal(instance.r0, _.rerenderDynamic);
-        assert.equal(instance.c0, parentNode.firstChild);
+      it('strings (empty string)', ()=>{
+        rerender(isOnlyChild, '');
+        assert.equal(getHTMLString(parentNode),
+          '<div>'+
+            otherChild(isOnlyChild)+
+            ''+
+          '</div>'
+        );
+      });
+
+      it('numbers (zero)', ()=>{
+        rerender(isOnlyChild, 0);
+        assert.equal(getHTMLString(parentNode),
+          '<div>'+
+            otherChild(isOnlyChild)+
+            '0'+
+          '</div>'
+        );
+      });
+
+      it('numbers', ()=>{
+        rerender(isOnlyChild, 7);
+        assert.equal(getHTMLString(parentNode),
+          '<div>'+
+            otherChild(isOnlyChild)+
+            '7'+
+          '</div>'
+        );
+      });
+
+      it('instances', ()=>{
+        rerender(isOnlyChild, <span>hello world</span>);
+        assert.equal(getHTMLString(parentNode),
+          '<div>'+
+            otherChild(isOnlyChild)+
+            '<span>'+
+              'hello world'+
+            '</span>'+
+          '</div>'
+        );
+      });
+
+      it('arrays', ()=>{
+        rerender(isOnlyChild, [
+          <div key={1}>rerender array 1</div>,
+          <span key={2}>rerender array 2</span>
+        ]);
+        assert.equal(getHTMLString(parentNode),
+          '<div>'+
+            otherChild(isOnlyChild)+
+            '<div>rerender array 1</div>'+
+            '<span>rerender array 2</span>'+
+          '</div>'
+        );
       });
     });
-  });
+  };
 
-  describe('String - text node', ()=>{
-    beforeEach(()=>{
-      const string = 'test string';
-      instance = {v0:string};
-      resultNode = xvdom.createDynamic(true, parentNode, instance.v0, instance, 'r0', 'c0');
-      parentNode.appendChild(resultNode);
+  const itRenders = (isOnlyChild)=>{
+    describe(`isOnlyChild === ${isOnlyChild}`, ()=>{
+      INVISIBLE_DYNAMIC_VALUES.forEach(value=>{
+        describe(`${value}`, ()=>{
+          beforeEach(()=>{
+            render(isOnlyChild, value);
+          });
+
+          it('renders as a comment', ()=>{
+            assert.equal(getHTMLString(parentNode),
+              '<div>'+
+                otherChild(isOnlyChild)+
+              '</div>'
+            );
+          });
+
+          itRerenders(isOnlyChild, '');
+        });
+      });
+
+      describe('String - text node', ()=>{
+        beforeEach(()=>{
+          render(isOnlyChild, 'test string');
+        });
+
+        it('renders text node with string', ()=>{
+          assert.equal(getHTMLString(parentNode),
+            '<div>'+
+              otherChild(isOnlyChild)+
+              'test string'+
+            '</div>'
+          );
+        });
+
+        itRerenders(isOnlyChild, '');
+      });
+
+      describe('Number - text node', ()=>{
+        beforeEach(()=>{
+          render(isOnlyChild, 0);
+        });
+
+        it('renders text node with string', ()=>{
+          assert.equal(getHTMLString(parentNode),
+            '<div>'+
+              otherChild(isOnlyChild)+
+              '0'+
+            '</div>'
+          );
+        });
+
+        itRerenders(isOnlyChild, '');
+      });
+
+      describe('Object - instance', ()=>{
+        beforeEach(()=>{
+          render(isOnlyChild, <b></b>);
+        });
+
+        // TODO: render <b> or something different
+        it('renders render instance', ()=>{
+          assert.equal(getHTMLString(parentNode),
+            '<div>'+
+              otherChild(isOnlyChild)+
+              '<b></b>'+
+            '</div>'
+          );
+        });
+
+        itRerenders(isOnlyChild, '');
+      });
+
+      describe('Array', ()=>{
+        beforeEach(()=>{
+          render(isOnlyChild, [
+            <a key={0} className="one"></a>,
+            <b key={1} className="two"></b>
+          ]);
+        });
+
+        it('renders array of items', ()=>{
+          assert.equal(getHTMLString(parentNode),
+            '<div>'+
+              otherChild(isOnlyChild)+
+              '<a class="one"></a>'+
+              '<b class="two"></b>'+
+            '</div>'
+          );
+        });
+
+        itRerenders(isOnlyChild, '');
+      });
     });
+  };
 
-    it('renders text node with string', ()=>{
-      assert.equal(getHTMLString(parentNode),
-        '<div>test string</div>'
-      );
-    });
-
-    it('sets rerender function and context', ()=>{
-      assert.equal(instance.r0, _.rerenderText);
-      assert.equal(instance.c0, parentNode.firstChild);
-    });
-  });
-
-  describe('Number - text node', ()=>{
-    beforeEach(()=>{
-      const num = 0;
-      instance = {v0:num};
-      resultNode = xvdom.createDynamic(true, parentNode, instance.v0, instance, 'r0', 'c0');
-      parentNode.appendChild(resultNode);
-    });
-
-    it('renders text node with string', ()=>{
-      assert.equal(getHTMLString(parentNode),
-        '<div>0</div>'
-      );
-    });
-
-    it('sets rerender function and context', ()=>{
-      assert.equal(instance.r0, _.rerenderText);
-      assert.equal(instance.c0, parentNode.firstChild);
-    });
-  });
-
-  describe('Object - render instance', ()=>{
-    beforeEach(()=>{
-      const childInstance = <span></span>;
-      instance = {v0:childInstance};
-      resultNode = xvdom.createDynamic(true, parentNode, instance.v0, instance, 'r0', 'c0');
-      parentNode.appendChild(resultNode);
-    });
-
-    it('renders render instance', ()=>{
-      assert.equal(getHTMLString(parentNode),
-        '<div><span></span></div>'
-      );
-    });
-
-    it('sets rerender function and context', ()=>{
-      assert.equal(instance.r0, _.rerenderInstance);
-      assert.equal(instance.c0, parentNode.firstChild);
-    });
-  });
-
-  describe('Array', ()=>{
-    const renderChild = (key, className)=>
-      <span key={key} className={className}></span>;
-
-    beforeEach(()=>{
-      instance = {
-        v0:[
-          renderChild(1, 'one'),
-          renderChild(2, 'two')
-        ]
-      };
-      resultNode = xvdom.createDynamic(true, parentNode, instance.v0, instance, 'r0', 'c0');
-      parentNode.appendChild(resultNode);
-    });
-
-    it('renders array of items', ()=>{
-      assert.equal(getHTMLString(parentNode),
-        '<div>'+
-          '<span class="one"></span>'+
-          '<span class="two"></span>'+
-        '</div>'
-      );
-    });
-
-    it('sets rerender function and context', ()=>{
-      assert.equal(instance.r0, _.rerenderArray);
-      assert.equal(instance.c0, parentNode);
-    });
-  });
+  itRenders(true);
+  itRenders(false);
 });

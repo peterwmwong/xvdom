@@ -351,7 +351,6 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
           '<div class="_1"></div>'+
           '<div class="_2"></div>'+
           '<div class="_3"></div>'+
-          '<!---->'+
           '<b></b>'+
         '</div>'
       );
@@ -1365,7 +1364,6 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
 
         assert.equal(getHTMLString(target),
           '<div>'+
-            '<!---->'+
           '</div>'
         );
 
@@ -1404,7 +1402,6 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
             '<div class="_1"></div>'+
             '<div class="_2"></div>'+
             '<div class="_3"></div>'+
-            '<!---->'+
             '<b></b>'+
           '</div>'
         );
@@ -1427,7 +1424,6 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
             '<div class="_3"></div>'+
             '<div class="_2"></div>'+
             '<div class="_1"></div>'+
-            '<!---->'+
             '<b></b>'+
           '</div>'
         );
@@ -1449,7 +1445,6 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
             '<div class="_4"></div>'+
             '<div class="_2"></div>'+
             '<div class="_3"></div>'+
-            '<!---->'+
             '<b></b>'+
           '</div>'
         );
@@ -1471,7 +1466,6 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
             '<div class="_1"></div>'+
             '<div class="_2"></div>'+
             '<div class="_4"></div>'+
-            '<!---->'+
             '<b></b>'+
           '</div>'
         );
@@ -1493,7 +1487,6 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
             '<div class="_1"></div>'+
             '<div class="_4"></div>'+
             '<div class="_3"></div>'+
-            '<!---->'+
             '<b></b>'+
           '</div>'
         );
@@ -1517,7 +1510,6 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
             '<div class="_2"></div>'+
             '<div class="_3"></div>'+
             '<div class="_4"></div>'+
-            '<!---->'+
             '<b></b>'+
           '</div>'
         );
@@ -1542,7 +1534,6 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
             '<div class="_2"></div>'+
             '<div class="_3"></div>'+
             '<div class="_4"></div>'+
-            '<!---->'+
             '<b></b>'+
           '</div>'
         );
@@ -1562,7 +1553,6 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
             '<a></a>'+
             '<div class="_1"></div>'+
             '<div class="_2"></div>'+
-            '<!---->'+
             '<b></b>'+
           '</div>'
         );
@@ -1579,7 +1569,6 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
           '<div>'+
             '<a></a>'+
             '<div class="_2"></div>'+
-            '<!---->'+
             '<b></b>'+
           '</div>'
         );
@@ -1592,7 +1581,6 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
         assert.equal(getHTMLString(target),
           '<div>'+
             '<a></a>'+
-            '<!---->'+
             '<b></b>'+
           '</div>'
         );

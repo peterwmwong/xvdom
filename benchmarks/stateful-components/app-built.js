@@ -719,7 +719,6 @@
 	Hash.prototype = Object.create(null);
 
 	var EMPTY_PROPS = new Hash();
-	var MARKER_NODE = document.createComment('');
 	var DEADPOOL = exports.DEADPOOL = {
 	  push: function push() {},
 	  pop: function pop() {}
@@ -748,9 +747,8 @@
 	var recycle = function recycle(instance) {
 	  instance.$s.r.push(instance);
 	};
-
-	var getMarkerNode = function getMarkerNode() {
-	  return MARKER_NODE.cloneNode(false);
+	var createTextNode = function createTextNode(value) {
+	  return document.createTextNode(value);
 	};
 
 	var replaceNode = function replaceNode(oldNode, newNode) {
@@ -964,12 +962,20 @@
 	};
 
 	var rerenderText = function rerenderText(isOnlyChild, value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
-	  if (value == null) {
-	    contextNode.nodeValue = '';
-	  } else if (value.constructor === String || value.constructor === Number) {
-	    contextNode.nodeValue = value;
-	  } else {
-	    rerenderDynamic(isOnlyChild, value, null, contextNode, instance, rerenderFuncProp, rerenderContextNode);
+	  switch (value && value.constructor) {
+	    case String:
+	    case Number:
+	    case 0:
+	      contextNode.nodeValue = value;
+	      break;
+
+	    case Object:
+	    case Array:
+	      rerenderDynamic(isOnlyChild, value, null, contextNode, instance, rerenderFuncProp, rerenderContextNode);
+	      break;
+
+	    default:
+	      contextNode.nodeValue = '';
 	  }
 	  return value;
 	};
@@ -1021,30 +1027,38 @@
 	  if (_onProps) componentSend(component, api, _onProps, props);else componentRerender(component, api);
 	};
 
-	var createDynamic = exports.createDynamic = function createDynamic(isOnlyChild, parentNode, value, instance, rerenderFuncProp, rerenderContextNode) {
-	  var node = void 0,
-	      context = void 0,
+	var createDynamic = function createDynamic(isOnlyChild, parentNode, value, instance, rerenderFuncProp, rerenderContextNode) {
+	  var context = void 0,
+	      node = void 0,
 	      rerenderFunc = void 0;
-	  var valueConstructor = void 0;
-	  if (value == null || (valueConstructor = value.constructor) === Boolean) {
-	    rerenderFunc = rerenderDynamic;
-	    context = node = getMarkerNode();
-	  } else if (valueConstructor === Object) {
-	    rerenderFunc = rerenderInstance;
-	    context = node = internalRenderNoRecycle(value);
-	  } else if (valueConstructor === String || valueConstructor === Number) {
-	    rerenderFunc = rerenderText;
-	    context = node = document.createTextNode(value);
-	  } else if (valueConstructor === Array) {
-	    node = document.createDocumentFragment();
-	    renderArrayToParent(node, value, value.length);
+	  switch (value && value.constructor) {
+	    case String:
+	    case Number:
+	    case 0:
+	      rerenderFunc = rerenderText;
+	      node = createTextNode(value);
+	      break;
 
-	    rerenderFunc = rerenderArrayMaybe;
-	    context = isOnlyChild ? parentNode : node.appendChild(getMarkerNode());
+	    case Object:
+	      rerenderFunc = rerenderInstance;
+	      node = internalRenderNoRecycle(value);
+	      break;
+
+	    case Array:
+	      rerenderFunc = rerenderArrayMaybe;
+	      node = document.createDocumentFragment();
+	      renderArrayToParent(node, value, value.length);
+	      context = isOnlyChild ? parentNode : node.appendChild(createTextNode(''));
+	      break;
+
+	    default:
+	      rerenderFunc = rerenderText;
+	      node = createTextNode('');
+	      break;
 	  }
 
 	  instance[rerenderFuncProp] = rerenderFunc;
-	  instance[rerenderContextNode] = context;
+	  instance[rerenderContextNode] = context || node;
 	  return node;
 	};
 
