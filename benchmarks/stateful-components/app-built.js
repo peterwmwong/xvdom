@@ -60,7 +60,8 @@
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var _xvdomCreateComponent = _index2.default.createComponent,
-	    _xvdomCreateDynamic = _index2.default.createDynamic;
+	    _xvdomCreateDynamic = _index2.default.createDynamic,
+	    _xvdomUpdateDynamic = _index2.default.updateDynamic;
 	var _xvdomSpec19 = {
 	  c: function c(inst) {
 	    var _n = _xvdomCreateComponent(Comp1, Comp1.state, {
@@ -376,7 +377,7 @@
 	  c: function c(inst) {
 	    var _n = document.createElement('div');
 
-	    _n.appendChild(_xvdomCreateDynamic(true, _n, inst.a, inst, 'b', 'c'));
+	    _n.appendChild(inst.b = _xvdomCreateDynamic(true, _n, inst.a));
 
 	    return _n;
 	  },
@@ -384,7 +385,7 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.a = pInst.b(true, inst.a, pInst.a, pInst.c, pInst, 'b', 'c');
+	      pInst.b = _xvdomUpdateDynamic(true, pInst.a, pInst.a = inst.a, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
@@ -413,7 +414,7 @@
 	  c: function c(inst) {
 	    var _n = document.createElement('div');
 
-	    _n.appendChild(_xvdomCreateDynamic(true, _n, inst.a, inst, 'b', 'c'));
+	    _n.appendChild(inst.b = _xvdomCreateDynamic(true, _n, inst.a));
 
 	    return _n;
 	  },
@@ -421,7 +422,7 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.a = pInst.b(true, inst.a, pInst.a, pInst.c, pInst, 'b', 'c');
+	      pInst.b = _xvdomUpdateDynamic(true, pInst.a, pInst.a = inst.a, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
@@ -700,12 +701,8 @@
 
 	Instance properties:
 
-	$a - actions for stateful components
-	$c - component for stateful components
 	$n = DOM node
-	$p - props for components
 	$s - spec (see below)
-	$t - state for stateful components
 	$x - Pool linked list next pointer
 
 	Spec properties:
@@ -751,6 +748,9 @@
 	};
 	var createTextNode = function createTextNode(value) {
 	  return document.createTextNode(value);
+	};
+	var createEmptyTextNode = function createEmptyTextNode() {
+	  return createTextNode('');
 	};
 
 	var replaceNode = function replaceNode(oldNode, newNode) {
@@ -963,34 +963,37 @@
 	  }
 	};
 
-	var rerenderText = function rerenderText(isOnlyChild, value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
+	var rerenderText = function rerenderText(isOnlyChild, value, contextNode) {
 	  switch (value && value.constructor) {
 	    case String:
 	    case Number:
 	    case 0:
 	      contextNode.nodeValue = value;
-	      break;
+	      return contextNode;
 
 	    case Object:
 	    case Array:
-	      rerenderDynamic(isOnlyChild, value, null, contextNode, instance, rerenderFuncProp, rerenderContextNode);
-	      break;
+	      return rerenderDynamic(isOnlyChild, value, contextNode);
 
 	    default:
 	      contextNode.nodeValue = '';
+	      return contextNode;
 	  }
-	  return value;
 	};
 
-	var rerenderDynamic = function rerenderDynamic(isOnlyChild, value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode) {
-	  replaceNode(contextNode, createDynamic(isOnlyChild, contextNode.parentNode, value, instance, rerenderFuncProp, rerenderContextNode));
-	  return value;
+	var rerenderDynamic = function rerenderDynamic(isOnlyChild, value, contextNode) {
+	  var node = createDynamic(isOnlyChild, contextNode.parentNode, value);
+	  replaceNode(contextNode, node);
+	  return node;
 	};
 
-	var rerenderInstance = function rerenderInstance(isOnlyChild, value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode) {
-	  if (value && internalRerenderInstance(value, prevValue)) return prevValue;
+	var rerenderInstance = function rerenderInstance(isOnlyChild, value, prevValue, node) {
+	  if (value && internalRerenderInstance(value, prevValue.$ri || prevValue)) {
+	    value.$ri = prevValue;
+	    return node;
+	  }
 
-	  return rerenderDynamic(isOnlyChild, value, null, node, instance, rerenderFuncProp, rerenderContextNode);
+	  return rerenderDynamic(isOnlyChild, value, node);
 	};
 
 	// TODO: Figure out whether we're using all these arguments
@@ -1001,7 +1004,7 @@
 	  }
 	};
 
-	var rerenderArrayMaybe = function rerenderArrayMaybe(isOnlyChild, array, oldArray, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode) {
+	var rerenderArrayMaybe = function rerenderArrayMaybe(isOnlyChild, array, oldArray, markerNode) {
 	  if (array instanceof Array) {
 	    if (isOnlyChild) {
 	      rerenderArrayOnlyChild(markerNode, array, oldArray);
@@ -1011,13 +1014,12 @@
 	  } else {
 	    if (isOnlyChild) {
 	      removeArrayNodesOnlyChild(oldArray, markerNode);
-	      markerNode.appendChild(createDynamic(true, markerNode, array, valuesAndContext, rerenderFuncProp, rerenderContextNode));
+	      return markerNode.appendChild(createDynamic(true, markerNode, array));
 	    } else {
 	      removeArrayNodes(oldArray, markerNode.parentNode);
-	      rerenderDynamic(false, array, null, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
+	      return rerenderDynamic(false, array, markerNode);
 	    }
 	  }
-	  return array;
 	};
 
 	var rerenderStatefulComponent = function rerenderStatefulComponent(component, newProps, api) {
@@ -1029,39 +1031,42 @@
 	  if (_onProps) componentSend(component, api, _onProps, props);else componentRerender(component, api);
 	};
 
-	var createDynamic = function createDynamic(isOnlyChild, parentNode, value, instance, rerenderFuncProp, rerenderContextNode) {
-	  var context = void 0,
-	      node = void 0,
-	      rerenderFunc = void 0;
+	var updateDynamic = function updateDynamic(isOnlyChild, oldValue, value, contextNode) {
+	  switch (oldValue && oldValue.constructor) {
+	    case Array:
+	      return rerenderArrayMaybe(isOnlyChild, value, oldValue, contextNode.xvdomContext) || contextNode;
+
+	    case Object:
+	      return rerenderInstance(isOnlyChild, value, oldValue, contextNode);
+
+	    default:
+	      return rerenderText(isOnlyChild, value, contextNode);
+	  }
+	};
+
+	var createArray = function createArray(isOnlyChild, parentNode, value) {
+	  var node = document.createDocumentFragment();
+	  renderArrayToParent(node, value, value.length);
+	  node.xvdomContext = isOnlyChild ? parentNode : node.appendChild(createEmptyTextNode());
+	  return node;
+	};
+
+	var createDynamic = function createDynamic(isOnlyChild, parentNode, value) {
 	  switch (value && value.constructor) {
 	    case String:
 	    case Number:
 	    case 0:
-	      rerenderFunc = rerenderText;
-	      node = createTextNode(value);
-	      break;
+	      return createTextNode(value);
 
 	    case Object:
-	      rerenderFunc = rerenderInstance;
-	      node = internalRenderNoRecycle(value);
-	      break;
+	      return internalRenderNoRecycle(value);
 
 	    case Array:
-	      rerenderFunc = rerenderArrayMaybe;
-	      node = document.createDocumentFragment();
-	      renderArrayToParent(node, value, value.length);
-	      context = isOnlyChild ? parentNode : node.appendChild(createTextNode(''));
-	      break;
+	      return createArray(isOnlyChild, parentNode, value);
 
 	    default:
-	      rerenderFunc = rerenderText;
-	      node = createTextNode('');
-	      break;
+	      return createEmptyTextNode();
 	  }
-
-	  instance[rerenderFuncProp] = rerenderFunc;
-	  instance[rerenderContextNode] = context || node;
-	  return node;
 	};
 
 	var componentRerender = function componentRerender(component, api) {
@@ -1155,11 +1160,12 @@
 	};
 
 	exports.default = {
-	  createDynamic: createDynamic,
 	  createComponent: createComponent,
+	  createDynamic: createDynamic,
 	  render: render,
 	  rerender: rerender,
 	  unmount: unmount,
+	  updateDynamic: updateDynamic,
 	  Pool: Pool,
 	  DEADPOOL: DEADPOOL
 	};
