@@ -61,6 +61,7 @@
 
 	var _xvdomCreateComponent = _xvdomMin2.default.createComponent,
 	    _xvdomCreateDynamic = _xvdomMin2.default.createDynamic,
+	    _xvdomEl = _xvdomMin2.default.el,
 	    _xvdomUpdateDynamic = _xvdomMin2.default.updateDynamic;
 	var _xvdomSpec5 = {
 	  c: function c(inst) {
@@ -73,7 +74,7 @@
 	};
 	var _xvdomSpec4 = {
 	  c: function c(inst) {
-	    var _n = document.createElement('table');
+	    var _n = _xvdomEl('table');
 
 	    _n.appendChild(inst.b = _xvdomCreateDynamic(true, _n, inst.a));
 
@@ -90,7 +91,7 @@
 	};
 	var _xvdomSpec3 = {
 	  c: function c(inst) {
-	    var _n = document.createElement('tr');
+	    var _n = _xvdomEl('tr');
 
 	    _n.appendChild(inst.b = _xvdomCreateDynamic(true, _n, inst.a));
 
@@ -136,7 +137,7 @@
 	};
 	var _xvdomSpec = {
 	  c: function c(inst) {
-	    var _n = document.createElement('td');
+	    var _n = _xvdomEl('td');
 
 	    inst.b = _n;
 	    _n.className = inst.a;
@@ -294,12 +295,12 @@
 	        s = function s(n, e, t) {
 	      return t ? n.insertBefore(e, t) : n.appendChild(e);
 	    },
-	        p = function p(n, e) {
+	        d = function d(n, e) {
 	      c(n), e.removeChild(n.$n);
 	    },
-	        d = function d(n, e) {
+	        p = function p(n, e) {
 	      for (var t = n.length, r = 0; t > r;) {
-	        p(n[r++], e);
+	        d(n[r++], e);
 	      }
 	    },
 	        v = function v(n, e) {
@@ -321,46 +322,46 @@
 	      }
 	    },
 	        $ = function $(n, e, t, r, o, u, c, i, a) {
-	      for (var f = new Map(), d = i.$n, v = void 0, l = void 0, m = void 0; a >= c;) {
+	      for (var f = new Map(), p = i.$n, v = void 0, l = void 0, m = void 0; a >= c;) {
 	        v = t[c++], f.set(v.key, v);
 	      }for (; o >= r;) {
-	        m = e[r], l = m.key, v = f.get(l), v ? (v === i && (d = d.nextSibling), f["delete"](l), m = B(v, m)) : m = T(m), e[r] = m, s(n, m.$n, d), ++r;
+	        m = e[r], l = m.key, v = f.get(l), v ? (v === i && (p = p.nextSibling), f["delete"](l), m = B(v, m)) : m = T(m), e[r] = m, s(n, m.$n, p), ++r;
 	      }f.forEach(function (e) {
-	        p(e, n);
+	        d(e, n);
 	      });
 	    },
-	        x = function x(n, e, t, r, o, u, c, i, a, f, d, v) {
+	        x = function x(n, e, t, r, o, u, c, i, a, f, p, v) {
 	      if (i > f) for (; u >= r;) {
 	        o = e[r], s(n, (e[r] = T(o)).$n, v), ++r;
 	      } else if (r > u) for (; f >= i;) {
-	        p(t[i++], n);
-	      } else $(n, e, t, r, u, a, i, d, f);
+	        d(t[i++], n);
+	      } else $(n, e, t, r, u, a, i, p, f);
 	    },
 	        h = function h(n, e, t, r, o, u) {
 	      var c = 0,
 	          i = 0,
 	          a = !0,
 	          f = e[0],
-	          p = r[0],
-	          d = u,
+	          d = r[0],
+	          p = u,
 	          v = void 0,
 	          l = void 0,
 	          m = void 0;t--, o--;n: for (; a && o >= c && t >= i;) {
-	        for (a = !1; p.key === f.key;) {
-	          if (e[i] = B(p, f), c++, i++, c > o || i > t) break n;p = r[c], f = e[i], a = !0;
+	        for (a = !1; d.key === f.key;) {
+	          if (e[i] = B(d, f), c++, i++, c > o || i > t) break n;d = r[c], f = e[i], a = !0;
 	        }for (v = r[o], l = e[t]; v.key === l.key;) {
-	          if (d = (e[t] = B(v, l)).$n, o--, t--, c > o || i > t) break n;v = r[o], l = e[t], a = !0;
-	        }for (; p.key === l.key;) {
-	          if (m = (e[t] = B(p, l)).$n, v.key !== l.key && (d = s(n, m, d)), c++, t--, c > o || i > t) break n;p = r[c], l = e[t], a = !0;
+	          if (p = (e[t] = B(v, l)).$n, o--, t--, c > o || i > t) break n;v = r[o], l = e[t], a = !0;
+	        }for (; d.key === l.key;) {
+	          if (m = (e[t] = B(d, l)).$n, v.key !== l.key && (p = s(n, m, p)), c++, t--, c > o || i > t) break n;d = r[c], l = e[t], a = !0;
 	        }for (; v.key === f.key;) {
-	          if (s(n, (e[i] = B(v, f)).$n, p.$n), o--, i++, c > o || i > t) break n;v = r[o], f = e[i], a = !0;
+	          if (s(n, (e[i] = B(v, f)).$n, d.$n), o--, i++, c > o || i > t) break n;v = r[o], f = e[i], a = !0;
 	        }
-	      }(t >= i || o >= c) && x(n, e, r, i, f, t, l, c, p, o, v, d);
+	      }(t >= i || o >= c) && x(n, e, r, i, f, t, l, c, d, o, v, p);
 	    },
 	        k = function k(n, e, t) {
 	      var r = n.parentNode,
 	          o = e.length,
-	          u = t.length;o ? u ? h(r, e, o, t, u, n) : m(r, e, o, n) : d(t, r);
+	          u = t.length;o ? u ? h(r, e, o, t, u, n) : m(r, e, o, n) : p(t, r);
 	    },
 	        b = function b(n, e, t) {
 	      var r = e.length,
@@ -382,7 +383,7 @@
 	      var c = n(e || o);l(c, t) || f(t.$n, (r[u] = T(c)).$n);
 	    },
 	        D = function D(n, e, t, r) {
-	      return e instanceof Array ? void (n ? b(r, e, t) : k(r, e, t)) : n ? (v(t, r), r.appendChild(A(!0, r, e))) : (d(t, r.parentNode), C(!1, e, r));
+	      return e instanceof Array ? void (n ? b(r, e, t) : k(r, e, t)) : n ? (v(t, r), r.appendChild(A(!0, r, e))) : (p(t, r.parentNode), C(!1, e, r));
 	    },
 	        O = function O(n, e, t) {
 	      var r = t._onProps,
@@ -412,7 +413,7 @@
 	        var o = t(e, r);o !== e.state && (e.state = o, P(n, e));
 	      }
 	    },
-	        I = function I(n, e, r, o, u, c) {
+	        E = function E(n, e, r, o, u, c) {
 	      var i = new t(),
 	          a = { _onProps: c.onProps, _parentInst: r, props: e, bindSend: function bindSend(e) {
 	          return i[e] || (i[e] = function (t) {
@@ -420,11 +421,11 @@
 	          });
 	        } };return a.state = c.onInit(a), r[o] = O, r[u] = a, M(a._instance = n(a));
 	    },
-	        E = e.createNoStateComponent = function (n, e, t, r, o) {
+	        I = e.createNoStateComponent = function (n, e, t, r, o) {
 	      return t[r] = N, M(t[o] = n(e));
 	    },
 	        L = e.createComponent = function (n, e, t, r, u, c) {
-	      var i = e ? I : E;return i(n, t || o, r, u, c, e);
+	      var i = e ? E : I;return i(n, t || o, r, u, c, e);
 	    },
 	        M = function M(n) {
 	      var e = n.$s.c(n);return n.$n = e, e.xvdom = n, e;
@@ -443,8 +444,10 @@
 	      return B(n.xvdom, e).$n;
 	    },
 	        q = e.unmount = function (n) {
-	      p(n.xvdom, n.parentNode);
-	    };e["default"] = { createComponent: L, createDynamic: A, render: V, rerender: F, unmount: q, updateDynamic: j, Pool: r, DEADPOOL: u };e._ = { rerenderText: g, rerenderInstance: _, rerenderDynamic: C, rerenderArray: D };
+	      d(n.xvdom, n.parentNode);
+	    };e["default"] = { createComponent: L, createDynamic: A, el: function el(n) {
+	        return document.createElement(n);
+	      }, render: V, rerender: F, unmount: q, updateDynamic: j, Pool: r, DEADPOOL: u };e._ = { rerenderText: g, rerenderInstance: _, rerenderDynamic: C, rerenderArray: D };
 	  }]);
 	});
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)(module)))

@@ -529,6 +529,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = {
 	  createComponent: createComponent,
 	  createDynamic: createDynamic,
+	  el: function el(tag) {
+	    return document.createElement(tag);
+	  },
 	  render: render,
 	  rerender: rerender,
 	  unmount: unmount,

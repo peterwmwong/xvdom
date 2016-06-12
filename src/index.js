@@ -484,6 +484,7 @@ export const unmount = node=>{ unmountInstance(node.xvdom, node.parentNode); };
 export default {
   createComponent,
   createDynamic,
+  el:(tag) => document.createElement(tag),
   render,
   rerender,
   unmount,

@@ -61,6 +61,7 @@
 
 	var _xvdomCreateComponent = _index2.default.createComponent,
 	    _xvdomCreateDynamic = _index2.default.createDynamic,
+	    _xvdomEl = _index2.default.el,
 	    _xvdomUpdateDynamic = _index2.default.updateDynamic;
 	var _xvdomSpec19 = {
 	  c: function c(inst) {
@@ -375,7 +376,7 @@
 	};
 	var _xvdomSpec3 = {
 	  c: function c(inst) {
-	    var _n = document.createElement('div');
+	    var _n = _xvdomEl('div');
 
 	    _n.appendChild(inst.b = _xvdomCreateDynamic(true, _n, inst.a));
 
@@ -412,7 +413,7 @@
 	};
 	var _xvdomSpec = {
 	  c: function c(inst) {
-	    var _n = document.createElement('div');
+	    var _n = _xvdomEl('div');
 
 	    _n.appendChild(inst.b = _xvdomCreateDynamic(true, _n, inst.a));
 
@@ -1162,6 +1163,9 @@
 	exports.default = {
 	  createComponent: createComponent,
 	  createDynamic: createDynamic,
+	  el: function el(tag) {
+	    return document.createElement(tag);
+	  },
 	  render: render,
 	  rerender: rerender,
 	  unmount: unmount,

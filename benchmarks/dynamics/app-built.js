@@ -61,6 +61,7 @@
 
 	var _xvdomCreateComponent = _index2.default.createComponent,
 	    _xvdomCreateDynamic = _index2.default.createDynamic,
+	    _xvdomEl = _index2.default.el,
 	    _xvdomUpdateDynamic = _index2.default.updateDynamic;
 	var _xvdomSpec5 = {
 	  c: function c(inst) {
@@ -84,7 +85,7 @@
 	};
 	var _xvdomSpec4 = {
 	  c: function c(inst) {
-	    var _n = document.createElement('div'),
+	    var _n = _xvdomEl('div'),
 	        _n2;
 
 	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
@@ -396,7 +397,7 @@
 	};
 	var _xvdomSpec3 = {
 	  c: function c(inst) {
-	    var _n = document.createElement('div'),
+	    var _n = _xvdomEl('div'),
 	        _n2,
 	        _n3,
 	        _n4,
@@ -404,8 +405,8 @@
 	        _n6,
 	        _n7;
 
-	    _n2 = document.createElement('span');
-	    _n3 = document.createElement('span');
+	    _n2 = _xvdomEl('span');
+	    _n3 = _xvdomEl('span');
 
 	    _n3.appendChild(document.createTextNode(('prefix') || ''));
 
@@ -415,8 +416,8 @@
 
 	    _n.appendChild(_n2);
 
-	    _n2 = document.createElement('span');
-	    _n4 = document.createElement('span');
+	    _n2 = _xvdomEl('span');
+	    _n4 = _xvdomEl('span');
 
 	    _n4.appendChild(document.createTextNode(('prefix') || ''));
 
@@ -426,8 +427,8 @@
 
 	    _n.appendChild(_n2);
 
-	    _n2 = document.createElement('span');
-	    _n5 = document.createElement('span');
+	    _n2 = _xvdomEl('span');
+	    _n5 = _xvdomEl('span');
 
 	    _n5.appendChild(document.createTextNode(('prefix') || ''));
 
@@ -437,8 +438,8 @@
 
 	    _n.appendChild(_n2);
 
-	    _n2 = document.createElement('span');
-	    _n6 = document.createElement('span');
+	    _n2 = _xvdomEl('span');
+	    _n6 = _xvdomEl('span');
 
 	    _n6.appendChild(document.createTextNode(('prefix') || ''));
 
@@ -448,8 +449,8 @@
 
 	    _n.appendChild(_n2);
 
-	    _n2 = document.createElement('span');
-	    _n7 = document.createElement('span');
+	    _n2 = _xvdomEl('span');
+	    _n7 = _xvdomEl('span');
 
 	    _n7.appendChild(document.createTextNode(('prefix') || ''));
 
@@ -488,34 +489,34 @@
 	};
 	var _xvdomSpec2 = {
 	  c: function c(inst) {
-	    var _n = document.createElement('div'),
+	    var _n = _xvdomEl('div'),
 	        _n2;
 
-	    _n2 = document.createElement('span');
+	    _n2 = _xvdomEl('span');
 
 	    _n2.appendChild(inst.b = _xvdomCreateDynamic(true, _n2, inst.a));
 
 	    _n.appendChild(_n2);
 
-	    _n2 = document.createElement('span');
+	    _n2 = _xvdomEl('span');
 
 	    _n2.appendChild(inst.d = _xvdomCreateDynamic(true, _n2, inst.c));
 
 	    _n.appendChild(_n2);
 
-	    _n2 = document.createElement('span');
+	    _n2 = _xvdomEl('span');
 
 	    _n2.appendChild(inst.f = _xvdomCreateDynamic(true, _n2, inst.e));
 
 	    _n.appendChild(_n2);
 
-	    _n2 = document.createElement('span');
+	    _n2 = _xvdomEl('span');
 
 	    _n2.appendChild(inst.h = _xvdomCreateDynamic(true, _n2, inst.g));
 
 	    _n.appendChild(_n2);
 
-	    _n2 = document.createElement('span');
+	    _n2 = _xvdomEl('span');
 
 	    _n2.appendChild(inst.j = _xvdomCreateDynamic(true, _n2, inst.i));
 
@@ -550,7 +551,7 @@
 	};
 	var _xvdomSpec = {
 	  c: function c() {
-	    var _n = document.createElement('b');
+	    var _n = _xvdomEl('b');
 
 	    _n.appendChild(document.createTextNode(('hello') || ''));
 
@@ -1195,6 +1196,9 @@
 	exports.default = {
 	  createComponent: createComponent,
 	  createDynamic: createDynamic,
+	  el: function el(tag) {
+	    return document.createElement(tag);
+	  },
 	  render: render,
 	  rerender: rerender,
 	  unmount: unmount,
