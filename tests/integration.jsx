@@ -15,7 +15,7 @@ describe('Integration', ()=>{
       });
 
       it('renders', ()=>{
-        assert.equal(getHTMLString(node),
+        assert.strictEqual(getHTMLString(node),
           '<div>hello world</div>'
         );
       });
@@ -29,7 +29,7 @@ describe('Integration', ()=>{
         });
 
         it('rerenders', ()=>{
-          assert.equal(getHTMLString(node),
+          assert.strictEqual(getHTMLString(node),
             '<div>'+
               '<span></span>'+
             '</div>'

@@ -59,7 +59,7 @@ describe('Stateful Components', ()=>{
     });
 
     it('renders', ()=>{
-      assert.equal(getHTMLString(parentNode),
+      assert.strictEqual(getHTMLString(parentNode),
         '<div>'+
           '<h1>'+
             'hello'+
@@ -71,7 +71,7 @@ describe('Stateful Components', ()=>{
 
     it('rerenders when props change', ()=>{
       xvdom.rerender(parentNode.firstChild, render('goodbye'));
-      assert.equal(getHTMLString(parentNode),
+      assert.strictEqual(getHTMLString(parentNode),
         '<div>'+
           '<h2>'+
             'goodbye'+
@@ -102,7 +102,7 @@ describe('Stateful Components', ()=>{
     });
 
     it('renders', ()=>{
-      assert.equal(getHTMLString(parentNode),
+      assert.strictEqual(getHTMLString(parentNode),
         '<div>'+
           '<a>'+
             'initialCount2: 777, count2: 777'+
@@ -116,7 +116,7 @@ describe('Stateful Components', ()=>{
         const {bindSend} = StatefulCounter.callsArgs[0];
 
         bindSend('increment')();
-        assert.equal(getHTMLString(parentNode),
+        assert.strictEqual(getHTMLString(parentNode),
           '<div>'+
             '<span>'+
               'initialCount: 777, count: 778'+
@@ -125,7 +125,7 @@ describe('Stateful Components', ()=>{
         );
 
         bindSend('incrementBy')(5);
-        assert.equal(getHTMLString(parentNode),
+        assert.strictEqual(getHTMLString(parentNode),
           '<div>'+
             '<a>'+
               'initialCount2: 777, count2: 783'+
@@ -134,31 +134,31 @@ describe('Stateful Components', ()=>{
         );
 
         bindSend('decrement')();
-        assert.equal(getHTMLString(parentNode),
+        assert.strictEqual(getHTMLString(parentNode),
           '<div>'+
             '<span>'+
               'initialCount: 777, count: 782'+
             '</span>'+
           '</div>'
         );
-        assert.equal(StatefulCounter.callCount, 4);
+        assert.strictEqual(StatefulCounter.callCount, 4);
       });
 
       it('does not blow up if unmounted', ()=>{
         xvdom.unmount(node);
 
         const {bindSend} = StatefulCounter.callsArgs[0];
-        assert.equal(StatefulCounter.callCount, 1);
+        assert.strictEqual(StatefulCounter.callCount, 1);
         bindSend('increment')();
-        assert.equal(StatefulCounter.callCount, 2);
+        assert.strictEqual(StatefulCounter.callCount, 2);
       });
 
       it('does not rerender if action yields the same state', ()=>{
         const {bindSend} = StatefulCounter.callsArgs[0];
-        assert.equal(StatefulCounter.callCount, 1);
+        assert.strictEqual(StatefulCounter.callCount, 1);
         bindSend('noop')();
-        assert.equal(StatefulCounter.callCount, 1);
-        assert.equal(getHTMLString(parentNode),
+        assert.strictEqual(StatefulCounter.callCount, 1);
+        assert.strictEqual(getHTMLString(parentNode),
           '<div>'+
             '<a>'+
               'initialCount2: 777, count2: 777'+
@@ -169,11 +169,11 @@ describe('Stateful Components', ()=>{
     });
 
     it('rerenders', ()=>{
-      assert.equal(renderCountSpec2, 1);
+      assert.strictEqual(renderCountSpec2, 1);
       xvdom.rerender(parentNode.firstChild, render(10));
-      assert.equal(renderCountSpec1, 0);
-      assert.equal(renderCountSpec2, 1);
-      assert.equal(getHTMLString(parentNode),
+      assert.strictEqual(renderCountSpec1, 0);
+      assert.strictEqual(renderCountSpec2, 1);
+      assert.strictEqual(getHTMLString(parentNode),
         '<div>'+
           '<a>'+
             'initialCount2: 10, count2: 777'+
@@ -182,9 +182,9 @@ describe('Stateful Components', ()=>{
       );
 
       xvdom.rerender(parentNode.firstChild, render(11, true));
-      assert.equal(renderCountSpec1, 1);
-      assert.equal(renderCountSpec2, 1);
-      assert.equal(getHTMLString(parentNode),
+      assert.strictEqual(renderCountSpec1, 1);
+      assert.strictEqual(renderCountSpec2, 1);
+      assert.strictEqual(getHTMLString(parentNode),
         '<div>'+
           '<span>'+
             'initialCount: 11, count: 777'+
@@ -193,9 +193,9 @@ describe('Stateful Components', ()=>{
       );
 
       xvdom.rerender(parentNode.firstChild, render(12));
-      assert.equal(renderCountSpec1, 1);
-      assert.equal(renderCountSpec2, 2);
-      assert.equal(getHTMLString(parentNode),
+      assert.strictEqual(renderCountSpec1, 1);
+      assert.strictEqual(renderCountSpec2, 2);
+      assert.strictEqual(getHTMLString(parentNode),
         '<div>'+
           '<a>'+
             'initialCount2: 12, count2: 777'+

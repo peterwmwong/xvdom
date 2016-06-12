@@ -18,10 +18,10 @@ describe('render recycled - node, renderInstance', ()=>{
     parentNode = document.createElement('div');
     node0 = xvdom.render(render(0, '_0'));
     node1 = xvdom.render(render(1, '_1'));
-    assert.equal(getHTMLString(node0),
+    assert.strictEqual(getHTMLString(node0),
       '<div class="_0"></div>'
     );
-    assert.equal(getHTMLString(node1),
+    assert.strictEqual(getHTMLString(node1),
       '<div class="_1"></div>'
     );
 
@@ -37,13 +37,13 @@ describe('render recycled - node, renderInstance', ()=>{
   it('ressurects and rerenders unmounted render instances', ()=>{
     const newNode0 = xvdom.render(render(1, '_01'));
     assert.strictEqual(newNode0, node1);
-    assert.equal(getHTMLString(newNode0),
+    assert.strictEqual(getHTMLString(newNode0),
       '<div class="_01"></div>'
     );
 
     const newNode1 = xvdom.render(render(0, '_11'));
     assert.strictEqual(newNode1, node0);
-    assert.equal(getHTMLString(newNode1),
+    assert.strictEqual(getHTMLString(newNode1),
       '<div class="_11"></div>'
     );
 
@@ -69,14 +69,14 @@ describe('render recycled - node, renderInstance', ()=>{
         ])
       );
 
-      assert.equal(getHTMLString(target),
+      assert.strictEqual(getHTMLString(target),
         '<div>'+
           '<div class="_0"></div>'+
           '<div class="_1"></div>'+
           '<div class="_2"></div>'+
         '</div>'
       );
-      assert.equal(document.createElement.count, 4);
+      assert.strictEqual(document.createElement.count, 4);
       spyOn.resetSpyCounts();
 
       xvdom.rerender(target,
@@ -85,12 +85,12 @@ describe('render recycled - node, renderInstance', ()=>{
         ])
       );
 
-      assert.equal(getHTMLString(target),
+      assert.strictEqual(getHTMLString(target),
         '<div>'+
           '<div class="_0"></div>'+
         '</div>'
       );
-      assert.equal(document.createElement.count , 0);
+      assert.strictEqual(document.createElement.count , 0);
       spyOn.resetSpyCounts();
 
       xvdom.rerender(target,
@@ -101,14 +101,14 @@ describe('render recycled - node, renderInstance', ()=>{
         ])
       );
 
-      assert.equal(getHTMLString(target),
+      assert.strictEqual(getHTMLString(target),
         '<div>'+
           '<div class="_0"></div>'+
           '<div class="_1"></div>'+
           '<div class="_2"></div>'+
         '</div>'
       );
-      assert.equal(document.createElement.count, 0);
+      assert.strictEqual(document.createElement.count, 0);
       spyOn.resetSpyCounts();
 
       xvdom.rerender(target,
@@ -117,12 +117,12 @@ describe('render recycled - node, renderInstance', ()=>{
         ])
       );
 
-      assert.equal(getHTMLString(target),
+      assert.strictEqual(getHTMLString(target),
         '<div>'+
           '<div class="_0"></div>'+
         '</div>'
       );
-      assert.equal(document.createElement.count , 0);
+      assert.strictEqual(document.createElement.count , 0);
       spyOn.resetSpyCounts();
 
       xvdom.rerender(target,
@@ -133,14 +133,14 @@ describe('render recycled - node, renderInstance', ()=>{
         ])
       );
 
-      assert.equal(getHTMLString(target),
+      assert.strictEqual(getHTMLString(target),
         '<div>'+
           '<div class="_0"></div>'+
           '<div class="_1"></div>'+
           '<div class="_2"></div>'+
         '</div>'
       );
-      assert.equal(document.createElement.count, 0);
+      assert.strictEqual(document.createElement.count, 0);
       spyOn.resetSpyCounts();
     });
   });

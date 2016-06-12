@@ -29,10 +29,10 @@ describe('rerender - node, instance', ()=>{
   it('calls rerender() with values and previous values w/context', ()=>{
     xvdom.rerender(node, render());
 
-    assert.equal(getHTMLString(node), '<span></span>');
+    assert.strictEqual(getHTMLString(node), '<span></span>');
 
-    assert.equal(renderCallCount,   0);
-    assert.equal(rerenderCallCount, 1);
+    assert.strictEqual(renderCallCount,   0);
+    assert.strictEqual(rerenderCallCount, 1);
   });
 
   describe('when the instance is for a different spec', ()=>{
@@ -45,20 +45,20 @@ describe('rerender - node, instance', ()=>{
     });
 
     it('calls render()', ()=>{
-      assert.equal(getHTMLString(parentNode), '<div><b></b></div>');
-      assert.equal(renderCallCount,   0);
-      assert.equal(rerenderCallCount, 0);
-      assert.notEqual(newNode, node);
+      assert.strictEqual(getHTMLString(parentNode), '<div><b></b></div>');
+      assert.strictEqual(renderCallCount,   0);
+      assert.strictEqual(rerenderCallCount, 0);
+      assert.notStrictEqual(newNode, node);
     });
 
     it('recycles', ()=>{
       spyOn.resetSpyCounts();
       xvdom.rerender(newNode, render());
 
-      assert.equal(getHTMLString(parentNode), '<div><span></span></div>');
-      assert.equal(renderCallCount,   0);
-      assert.equal(rerenderCallCount, 1);
-      assert.equal(document.createElement.count, 0);
+      assert.strictEqual(getHTMLString(parentNode), '<div><span></span></div>');
+      assert.strictEqual(renderCallCount,   0);
+      assert.strictEqual(rerenderCallCount, 1);
+      assert.strictEqual(document.createElement.count, 0);
     });
   });
 });

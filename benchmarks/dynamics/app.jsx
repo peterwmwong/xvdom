@@ -133,5 +133,5 @@ const runBenchmark = ()=>{
   document.write((end - start).toFixed(3) + 'ms');
 }
 
-if(window.location.search === '?test') test();
+if(window.location.search === '?test/') test();
 else runBenchmark();

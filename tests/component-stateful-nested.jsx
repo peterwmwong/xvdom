@@ -31,7 +31,7 @@ describe('Stateful Components Nested', ()=>{
     let parentNode = document.createElement('div');
     parentNode.appendChild(xvdom.render(<Node />));
 
-    assert.equal(getHTMLString(parentNode),
+    assert.strictEqual(getHTMLString(parentNode),
       '<div>'+
         '<span class="spec2">'+
           '0'+
@@ -41,7 +41,7 @@ describe('Stateful Components Nested', ()=>{
 
     leafNode.bindSend('toggle')();
 
-    assert.equal(getHTMLString(parentNode),
+    assert.strictEqual(getHTMLString(parentNode),
       '<div>'+
         '<span class="spec1">'+
           '0'+
@@ -51,7 +51,7 @@ describe('Stateful Components Nested', ()=>{
 
     node.bindSend('increment')();
 
-    assert.equal(getHTMLString(parentNode),
+    assert.strictEqual(getHTMLString(parentNode),
       '<div>'+
         '<span class="spec1">'+
           '1'+
@@ -62,7 +62,7 @@ describe('Stateful Components Nested', ()=>{
 
     leafNode.bindSend('toggle')();
 
-    assert.equal(getHTMLString(parentNode),
+    assert.strictEqual(getHTMLString(parentNode),
       '<div>'+
         '<span class="spec2">'+
           '1'+

@@ -2,12 +2,8 @@
 
 Instance properties:
 
-$a - actions for stateful components
-$c - component for stateful components
 $n = DOM node
-$p - props for components
 $s - spec (see below)
-$t - state for stateful components
 $x - Pool linked list next pointer
 
 Spec properties:
@@ -46,8 +42,9 @@ Pool.prototype.pop = function(key){
 
 const recycle = instance=>{instance.$s.r.push(instance);};
 const createTextNode = (value)=>document.createTextNode(value);
+const createEmptyTextNode = ()=>createTextNode('');
 
-const replaceNode   = (oldNode, newNode)=>{
+const replaceNode = (oldNode, newNode)=>{
   const parentNode = oldNode.parentNode;
   if(parentNode) parentNode.replaceChild(newNode, oldNode);
 };
@@ -279,37 +276,37 @@ const rerenderArrayOnlyChild = (parentNode, array, oldArray)=>{
   }
 };
 
-const rerenderText = (isOnlyChild, value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode)=>{
+const rerenderText = (isOnlyChild, value, contextNode)=>{
   switch(value && value.constructor){
     case String:
     case Number:
     case 0:
       contextNode.nodeValue = value;
-      break;
+      return contextNode;
 
     case Object:
     case Array:
-      rerenderDynamic(isOnlyChild, value, null, contextNode, instance, rerenderFuncProp, rerenderContextNode);
-      break;
+      return rerenderDynamic(isOnlyChild, value, contextNode);
 
     default:
       contextNode.nodeValue = '';
+      return contextNode;
   }
-  return value;
 };
 
-const rerenderDynamic = (isOnlyChild, value, oldValue, contextNode, instance, rerenderFuncProp, rerenderContextNode)=>{
-  replaceNode(
-    contextNode,
-    createDynamic(isOnlyChild, contextNode.parentNode, value, instance, rerenderFuncProp, rerenderContextNode)
-  );
-  return value;
+const rerenderDynamic = (isOnlyChild, value, contextNode)=>{
+  const node = createDynamic(isOnlyChild, contextNode.parentNode, value);
+  replaceNode(contextNode, node);
+  return node;
 };
 
-const rerenderInstance = (isOnlyChild, value, prevValue, node, instance, rerenderFuncProp, rerenderContextNode)=>{
-  if(value && internalRerenderInstance(value, prevValue)) return prevValue;
+const rerenderInstance = (isOnlyChild, value, prevValue, node)=>{
+  if(value && internalRerenderInstance(value, prevValue.$ri || prevValue)){
+    value.$ri = prevValue;
+    return node;
+  }
 
-  return rerenderDynamic(isOnlyChild, value, null, node, instance, rerenderFuncProp, rerenderContextNode);
+  return rerenderDynamic(isOnlyChild, value, node);
 };
 
 // TODO: Figure out whether we're using all these arguments
@@ -323,7 +320,7 @@ const rerenderComponent = (component, props, componentInstance, instance, compon
   }
 };
 
-const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode)=>{
+const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode)=>{
   if(array instanceof Array){
     if(isOnlyChild){
       rerenderArrayOnlyChild(markerNode, array, oldArray);
@@ -335,16 +332,15 @@ const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode, valuesAndC
   else{
     if(isOnlyChild){
       removeArrayNodesOnlyChild(oldArray, markerNode);
-      markerNode.appendChild(
-        createDynamic(true, markerNode, array, valuesAndContext, rerenderFuncProp, rerenderContextNode)
+      return markerNode.appendChild(
+        createDynamic(true, markerNode, array)
       );
     }
     else{
       removeArrayNodes(oldArray, markerNode.parentNode);
-      rerenderDynamic(false, array, null, markerNode, valuesAndContext, rerenderFuncProp, rerenderContextNode);
+      return rerenderDynamic(false, array, markerNode);
     }
   }
-  return array;
 };
 
 const rerenderStatefulComponent = (component, newProps, api)=>{
@@ -355,37 +351,42 @@ const rerenderStatefulComponent = (component, newProps, api)=>{
   else componentRerender(component, api);
 };
 
-const createDynamic = (isOnlyChild, parentNode, value, instance, rerenderFuncProp, rerenderContextNode)=>{
-  let context, node, rerenderFunc;
+const updateDynamic = (isOnlyChild, oldValue, value, contextNode)=>{
+  switch(oldValue && oldValue.constructor){
+    case Array:
+      return rerenderArrayMaybe(isOnlyChild, value, oldValue, contextNode.xvdomContext) || contextNode;
+
+    case Object:
+      return rerenderInstance(isOnlyChild, value, oldValue, contextNode);
+
+    default:
+      return rerenderText(isOnlyChild, value, contextNode);
+  }
+};
+
+const createArray = (isOnlyChild, parentNode, value)=>{
+  const node = document.createDocumentFragment();
+  renderArrayToParent(node, value, value.length);
+  node.xvdomContext = isOnlyChild ? parentNode : node.appendChild(createEmptyTextNode());
+  return node;
+};
+
+const createDynamic = (isOnlyChild, parentNode, value)=>{
   switch(value && value.constructor){
     case String:
     case Number:
     case 0:
-      rerenderFunc = rerenderText;
-      node = createTextNode(value);
-      break;
+      return createTextNode(value);
 
     case Object:
-      rerenderFunc = rerenderInstance;
-      node = internalRenderNoRecycle(value);
-      break;
+      return internalRenderNoRecycle(value);
 
     case Array:
-      rerenderFunc = rerenderArrayMaybe;
-      node = document.createDocumentFragment();
-      renderArrayToParent(node, value, value.length);
-      context = isOnlyChild ? parentNode : node.appendChild(createTextNode(''));
-      break;
+      return createArray(isOnlyChild, parentNode, value);
 
     default:
-      rerenderFunc = rerenderText;
-      node = createTextNode('');
-      break;
+      return createEmptyTextNode();
   }
-
-  instance[rerenderFuncProp]    = rerenderFunc;
-  instance[rerenderContextNode] = context || node;
-  return node;
 };
 
 const componentRerender = (component, api)=> {
@@ -481,11 +482,12 @@ export const rerender = (node, instance)=>internalRerender(node.xvdom, instance)
 export const unmount = node=>{ unmountInstance(node.xvdom, node.parentNode); };
 
 export default {
-  createDynamic,
   createComponent,
+  createDynamic,
   render,
   rerender,
   unmount,
+  updateDynamic,
   Pool,
   DEADPOOL
 };

@@ -1,6 +1,5 @@
 import './render.jsx';
 import './render-recycle.jsx';
-import './renderArray.jsx';
 
 import './rerender.jsx';
 import './rerenderArray.jsx';

@@ -1,15 +1,14 @@
 import assert from 'assert';
 import {_}  from '../src/index.js';
 
-describe('rerenderDynamic - value, contextNode, instance, rerenderIndex, rerenderContextIndex', ()=>{
+describe('rerenderDynamic - isOnlyChild, value, contextNode', ()=>{
   const initialValue = 'initial text';
-  let textNode, instance, parentNode, returnValue;
+  let textNode, parentNode, returnValue;
 
   beforeEach(()=>{
     parentNode = document.createElement('div');
     textNode = document.createTextNode(initialValue);
     parentNode.appendChild(textNode);
-    instance = {spec:null};
   });
 
   describe('When node has been removed', ()=>{
@@ -19,7 +18,7 @@ describe('rerenderDynamic - value, contextNode, instance, rerenderIndex, rerende
 
     it('does nothing and does not throw error', ()=>{
       try{
-        _.rerenderDynamic(true, 'new text', initialValue, textNode, instance, 'r0', 'c0');
+        _.rerenderDynamic(true, 'new text', textNode);
         assert.equal(parentNode.children.length, 0);
       }
       catch(e){
@@ -30,38 +29,38 @@ describe('rerenderDynamic - value, contextNode, instance, rerenderIndex, rerende
 
   describe('When `newValue` is a string', ()=>{
     beforeEach(()=>{
-      returnValue = _.rerenderDynamic(true, 'new text', initialValue, textNode, instance, 'r0', 'c0');
+      returnValue = _.rerenderDynamic(true, 'new text', textNode);
     });
 
     it('updates text node value', ()=>{
       assert.equal(parentNode.firstChild.nodeValue, 'new text');
     });
 
-    it('returns `newValue`', ()=>{
-      assert.equal(returnValue, 'new text');
+    it('returns text node', ()=>{
+      assert.equal(returnValue, parentNode.firstChild);
     });
   });
 
   describe('When `newValue` is a number', ()=>{
     beforeEach(()=>{
-      returnValue = _.rerenderDynamic(true, 0, initialValue, textNode, instance, 'r0', 'c0');
+      returnValue = _.rerenderDynamic(true, 0, textNode);
     });
 
     it('updates text node value', ()=>{
       assert.equal(parentNode.firstChild.nodeValue, '0');
     });
 
-    it('returns `newValue`', ()=>{
-      assert.equal(returnValue, 0);
+    it('returns text node', ()=>{
+      assert.equal(returnValue, parentNode.firstChild);
     });
   });
 
   [null, undefined].forEach(value=>{
     describe(`When newValue is ${value}`, ()=>{
       it('updates text node value to ""', ()=>{
-        const result = _.rerenderDynamic(true, value, initialValue, textNode, instance, 'r0', 'c0');
+        const result = _.rerenderDynamic(true, value, textNode);
         assert.equal(parentNode.firstChild.nodeValue, '');
-        assert.equal(result, value);
+        assert.equal(result, parentNode.firstChild);
       });
     });
   });

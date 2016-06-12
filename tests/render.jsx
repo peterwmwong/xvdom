@@ -11,10 +11,10 @@ describe('render - instance', ()=>{
   });
 
   it('calls render() with values', ()=>{
-    assert.equal(getHTMLString(resultNode), '<span></span>');
+    assert.strictEqual(getHTMLString(resultNode), '<span></span>');
   });
 
   it('stores renderInstance on node under the `xvdom` property', ()=>{
-    assert.equal(resultNode.xvdom, instance);
+    assert.strictEqual(resultNode.xvdom, instance);
   });
 });

@@ -1,49 +1,48 @@
 import assert from 'assert';
 import xvdom, {_}  from '../src/index.js';
 
-describe('_.rerenderText - value, contextNode, instance, rerenderIndex, rerenderContextIndex', ()=>{
+describe('_.rerenderText - value, contextNode', ()=>{
   const initialValue = 'initial text';
-  let textNode, instance, returnValue;
+  let textNode, returnValue;
 
   beforeEach(()=>{
     textNode = document.createTextNode(initialValue);
-    instance = {spec:null};
   });
 
   describe('When `newValue` is a string', ()=>{
     beforeEach(()=>{
-      returnValue = _.rerenderText(true, 'new text', initialValue, textNode, instance, 'r0', 'c0');
+      returnValue = _.rerenderText(true, 'new text', textNode);
     });
 
     it('updates text node value', ()=>{
-      assert.equal(textNode.nodeValue, 'new text');
+      assert.strictEqual(textNode.nodeValue, 'new text');
     });
 
     it('returns `newValue`', ()=>{
-      assert.equal(returnValue, 'new text');
+      assert.strictEqual(returnValue, textNode);
     });
   });
 
   describe('When `newValue` is a number', ()=>{
     beforeEach(()=>{
-      returnValue = _.rerenderText(true, 0, initialValue, textNode, instance, 'r0', 'c0');
+      returnValue = _.rerenderText(true, 0, textNode);
     });
 
     it('updates text node value', ()=>{
-      assert.equal(textNode.nodeValue, '0');
+      assert.strictEqual(textNode.nodeValue, '0');
     });
 
     it('returns `newValue`', ()=>{
-      assert.equal(returnValue, 0);
+      assert.strictEqual(returnValue, textNode);
     });
   });
 
   [null, undefined].forEach(value=>{
     describe(`When newValue is ${value}`, ()=>{
       it('updates text node value to ""', ()=>{
-        const result = _.rerenderText(true, value, initialValue, textNode, instance, 'r0', 'c0');
-        assert.equal(textNode.nodeValue, '');
-        assert.equal(result, value);
+        const result = _.rerenderText(true, value, textNode);
+        assert.strictEqual(textNode.nodeValue, '');
+        assert.strictEqual(result, textNode);
       });
     });
   });

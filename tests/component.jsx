@@ -31,7 +31,7 @@ describe('Component', ()=>{
     });
 
     it('renders', ()=>{
-      assert.equal(getHTMLString(node),
+      assert.strictEqual(getHTMLString(node),
         '<div>'+
           '<span>'+
             'count: 777'+
@@ -42,7 +42,7 @@ describe('Component', ()=>{
 
     it('rerenders', ()=>{
       xvdom.rerender(node, render({count:10}));
-      assert.equal(getHTMLString(node),
+      assert.strictEqual(getHTMLString(node),
         '<div>'+
           '<span>'+
             'count: 10'+
@@ -51,7 +51,7 @@ describe('Component', ()=>{
       );
 
       xvdom.rerender(node, render({count:11}));
-      assert.equal(getHTMLString(node),
+      assert.strictEqual(getHTMLString(node),
         '<div>'+
           '<span>'+
             'count: 11'+
@@ -60,7 +60,7 @@ describe('Component', ()=>{
       );
 
       xvdom.rerender(node, render({type:2, count:20}));
-      assert.equal(getHTMLString(node),
+      assert.strictEqual(getHTMLString(node),
         '<div>'+
           '<a>'+
             'count2: 20'+
@@ -69,7 +69,7 @@ describe('Component', ()=>{
       );
 
       xvdom.rerender(node, render({type: 2, count: 21}));
-      assert.equal(getHTMLString(node),
+      assert.strictEqual(getHTMLString(node),
         '<div>'+
           '<a>'+
             'count2: 21'+
@@ -78,7 +78,7 @@ describe('Component', ()=>{
       );
 
       xvdom.rerender(node, render({count: 12}));
-      assert.equal(getHTMLString(node),
+      assert.strictEqual(getHTMLString(node),
         '<div>'+
           '<span>'+
             'count: 12'+
@@ -93,7 +93,7 @@ describe('Component', ()=>{
     const node = xvdom.render(<NoPropsComp />);
 
     assert.deepEqual(NoPropsComp.callArgs[0], {});
-    assert.equal(getHTMLString(node),
+    assert.strictEqual(getHTMLString(node),
       '<span>'+
         'test'+
       '</span>'
@@ -113,7 +113,7 @@ describe('Component', ()=>{
     });
 
     it('renders', ()=>{
-      assert.equal(getHTMLString(node),
+      assert.strictEqual(getHTMLString(node),
         '<div>'+
           '<span>'+
             'count: 0'+
@@ -124,7 +124,7 @@ describe('Component', ()=>{
 
     it('rerenders', ()=>{
       xvdom.rerender(node, render2(1));
-      assert.equal(getHTMLString(node),
+      assert.strictEqual(getHTMLString(node),
         '<div>'+
           '<span>'+
             'count: 1'+
@@ -133,7 +133,7 @@ describe('Component', ()=>{
       );
 
       xvdom.rerender(node, render2(0));
-      assert.equal(getHTMLString(node),
+      assert.strictEqual(getHTMLString(node),
         '<div>'+
           '<span>'+
             'count: 0'+
@@ -142,7 +142,7 @@ describe('Component', ()=>{
       );
 
       xvdom.rerender(node, render2(2));
-      assert.equal(getHTMLString(node),
+      assert.strictEqual(getHTMLString(node),
         '<div>'+
           '<a>'+
             'count2: 2'+
@@ -151,7 +151,7 @@ describe('Component', ()=>{
       );
 
       xvdom.rerender(node, render2(5));
-      assert.equal(getHTMLString(node),
+      assert.strictEqual(getHTMLString(node),
         '<div>'+
           '<a>'+
             'count2: 5'+
@@ -160,7 +160,7 @@ describe('Component', ()=>{
       );
 
       xvdom.rerender(node, render2(1));
-      assert.equal(getHTMLString(node),
+      assert.strictEqual(getHTMLString(node),
         '<div>'+
           '<span>'+
             'count: 1'+

@@ -30,7 +30,7 @@ describe('createDynamic - isOnlyChild, parentNode, value, replace', ()=>{
       INVISIBLE_DYNAMIC_VALUES.forEach(value=>{
         it(`${value}`, ()=>{
           rerender(isOnlyChild, value);
-          assert.equal(getHTMLString(parentNode),
+          assert.strictEqual(getHTMLString(parentNode),
             '<div>'+
               otherChild(isOnlyChild)+
               expectedEmpty +
@@ -41,7 +41,7 @@ describe('createDynamic - isOnlyChild, parentNode, value, replace', ()=>{
 
       it('strings', ()=>{
         rerender(isOnlyChild, 'rerender hello');
-        assert.equal(getHTMLString(parentNode),
+        assert.strictEqual(getHTMLString(parentNode),
           '<div>'+
             otherChild(isOnlyChild)+
             'rerender hello'+
@@ -51,7 +51,7 @@ describe('createDynamic - isOnlyChild, parentNode, value, replace', ()=>{
 
       it('strings (empty string)', ()=>{
         rerender(isOnlyChild, '');
-        assert.equal(getHTMLString(parentNode),
+        assert.strictEqual(getHTMLString(parentNode),
           '<div>'+
             otherChild(isOnlyChild)+
             ''+
@@ -61,7 +61,7 @@ describe('createDynamic - isOnlyChild, parentNode, value, replace', ()=>{
 
       it('numbers (zero)', ()=>{
         rerender(isOnlyChild, 0);
-        assert.equal(getHTMLString(parentNode),
+        assert.strictEqual(getHTMLString(parentNode),
           '<div>'+
             otherChild(isOnlyChild)+
             '0'+
@@ -71,7 +71,7 @@ describe('createDynamic - isOnlyChild, parentNode, value, replace', ()=>{
 
       it('numbers', ()=>{
         rerender(isOnlyChild, 7);
-        assert.equal(getHTMLString(parentNode),
+        assert.strictEqual(getHTMLString(parentNode),
           '<div>'+
             otherChild(isOnlyChild)+
             '7'+
@@ -81,7 +81,7 @@ describe('createDynamic - isOnlyChild, parentNode, value, replace', ()=>{
 
       it('instances', ()=>{
         rerender(isOnlyChild, <span>hello world</span>);
-        assert.equal(getHTMLString(parentNode),
+        assert.strictEqual(getHTMLString(parentNode),
           '<div>'+
             otherChild(isOnlyChild)+
             '<span>'+
@@ -96,7 +96,7 @@ describe('createDynamic - isOnlyChild, parentNode, value, replace', ()=>{
           <div key={1}>rerender array 1</div>,
           <span key={2}>rerender array 2</span>
         ]);
-        assert.equal(getHTMLString(parentNode),
+        assert.strictEqual(getHTMLString(parentNode),
           '<div>'+
             otherChild(isOnlyChild)+
             '<div>rerender array 1</div>'+
@@ -116,7 +116,7 @@ describe('createDynamic - isOnlyChild, parentNode, value, replace', ()=>{
           });
 
           it('renders as a comment', ()=>{
-            assert.equal(getHTMLString(parentNode),
+            assert.strictEqual(getHTMLString(parentNode),
               '<div>'+
                 otherChild(isOnlyChild)+
               '</div>'
@@ -133,7 +133,7 @@ describe('createDynamic - isOnlyChild, parentNode, value, replace', ()=>{
         });
 
         it('renders text node with string', ()=>{
-          assert.equal(getHTMLString(parentNode),
+          assert.strictEqual(getHTMLString(parentNode),
             '<div>'+
               otherChild(isOnlyChild)+
               'test string'+
@@ -150,7 +150,7 @@ describe('createDynamic - isOnlyChild, parentNode, value, replace', ()=>{
         });
 
         it('renders text node with string', ()=>{
-          assert.equal(getHTMLString(parentNode),
+          assert.strictEqual(getHTMLString(parentNode),
             '<div>'+
               otherChild(isOnlyChild)+
               '0'+
@@ -168,7 +168,7 @@ describe('createDynamic - isOnlyChild, parentNode, value, replace', ()=>{
 
         // TODO: render <b> or something different
         it('renders render instance', ()=>{
-          assert.equal(getHTMLString(parentNode),
+          assert.strictEqual(getHTMLString(parentNode),
             '<div>'+
               otherChild(isOnlyChild)+
               '<b></b>'+
@@ -188,7 +188,7 @@ describe('createDynamic - isOnlyChild, parentNode, value, replace', ()=>{
         });
 
         it('renders array of items', ()=>{
-          assert.equal(getHTMLString(parentNode),
+          assert.strictEqual(getHTMLString(parentNode),
             '<div>'+
               otherChild(isOnlyChild)+
               '<a class="one"></a>'+
