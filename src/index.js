@@ -301,8 +301,9 @@ const rerenderDynamic = (isOnlyChild, value, contextNode)=>{
 };
 
 const rerenderInstance = (isOnlyChild, value, prevValue, node)=>{
-  if(value && internalRerenderInstance(value, prevValue.$ri || prevValue)){
-    value.$ri = prevValue;
+  let prevRenderedInstance;
+  if(value && internalRerenderInstance(value, prevRenderedInstance = prevValue.$r || prevValue)){
+    value.$r = prevRenderedInstance;
     return node;
   }
 

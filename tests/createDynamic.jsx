@@ -80,12 +80,44 @@ describe('createDynamic - isOnlyChild, parentNode, value, replace', ()=>{
       });
 
       it('instances', ()=>{
-        rerender(isOnlyChild, <span>hello world</span>);
+        const renderChild = (text)=> <span>{text}</span>;
+        rerender(isOnlyChild, renderChild('hello world1'));
+
         assert.strictEqual(getHTMLString(parentNode),
           '<div>'+
             otherChild(isOnlyChild)+
             '<span>'+
-              'hello world'+
+              'hello world1'+
+            '</span>'+
+          '</div>'
+        );
+
+        rerender(isOnlyChild, renderChild('hello world2'));
+        assert.strictEqual(getHTMLString(parentNode),
+          '<div>'+
+            otherChild(isOnlyChild)+
+            '<span>'+
+              'hello world2'+
+            '</span>'+
+          '</div>'
+        );
+
+        rerender(isOnlyChild, renderChild('hello world3'));
+        assert.strictEqual(getHTMLString(parentNode),
+          '<div>'+
+            otherChild(isOnlyChild)+
+            '<span>'+
+              'hello world3'+
+            '</span>'+
+          '</div>'
+        );
+
+        rerender(isOnlyChild, renderChild('hello world4'));
+        assert.strictEqual(getHTMLString(parentNode),
+          '<div>'+
+            otherChild(isOnlyChild)+
+            '<span>'+
+              'hello world4'+
             '</span>'+
           '</div>'
         );

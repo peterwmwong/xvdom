@@ -355,8 +355,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	var rerenderInstance = function rerenderInstance(isOnlyChild, value, prevValue, node) {
-	  if (value && internalRerenderInstance(value, prevValue.$ri || prevValue)) {
-	    value.$ri = prevValue;
+	  var prevRenderedInstance = void 0;
+	  if (value && internalRerenderInstance(value, prevRenderedInstance = prevValue.$r || prevValue)) {
+	    value.$r = prevRenderedInstance;
 	    return node;
 	  }
 

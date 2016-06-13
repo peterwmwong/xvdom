@@ -558,15 +558,15 @@
 	        f = function f(n, e) {
 	      var t = n.parentNode;t && t.replaceChild(e, n);
 	    },
-	        s = function s(n, e, t) {
+	        d = function d(n, e, t) {
 	      return t ? n.insertBefore(e, t) : n.appendChild(e);
 	    },
-	        d = function d(n, e) {
+	        s = function s(n, e) {
 	      c(n), e.removeChild(n.$n);
 	    },
 	        p = function p(n, e) {
 	      for (var t = n.length, r = 0; t > r;) {
-	        d(n[r++], e);
+	        s(n[r++], e);
 	      }
 	    },
 	        v = function v(n, e) {
@@ -579,7 +579,7 @@
 	    },
 	        m = function m(n, e, t, r) {
 	      for (var o = 0; t > o;) {
-	        s(n, (e[o] = T(e[o])).$n, r), ++o;
+	        d(n, (e[o] = T(e[o])).$n, r), ++o;
 	      }
 	    },
 	        y = function y(n, e, t) {
@@ -591,16 +591,16 @@
 	      for (var f = new Map(), p = i.$n, v = void 0, l = void 0, m = void 0; a >= c;) {
 	        v = t[c++], f.set(v.key, v);
 	      }for (; o >= r;) {
-	        m = e[r], l = m.key, v = f.get(l), v ? (v === i && (p = p.nextSibling), f["delete"](l), m = B(v, m)) : m = T(m), e[r] = m, s(n, m.$n, p), ++r;
+	        m = e[r], l = m.key, v = f.get(l), v ? (v === i && (p = p.nextSibling), f["delete"](l), m = B(v, m)) : m = T(m), e[r] = m, d(n, m.$n, p), ++r;
 	      }f.forEach(function (e) {
-	        d(e, n);
+	        s(e, n);
 	      });
 	    },
 	        x = function x(n, e, t, r, o, u, c, i, a, f, p, v) {
 	      if (i > f) for (; u >= r;) {
-	        o = e[r], s(n, (e[r] = T(o)).$n, v), ++r;
+	        o = e[r], d(n, (e[r] = T(o)).$n, v), ++r;
 	      } else if (r > u) for (; f >= i;) {
-	        d(t[i++], n);
+	        s(t[i++], n);
 	      } else $(n, e, t, r, u, a, i, p, f);
 	    },
 	        h = function h(n, e, t, r, o, u) {
@@ -608,21 +608,21 @@
 	          i = 0,
 	          a = !0,
 	          f = e[0],
-	          d = r[0],
+	          s = r[0],
 	          p = u,
 	          v = void 0,
 	          l = void 0,
 	          m = void 0;t--, o--;n: for (; a && o >= c && t >= i;) {
-	        for (a = !1; d.key === f.key;) {
-	          if (e[i] = B(d, f), c++, i++, c > o || i > t) break n;d = r[c], f = e[i], a = !0;
+	        for (a = !1; s.key === f.key;) {
+	          if (e[i] = B(s, f), c++, i++, c > o || i > t) break n;s = r[c], f = e[i], a = !0;
 	        }for (v = r[o], l = e[t]; v.key === l.key;) {
 	          if (p = (e[t] = B(v, l)).$n, o--, t--, c > o || i > t) break n;v = r[o], l = e[t], a = !0;
-	        }for (; d.key === l.key;) {
-	          if (m = (e[t] = B(d, l)).$n, v.key !== l.key && (p = s(n, m, p)), c++, t--, c > o || i > t) break n;d = r[c], l = e[t], a = !0;
+	        }for (; s.key === l.key;) {
+	          if (m = (e[t] = B(s, l)).$n, v.key !== l.key && (p = d(n, m, p)), c++, t--, c > o || i > t) break n;s = r[c], l = e[t], a = !0;
 	        }for (; v.key === f.key;) {
-	          if (s(n, (e[i] = B(v, f)).$n, d.$n), o--, i++, c > o || i > t) break n;v = r[o], f = e[i], a = !0;
+	          if (d(n, (e[i] = B(v, f)).$n, s.$n), o--, i++, c > o || i > t) break n;v = r[o], f = e[i], a = !0;
 	        }
-	      }(t >= i || o >= c) && x(n, e, r, i, f, t, l, c, d, o, v, p);
+	      }(t >= i || o >= c) && x(n, e, r, i, f, t, l, c, s, o, v, p);
 	    },
 	        k = function k(n, e, t) {
 	      var r = n.parentNode,
@@ -643,7 +643,7 @@
 	      var r = A(n, t.parentNode, e);return f(t, r), r;
 	    },
 	        _ = function _(n, e, t, r) {
-	      return e && l(e, t.$ri || t) ? (e.$ri = t, r) : C(n, e, r);
+	      var o = void 0;return e && l(e, o = t.$r || t) ? (e.$r = o, r) : C(n, e, r);
 	    },
 	        N = function N(n, e, t, r, u) {
 	      var c = n(e || o);l(c, t) || f(t.$n, (r[u] = T(c)).$n);
@@ -710,7 +710,7 @@
 	      return B(n.xvdom, e).$n;
 	    },
 	        q = e.unmount = function (n) {
-	      d(n.xvdom, n.parentNode);
+	      s(n.xvdom, n.parentNode);
 	    };e["default"] = { createComponent: L, createDynamic: A, el: function el(n) {
 	        return document.createElement(n);
 	      }, render: V, rerender: F, unmount: q, updateDynamic: j, Pool: r, DEADPOOL: u };e._ = { rerenderText: g, rerenderInstance: _, rerenderDynamic: C, rerenderArray: D };
