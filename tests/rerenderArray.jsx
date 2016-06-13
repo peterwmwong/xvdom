@@ -1267,7 +1267,6 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
 
       function rerenderAndValidateArray(){
         spyOn.resetSpyCounts();
-        debugger; //eslint-disable-line
         xvdom.rerender(target,
           render(
             [
