@@ -14,6 +14,19 @@ r - keyed map of unmounted instanced that can be recycled
 
 */
 
+export const REF_TO_TAG = [
+  'a',
+  'b',
+  'div',
+  'i',
+  'span'
+];
+
+const START_NODE = {
+  root: null,
+  appendChild(node){ return this.root = node; }
+};
+
 // Creates an empty object with no built in properties (ie. `constructor`).
 function Hash(){}
 Hash.prototype = Object.create(null);
@@ -428,22 +441,9 @@ const createStatefulComponent = (component, props, instance, rerenderFuncProp, c
   return internalRenderNoRecycle(api._instance = component(api));
 };
 
-export const createNoStateComponent = (component, props, instance, rerenderFuncProp, componentInstanceProp)=>{
-  instance[rerenderFuncProp] = rerenderComponent;
-  return internalRenderNoRecycle(
-    instance[componentInstanceProp] = component(props)
-  );
-};
-
-export const createComponent = (component, actions, props, instance, rerenderFuncProp, componentInstanceProp)=>{
-  const createFn = actions ? createStatefulComponent : createNoStateComponent;
-  return createFn(
-    component,
-    (props || EMPTY_PROPS),
-    instance,
-    rerenderFuncProp,
-    componentInstanceProp,
-    actions
+export const createNoStateComponent = (component, props)=>{
+  return xrender(
+    component(props)
   );
 };
 
@@ -482,12 +482,106 @@ export const rerender = (node, instance)=>internalRerender(node.xvdom, instance)
 
 export const unmount = node=>{ unmountInstance(node.xvdom, node.parentNode); };
 
+const appendChild = (node, child)=> node.appendChild(child);
+
+const createNode = (parentNode, bytecode, i) =>
+  appendChild(
+    parentNode,
+    document.createElement(REF_TO_TAG[bytecode[i]])
+  );
+
+const assignProps = (node, bytecode, i, statics, dynamics)=> {
+  let keyid;
+  let source;
+  let numStaticProps = bytecode[i++];
+  let j = bytecode[i++];
+  while(j){
+    source = --j < numStaticProps ? statics : dynamics;
+    keyid = bytecode[i++];
+    node[source[keyid]] = source[keyid + 1];
+  }
+  return i;
+};
+
+const _createComponent = (parentNode, component, props)=>{
+  const actions   = component.actions;
+  const createFn  = actions ? createStatefulComponent : createNoStateComponent;
+  appendChild(
+    parentNode,
+    createFn(component, props, actions)
+  );
+};
+
+const createComponentWithProps = (parentNode, bytecode, i, statics, dynamics)=>{
+  const props = {};
+  const component = statics[bytecode[i++]];
+  const newi = assignProps(props, bytecode, i, statics, dynamics);
+  _createComponent(parentNode, component, props);
+  return newi;
+};
+
+const createComponent = (parentNode, bytecode, i, statics, dynamics)=>{
+  _createComponent(parentNode, statics[bytecode[i]], {});
+};
+
+function RootNode(){ this.root = null; }
+RootNode.prototype.appendChild = function(node){ return this.root = node; };
+
+function xrender({bytecode, statics, dynamics}){
+  let i = 0;
+  let lastNode, curNode;
+  const rootNode = curNode = new RootNode();
+  while(i < bytecode.length){
+    switch(bytecode[i++]){
+      case 0: // el
+        lastNode = createNode(curNode, bytecode, i++);
+        break;
+
+      case 1: // el w/props
+        i = assignProps((lastNode = createNode(curNode, bytecode, i++)), bytecode, i, statics, dynamics);
+        break;
+
+      case 2: // component
+        createComponent(curNode, bytecode, i++, statics);
+        break;
+
+      case 3: // component w/props
+        i = createComponentWithProps(curNode, bytecode, i++, statics, dynamics);
+        break;
+
+      case 4: // dynamic
+        appendChild(
+          curNode,
+          createDynamic(true, curNode, dynamics[bytecode[i++]])
+        );
+        break;
+
+      case 5: // static
+        appendChild(
+          curNode,
+          createDynamic(true, curNode, statics[bytecode[i++]])
+        );
+        break;
+
+      case 6: // COMMAND: next is child (push)
+        curNode = lastNode;
+        break;
+
+      case 7: // COMMAND: parent (pop)
+        curNode = curNode.parentNode;
+        break;
+    };
+  }
+
+  return rootNode.root;
+}
+
 export default {
-  createComponent,
   createDynamic,
   el:(tag) => document.createElement(tag),
   render,
   rerender,
+  xrender,
   unmount,
   updateDynamic,
   Pool,

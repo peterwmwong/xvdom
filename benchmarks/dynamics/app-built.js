@@ -59,496 +59,7 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var _xvdomCreateComponent = _index2.default.createComponent,
-	    _xvdomCreateDynamic = _index2.default.createDynamic,
-	    _xvdomEl = _index2.default.el,
-	    _xvdomUpdateDynamic = _index2.default.updateDynamic;
-	var _xvdomSpec5 = {
-	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Comp, Comp.state, {
-	      values: inst.a
-	    }, inst, 'b', 'c');
-
-	    return _n;
-	  },
-	  u: function u(inst, pInst) {
-	    var v;
-
-	    if (inst.a !== pInst.a) {
-	      pInst.b(Comp, {
-	        values: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
-	    }
-	  },
-	  r: _index2.default.DEADPOOL
-	};
-	var _xvdomSpec4 = {
-	  c: function c(inst) {
-	    var _n = _xvdomEl('div'),
-	        _n2;
-
-	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
-	      values: inst.a,
-	      start: 0
-	    }, inst, 'b', 'c');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
-	      values: inst.d,
-	      start: 5
-	    }, inst, 'e', 'f');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
-	      values: inst.g,
-	      start: 10
-	    }, inst, 'h', 'i');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
-	      values: inst.j,
-	      start: 15
-	    }, inst, 'k', 'l');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
-	      values: inst.m,
-	      start: 20
-	    }, inst, 'n', 'o');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
-	      values: inst.p,
-	      start: 25
-	    }, inst, 'q', 'r');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
-	      values: inst.s,
-	      start: 30
-	    }, inst, 't', 'u');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
-	      values: inst.v,
-	      start: 35
-	    }, inst, 'w', 'x');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
-	      values: inst.y,
-	      start: 40
-	    }, inst, 'z', 'A');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPart, CompPart.state, {
-	      values: inst.B,
-	      start: 45
-	    }, inst, 'C', 'D');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
-	      values: inst.E,
-	      start: 50
-	    }, inst, 'F', 'G');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
-	      values: inst.H,
-	      start: 55
-	    }, inst, 'I', 'J');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
-	      values: inst.K,
-	      start: 60
-	    }, inst, 'L', 'M');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
-	      values: inst.N,
-	      start: 65
-	    }, inst, 'O', 'P');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
-	      values: inst.Q,
-	      start: 70
-	    }, inst, 'R', 'S');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
-	      values: inst.T,
-	      start: 75
-	    }, inst, 'U', 'V');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
-	      values: inst.W,
-	      start: 80
-	    }, inst, 'X', 'Y');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
-	      values: inst.Z,
-	      start: 85
-	    }, inst, 'a1', 'b1');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
-	      values: inst.c1,
-	      start: 90
-	    }, inst, 'd1', 'e1');
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomCreateComponent(CompPartPrefix, CompPartPrefix.state, {
-	      values: inst.f1,
-	      start: 95
-	    }, inst, 'g1', 'h1');
-
-	    _n.appendChild(_n2);
-
-	    return _n;
-	  },
-	  u: function u(inst, pInst) {
-	    var v;
-
-	    if (inst.a !== pInst.a) {
-	      pInst.b(CompPart, {
-	        values: inst.a,
-	        start: 0
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
-	    }
-
-	    if (inst.d !== pInst.d) {
-	      pInst.e(CompPart, {
-	        values: inst.d,
-	        start: 5
-	      }, pInst.f, pInst, 'f');
-	      pInst.d = inst.d;
-	    }
-
-	    if (inst.g !== pInst.g) {
-	      pInst.h(CompPart, {
-	        values: inst.g,
-	        start: 10
-	      }, pInst.i, pInst, 'i');
-	      pInst.g = inst.g;
-	    }
-
-	    if (inst.j !== pInst.j) {
-	      pInst.k(CompPart, {
-	        values: inst.j,
-	        start: 15
-	      }, pInst.l, pInst, 'l');
-	      pInst.j = inst.j;
-	    }
-
-	    if (inst.m !== pInst.m) {
-	      pInst.n(CompPart, {
-	        values: inst.m,
-	        start: 20
-	      }, pInst.o, pInst, 'o');
-	      pInst.m = inst.m;
-	    }
-
-	    if (inst.p !== pInst.p) {
-	      pInst.q(CompPart, {
-	        values: inst.p,
-	        start: 25
-	      }, pInst.r, pInst, 'r');
-	      pInst.p = inst.p;
-	    }
-
-	    if (inst.s !== pInst.s) {
-	      pInst.t(CompPart, {
-	        values: inst.s,
-	        start: 30
-	      }, pInst.u, pInst, 'u');
-	      pInst.s = inst.s;
-	    }
-
-	    if (inst.v !== pInst.v) {
-	      pInst.w(CompPart, {
-	        values: inst.v,
-	        start: 35
-	      }, pInst.x, pInst, 'x');
-	      pInst.v = inst.v;
-	    }
-
-	    if (inst.y !== pInst.y) {
-	      pInst.z(CompPart, {
-	        values: inst.y,
-	        start: 40
-	      }, pInst.A, pInst, 'A');
-	      pInst.y = inst.y;
-	    }
-
-	    if (inst.B !== pInst.B) {
-	      pInst.C(CompPart, {
-	        values: inst.B,
-	        start: 45
-	      }, pInst.D, pInst, 'D');
-	      pInst.B = inst.B;
-	    }
-
-	    if (inst.E !== pInst.E) {
-	      pInst.F(CompPartPrefix, {
-	        values: inst.E,
-	        start: 50
-	      }, pInst.G, pInst, 'G');
-	      pInst.E = inst.E;
-	    }
-
-	    if (inst.H !== pInst.H) {
-	      pInst.I(CompPartPrefix, {
-	        values: inst.H,
-	        start: 55
-	      }, pInst.J, pInst, 'J');
-	      pInst.H = inst.H;
-	    }
-
-	    if (inst.K !== pInst.K) {
-	      pInst.L(CompPartPrefix, {
-	        values: inst.K,
-	        start: 60
-	      }, pInst.M, pInst, 'M');
-	      pInst.K = inst.K;
-	    }
-
-	    if (inst.N !== pInst.N) {
-	      pInst.O(CompPartPrefix, {
-	        values: inst.N,
-	        start: 65
-	      }, pInst.P, pInst, 'P');
-	      pInst.N = inst.N;
-	    }
-
-	    if (inst.Q !== pInst.Q) {
-	      pInst.R(CompPartPrefix, {
-	        values: inst.Q,
-	        start: 70
-	      }, pInst.S, pInst, 'S');
-	      pInst.Q = inst.Q;
-	    }
-
-	    if (inst.T !== pInst.T) {
-	      pInst.U(CompPartPrefix, {
-	        values: inst.T,
-	        start: 75
-	      }, pInst.V, pInst, 'V');
-	      pInst.T = inst.T;
-	    }
-
-	    if (inst.W !== pInst.W) {
-	      pInst.X(CompPartPrefix, {
-	        values: inst.W,
-	        start: 80
-	      }, pInst.Y, pInst, 'Y');
-	      pInst.W = inst.W;
-	    }
-
-	    if (inst.Z !== pInst.Z) {
-	      pInst.a1(CompPartPrefix, {
-	        values: inst.Z,
-	        start: 85
-	      }, pInst.b1, pInst, 'b1');
-	      pInst.Z = inst.Z;
-	    }
-
-	    if (inst.c1 !== pInst.c1) {
-	      pInst.d1(CompPartPrefix, {
-	        values: inst.c1,
-	        start: 90
-	      }, pInst.e1, pInst, 'e1');
-	      pInst.c1 = inst.c1;
-	    }
-
-	    if (inst.f1 !== pInst.f1) {
-	      pInst.g1(CompPartPrefix, {
-	        values: inst.f1,
-	        start: 95
-	      }, pInst.h1, pInst, 'h1');
-	      pInst.f1 = inst.f1;
-	    }
-	  },
-	  r: _index2.default.DEADPOOL
-	};
-	var _xvdomSpec3 = {
-	  c: function c(inst) {
-	    var _n = _xvdomEl('div'),
-	        _n2,
-	        _n3,
-	        _n4,
-	        _n5,
-	        _n6,
-	        _n7;
-
-	    _n2 = _xvdomEl('span');
-	    _n3 = _xvdomEl('span');
-
-	    _n3.appendChild(document.createTextNode(('prefix') || ''));
-
-	    _n2.appendChild(_n3);
-
-	    _n2.appendChild(inst.b = _xvdomCreateDynamic(false, _n2, inst.a));
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomEl('span');
-	    _n4 = _xvdomEl('span');
-
-	    _n4.appendChild(document.createTextNode(('prefix') || ''));
-
-	    _n2.appendChild(_n4);
-
-	    _n2.appendChild(inst.d = _xvdomCreateDynamic(false, _n2, inst.c));
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomEl('span');
-	    _n5 = _xvdomEl('span');
-
-	    _n5.appendChild(document.createTextNode(('prefix') || ''));
-
-	    _n2.appendChild(_n5);
-
-	    _n2.appendChild(inst.f = _xvdomCreateDynamic(false, _n2, inst.e));
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomEl('span');
-	    _n6 = _xvdomEl('span');
-
-	    _n6.appendChild(document.createTextNode(('prefix') || ''));
-
-	    _n2.appendChild(_n6);
-
-	    _n2.appendChild(inst.h = _xvdomCreateDynamic(false, _n2, inst.g));
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomEl('span');
-	    _n7 = _xvdomEl('span');
-
-	    _n7.appendChild(document.createTextNode(('prefix') || ''));
-
-	    _n2.appendChild(_n7);
-
-	    _n2.appendChild(inst.j = _xvdomCreateDynamic(false, _n2, inst.i));
-
-	    _n.appendChild(_n2);
-
-	    return _n;
-	  },
-	  u: function u(inst, pInst) {
-	    var v;
-
-	    if (inst.a !== pInst.a) {
-	      pInst.b = _xvdomUpdateDynamic(false, pInst.a, pInst.a = inst.a, pInst.b);
-	    }
-
-	    if (inst.c !== pInst.c) {
-	      pInst.d = _xvdomUpdateDynamic(false, pInst.c, pInst.c = inst.c, pInst.d);
-	    }
-
-	    if (inst.e !== pInst.e) {
-	      pInst.f = _xvdomUpdateDynamic(false, pInst.e, pInst.e = inst.e, pInst.f);
-	    }
-
-	    if (inst.g !== pInst.g) {
-	      pInst.h = _xvdomUpdateDynamic(false, pInst.g, pInst.g = inst.g, pInst.h);
-	    }
-
-	    if (inst.i !== pInst.i) {
-	      pInst.j = _xvdomUpdateDynamic(false, pInst.i, pInst.i = inst.i, pInst.j);
-	    }
-	  },
-	  r: _index2.default.DEADPOOL
-	};
-	var _xvdomSpec2 = {
-	  c: function c(inst) {
-	    var _n = _xvdomEl('div'),
-	        _n2;
-
-	    _n2 = _xvdomEl('span');
-
-	    _n2.appendChild(inst.b = _xvdomCreateDynamic(true, _n2, inst.a));
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomEl('span');
-
-	    _n2.appendChild(inst.d = _xvdomCreateDynamic(true, _n2, inst.c));
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomEl('span');
-
-	    _n2.appendChild(inst.f = _xvdomCreateDynamic(true, _n2, inst.e));
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomEl('span');
-
-	    _n2.appendChild(inst.h = _xvdomCreateDynamic(true, _n2, inst.g));
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomEl('span');
-
-	    _n2.appendChild(inst.j = _xvdomCreateDynamic(true, _n2, inst.i));
-
-	    _n.appendChild(_n2);
-
-	    return _n;
-	  },
-	  u: function u(inst, pInst) {
-	    var v;
-
-	    if (inst.a !== pInst.a) {
-	      pInst.b = _xvdomUpdateDynamic(true, pInst.a, pInst.a = inst.a, pInst.b);
-	    }
-
-	    if (inst.c !== pInst.c) {
-	      pInst.d = _xvdomUpdateDynamic(true, pInst.c, pInst.c = inst.c, pInst.d);
-	    }
-
-	    if (inst.e !== pInst.e) {
-	      pInst.f = _xvdomUpdateDynamic(true, pInst.e, pInst.e = inst.e, pInst.f);
-	    }
-
-	    if (inst.g !== pInst.g) {
-	      pInst.h = _xvdomUpdateDynamic(true, pInst.g, pInst.g = inst.g, pInst.h);
-	    }
-
-	    if (inst.i !== pInst.i) {
-	      pInst.j = _xvdomUpdateDynamic(true, pInst.i, pInst.i = inst.i, pInst.j);
-	    }
-	  },
-	  r: _index2.default.DEADPOOL
-	};
+	var _xvdomEl = _index2.default.el;
 	var _xvdomSpec = {
 	  c: function c() {
 	    var _n = _xvdomEl('b');
@@ -561,6 +72,50 @@
 	  r: _index2.default.DEADPOOL
 	};
 
+
+	var TAG_TO_REF = _index.REF_TO_TAG.reduce(function (acc, tag, i) {
+	  return acc[tag] = i, acc;
+	}, {});
+
+	var flatten = function flatten(arrayOfArrays) {
+	  return arrayOfArrays.reduce(function (acc, arr) {
+	    return acc.concat(arr);
+	  }, []);
+	};
+
+	var _elChildren = function _elChildren() {
+	  var children = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+
+	  var result = children.length ? [6].concat(flatten(children), [7]) : children;
+	  return result;
+	};
+
+	var _static = function _static(valueId) {
+	  return [5, valueId];
+	};
+	var dynamic = function dynamic(valueId) {
+	  return [4, valueId];
+	};
+
+	var props = function props(_ref) {
+	  var _ref$dynamics = _ref.dynamics;
+	  var dynamics = _ref$dynamics === undefined ? [] : _ref$dynamics;
+	  var _ref$statics = _ref.statics;
+	  var statics = _ref$statics === undefined ? [] : _ref$statics;
+	  return [statics.length, dynamics.length + statics.length].concat(dynamics, statics);
+	};
+
+	var el = function el(tag) {
+	  for (var _len = arguments.length, children = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	    children[_key - 1] = arguments[_key];
+	  }
+
+	  return [0, TAG_TO_REF[tag]].concat(_elChildren(children));
+	};
+
+	var componentWithProps = function componentWithProps(comp, _props) {
+	  return [3, comp].concat(props(_props));
+	};
 
 	// Generated by instrumenting xvdom to count every dynamic rendered for a
 	// non-trivial app (currently ticker).
@@ -618,86 +173,125 @@
 	  return values;
 	};
 
-	var CompPart = function CompPart(_ref) {
-	  var start = _ref.start;
-	  var values = _ref.values;
-	  return {
-	    $s: _xvdomSpec2,
-	    a: values[0 + start],
-	    c: values[1 + start],
-	    e: values[2 + start],
-	    g: values[3 + start],
-	    i: values[4 + start]
-	  };
-	};
+	// const BYTECODE_CompPart = window.BYTECODE_CompPart = el('div',
+	//   el('span', dynamic(0)),
+	//   el('span', dynamic(1)),
+	//   el('span', dynamic(2)),
+	//   el('span', dynamic(3)),
+	//   el('span', dynamic(4))
+	// );
+	var BYTECODE_CompPart = [0, 2, 6, 0, 4, 6, 4, 0, 7, 0, 4, 6, 4, 1, 7, 0, 4, 6, 4, 2, 7, 0, 4, 6, 4, 3, 7, 0, 4, 6, 4, 4, 7, 7];
 
-	var CompPartPrefix = function CompPartPrefix(_ref2) {
+	var BYTECODE_CompPartPrefix = [0, 2, 6, 0, 4, 6, 0, 4, 6, 5, 0, 7, 4, 0, 7, 0, 4, 6, 0, 4, 6, 5, 0, 7, 4, 1, 7, 0, 4, 6, 0, 4, 6, 5, 0, 7, 4, 2, 7, 0, 4, 6, 0, 4, 6, 5, 0, 7, 4, 3, 7, 0, 4, 6, 0, 4, 6, 5, 0, 7, 4, 4, 7, 7];
+	// const BYTECODE_CompPartPrefix = window.BYTECODE_CompPartPrefix =  el('div',
+	//   el('span',
+	//     el('span', _static(0)),
+	//     dynamic(0)
+	//   ),
+	//   el('span',
+	//     el('span', _static(0)),
+	//     dynamic(1)
+	//   ),
+	//   el('span',
+	//     el('span', _static(0)),
+	//     dynamic(2)
+	//   ),
+	//   el('span',
+	//     el('span', _static(0)),
+	//     dynamic(3)
+	//   ),
+	//   el('span',
+	//     el('span', _static(0)),
+	//     dynamic(4
+	//   ))
+	// );
+	var CompPart = function CompPart(_ref2) {
 	  var start = _ref2.start;
 	  var values = _ref2.values;
+
 	  return {
-	    $s: _xvdomSpec3,
-	    a: values[0 + start],
-	    c: values[1 + start],
-	    e: values[2 + start],
-	    g: values[3 + start],
-	    i: values[4 + start]
+	    bytecode: BYTECODE_CompPart,
+	    dynamics: [values[0 + start], values[1 + start], values[2 + start], values[3 + start], values[4 + start]]
 	  };
 	};
 
-	var Comp = function Comp(_ref3) {
+	var CompPartPrefix = function CompPartPrefix(_ref3) {
+	  var start = _ref3.start;
 	  var values = _ref3.values;
 	  return {
-	    $s: _xvdomSpec4,
-	    a: values,
-	    d: values,
-	    g: values,
-	    j: values,
-	    m: values,
-	    p: values,
-	    s: values,
-	    v: values,
-	    y: values,
-	    B: values,
-	    E: values,
-	    H: values,
-	    K: values,
-	    N: values,
-	    Q: values,
-	    T: values,
-	    W: values,
-	    Z: values,
-	    c1: values,
-	    f1: values
+	    bytecode: BYTECODE_CompPartPrefix,
+	    statics: ['prefix'],
+	    dynamics: [values[0 + start], values[1 + start], values[2 + start], values[3 + start], values[4 + start]]
 	  };
 	};
 
+	// const BYTECODE_Comp = window.BYTECODE_Comp = el('div',
+	//   componentWithProps(0, {dynamics: [0], statics: [2]}),
+	//   componentWithProps(0, {dynamics: [0], statics: [4]}),
+	//   componentWithProps(0, {dynamics: [0], statics: [6]}),
+	//   componentWithProps(0, {dynamics: [0], statics: [8]}),
+	//   componentWithProps(0, {dynamics: [0], statics: [10]}),
+	//   componentWithProps(0, {dynamics: [0], statics: [12]}),
+	//   componentWithProps(0, {dynamics: [0], statics: [14]}),
+	//   componentWithProps(0, {dynamics: [0], statics: [16]}),
+	//   componentWithProps(0, {dynamics: [0], statics: [18]}),
+	//   componentWithProps(0, {dynamics: [0], statics: [20]}),
+	//
+	//   componentWithProps(1, {dynamics: [0], statics: [22]}),
+	//   componentWithProps(1, {dynamics: [0], statics: [24]}),
+	//   componentWithProps(1, {dynamics: [0], statics: [26]}),
+	//   componentWithProps(1, {dynamics: [0], statics: [28]}),
+	//   componentWithProps(1, {dynamics: [0], statics: [30]}),
+	//   componentWithProps(1, {dynamics: [0], statics: [32]}),
+	//   componentWithProps(1, {dynamics: [0], statics: [34]}),
+	//   componentWithProps(1, {dynamics: [0], statics: [36]}),
+	//   componentWithProps(1, {dynamics: [0], statics: [38]}),
+	//   componentWithProps(1, {dynamics: [0], statics: [40]})
+	// );
+	var BYTECODE_Comp = [0, 2, 6, 3, 0, 1, 2, 0, 2, 3, 0, 1, 2, 0, 4, 3, 0, 1, 2, 0, 6, 3, 0, 1, 2, 0, 8, 3, 0, 1, 2, 0, 10, 3, 0, 1, 2, 0, 12, 3, 0, 1, 2, 0, 14, 3, 0, 1, 2, 0, 16, 3, 0, 1, 2, 0, 18, 3, 0, 1, 2, 0, 20, 3, 1, 1, 2, 0, 22, 3, 1, 1, 2, 0, 24, 3, 1, 1, 2, 0, 26, 3, 1, 1, 2, 0, 28, 3, 1, 1, 2, 0, 30, 3, 1, 1, 2, 0, 32, 3, 1, 1, 2, 0, 34, 3, 1, 1, 2, 0, 36, 3, 1, 1, 2, 0, 38, 3, 1, 1, 2, 0, 40, 7];
+
+	var Comp = function Comp(_ref4) {
+	  var values = _ref4.values;
+	  return {
+	    bytecode: BYTECODE_Comp,
+	    statics: [CompPart, CompPartPrefix, 'start', 0, 'start', 5, 'start', 10, 'start', 15, 'start', 20, 'start', 25, 'start', 30, 'start', 35, 'start', 40, 'start', 45, 'start', 50, 'start', 55, 'start', 60, 'start', 65, 'start', 70, 'start', 75, 'start', 80, 'start', 85, 'start', 90, 'start', 92],
+	    dynamics: ['values', values]
+	  };
+	};
+
+	// const BYTECODE_MAIN = window.BYTECODE_MAIN = componentWithProps(0, {dynamics: [0]});
+	var BYTECODE_MAIN = [3, 0, 0, 1, 0];
+
+	// const renderInstance = (values)=> <Comp values={values} />;
 	var renderInstance = function renderInstance(values) {
 	  return {
-	    $s: _xvdomSpec5,
-	    a: values
+	    bytecode: BYTECODE_MAIN,
+	    statics: [Comp],
+	    dynamics: ['values', values]
 	  };
 	};
 
+	// const render = ()=>
+	//   xvdom.render(renderInstance(createValues(COUNTS, 100)));
 	var render = function render() {
-	  return _index2.default.render(renderInstance(createValues(COUNTS, 100)));
+	  return _index2.default.xrender(renderInstance(createValues(COUNTS, 100)));
 	};
 
-	var rerender = function rerender(node) {
-	  return _index2.default.rerender(node, renderInstance(createValues(COUNTS, 100, true)));
-	};
+	// const rerender = (node)=>
+	//   xvdom.rerender(node, renderInstance(createValues(COUNTS, 100, true)));
 
 	var benchmark = function benchmark() {
 	  var i = 0;
-	  var node = void 0;
+	  // let node;
 	  while (i++ < 1000) {
-	    node = render();
-	    rerender(node);
+	    /*node = */render();
+	    // rerender(node);
 	  }
 	};
 
 	var test = function test() {
 	  var EXPECTED_TEXT_CONTENT = 'helloKhelloLhelloMhelloNhelloOhelloPhelloQhelloRhelloShelloThelloUhelloVhelloWhelloXhelloYhelloZhelloAhelloBhelloChelloDhelloEhelloFhelloGhelloHhelloIhelloJhelloKhelloLhelloMhelloNhelloOhelloPhelloQhelloRhelloShelloThelloUhelloVhelloWhelloXhelloYprefixhelloZprefixhelloAprefixhelloBprefixhelloCprefixhelloDprefixhelloEprefixhelloFprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixhelloprefixprefixprefixprefixprefixprefixprefixprefix';
-	  var EXPECTED_TEXT_CONTENT_RERENDER = 'hellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohelloOhelloPhelloQhelloRhelloShelloThelloUhelloVhelloWhelloXhelloYprefixhelloZprefixhelloAprefixhelloBprefixhelloCprefixhelloDprefixhelloEprefixhelloFprefixhelloGprefixhelloHprefixhelloIprefixhelloJprefixhelloKprefixhelloLprefixhelloMprefixhelloNprefixhelloOprefixhelloPprefixhelloQprefixhelloRprefixhelloSprefixhelloTprefixhelloUprefixhelloVprefixhelloWprefixhelloXprefixhelloYprefixhelloZprefixhelloAprefixhelloBprefixhelloCprefixhelloDprefixhelloEprefixhelloFprefixhelloGprefixhelloHprefixhelloIprefixhelloJprefixprefixprefixprefixprefixprefixprefixprefixprefixprefixprefixprefixprefix';
+	  // const EXPECTED_TEXT_CONTENT_RERENDER = 'hellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohelloOhelloPhelloQhelloRhelloShelloThelloUhelloVhelloWhelloXhelloYprefixhelloZprefixhelloAprefixhelloBprefixhelloCprefixhelloDprefixhelloEprefixhelloFprefixhelloGprefixhelloHprefixhelloIprefixhelloJprefixhelloKprefixhelloLprefixhelloMprefixhelloNprefixhelloOprefixhelloPprefixhelloQprefixhelloRprefixhelloSprefixhelloTprefixhelloUprefixhelloVprefixhelloWprefixhelloXprefixhelloYprefixhelloZprefixhelloAprefixhelloBprefixhelloCprefixhelloDprefixhelloEprefixhelloFprefixhelloGprefixhelloHprefixhelloIprefixhelloJprefixprefixprefixprefixprefixprefixprefixprefixprefixprefixprefixprefixprefix';
 	  var node = render();
 
 	  var textContent = node.textContent.replace(/\s+/g, '');
@@ -705,11 +299,15 @@
 	  var message = '';
 	  message += pass ? 'SUCCESS' : 'FAIL: expected textContent to be...\n"' + EXPECTED_TEXT_CONTENT + '"\nbut got...\n"' + textContent + '"';
 
-	  rerender(node);
-
-	  textContent = node.textContent.replace(/\s+/g, '');
-	  pass = textContent === EXPECTED_TEXT_CONTENT_RERENDER;
-	  message += pass ? 'RERENDER SUCCESS' : 'RERENDER FAIL: expected textContent to be...\n"' + EXPECTED_TEXT_CONTENT_RERENDER + '"\nbut got...\n"' + textContent + '"';
+	  // rerender(node);
+	  //
+	  // textContent = node.textContent.replace(/\s+/g, '');
+	  // pass = textContent === EXPECTED_TEXT_CONTENT_RERENDER;
+	  // message += (
+	  //   pass
+	  //     ? 'RERENDER SUCCESS'
+	  //     : `RERENDER FAIL: expected textContent to be...\n"${EXPECTED_TEXT_CONTENT_RERENDER}"\nbut got...\n"${textContent}"`
+	  // );
 
 	  document.write(message);
 	};
@@ -746,6 +344,15 @@
 	r - keyed map of unmounted instanced that can be recycled
 
 	*/
+
+	var REF_TO_TAG = exports.REF_TO_TAG = ['a', 'b', 'div', 'i', 'span'];
+
+	var START_NODE = {
+	  root: null,
+	  appendChild: function appendChild(node) {
+	    return this.root = node;
+	  }
+	};
 
 	// Creates an empty object with no built in properties (ie. `constructor`).
 	function Hash() {}
@@ -1144,14 +751,8 @@
 	  return internalRenderNoRecycle(api._instance = component(api));
 	};
 
-	var createNoStateComponent = exports.createNoStateComponent = function createNoStateComponent(component, props, instance, rerenderFuncProp, componentInstanceProp) {
-	  instance[rerenderFuncProp] = rerenderComponent;
-	  return internalRenderNoRecycle(instance[componentInstanceProp] = component(props));
-	};
-
-	var createComponent = exports.createComponent = function createComponent(component, actions, props, instance, rerenderFuncProp, componentInstanceProp) {
-	  var createFn = actions ? createStatefulComponent : createNoStateComponent;
-	  return createFn(component, props || EMPTY_PROPS, instance, rerenderFuncProp, componentInstanceProp, actions);
+	var createNoStateComponent = exports.createNoStateComponent = function createNoStateComponent(component, props) {
+	  return xrender(component(props));
 	};
 
 	var internalRenderNoRecycle = function internalRenderNoRecycle(instance) {
@@ -1194,14 +795,116 @@
 	  unmountInstance(node.xvdom, node.parentNode);
 	};
 
+	var appendChild = function appendChild(node, child) {
+	  return node.appendChild(child);
+	};
+
+	var createNode = function createNode(parentNode, bytecode, i) {
+	  return appendChild(parentNode, document.createElement(REF_TO_TAG[bytecode[i]]));
+	};
+
+	var assignProps = function assignProps(node, bytecode, i, statics, dynamics) {
+	  var keyid = void 0;
+	  var source = void 0;
+	  var numStaticProps = bytecode[i++];
+	  var j = bytecode[i++];
+	  while (j) {
+	    source = --j < numStaticProps ? statics : dynamics;
+	    keyid = bytecode[i++];
+	    node[source[keyid]] = source[keyid + 1];
+	  }
+	  return i;
+	};
+
+	var _createComponent = function _createComponent(parentNode, component, props) {
+	  var actions = component.actions;
+	  var createFn = actions ? createStatefulComponent : createNoStateComponent;
+	  appendChild(parentNode, createFn(component, props, actions));
+	};
+
+	var createComponentWithProps = function createComponentWithProps(parentNode, bytecode, i, statics, dynamics) {
+	  var props = {};
+	  var component = statics[bytecode[i++]];
+	  var newi = assignProps(props, bytecode, i, statics, dynamics);
+	  _createComponent(parentNode, component, props);
+	  return newi;
+	};
+
+	var createComponent = function createComponent(parentNode, bytecode, i, statics, dynamics) {
+	  _createComponent(parentNode, statics[bytecode[i]], {});
+	};
+
+	function RootNode() {
+	  this.root = null;
+	}
+	RootNode.prototype.appendChild = function (node) {
+	  return this.root = node;
+	};
+
+	function xrender(_ref) {
+	  var bytecode = _ref.bytecode;
+	  var statics = _ref.statics;
+	  var dynamics = _ref.dynamics;
+
+	  var i = 0;
+	  var lastNode = void 0,
+	      curNode = void 0;
+	  var rootNode = curNode = new RootNode();
+	  while (i < bytecode.length) {
+	    switch (bytecode[i++]) {
+	      case 0:
+	        // el
+	        lastNode = createNode(curNode, bytecode, i++);
+	        break;
+
+	      case 1:
+	        // el w/props
+	        i = assignProps(lastNode = createNode(curNode, bytecode, i++), bytecode, i, statics, dynamics);
+	        break;
+
+	      case 2:
+	        // component
+	        createComponent(curNode, bytecode, i++, statics);
+	        break;
+
+	      case 3:
+	        // component w/props
+	        i = createComponentWithProps(curNode, bytecode, i++, statics, dynamics);
+	        break;
+
+	      case 4:
+	        // dynamic
+	        appendChild(curNode, createDynamic(true, curNode, dynamics[bytecode[i++]]));
+	        break;
+
+	      case 5:
+	        // static
+	        appendChild(curNode, createDynamic(true, curNode, statics[bytecode[i++]]));
+	        break;
+
+	      case 6:
+	        // COMMAND: next is child (push)
+	        curNode = lastNode;
+	        break;
+
+	      case 7:
+	        // COMMAND: parent (pop)
+	        curNode = curNode.parentNode;
+	        break;
+	    };
+	  }
+
+	  return rootNode.root;
+	}
+
 	exports.default = {
-	  createComponent: createComponent,
 	  createDynamic: createDynamic,
 	  el: function el(tag) {
 	    return document.createElement(tag);
 	  },
 	  render: render,
 	  rerender: rerender,
+	  xrender: xrender,
 	  unmount: unmount,
 	  updateDynamic: updateDynamic,
 	  Pool: Pool,
