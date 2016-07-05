@@ -180,9 +180,25 @@
 	//   el('span', dynamic(3)),
 	//   el('span', dynamic(4))
 	// );
-	var BYTECODE_CompPart = [0, 2, 6, 0, 4, 6, 4, 0, 7, 0, 4, 6, 4, 1, 7, 0, 4, 6, 4, 2, 7, 0, 4, 6, 4, 3, 7, 0, 4, 6, 4, 4, 7, 7];
+	var BYTECODE_CompPart = {
+	  b: [0, 2, 6, 0, 4, 6, 4, 0, 7, 0, 4, 6, 4, 1, 7, 0, 4, 6, 4, 2, 7, 0, 4, 6, 4, 3, 7, 0, 4, 6, 4, 4, 7, 7],
+	  s: []
+	};
 
-	var BYTECODE_CompPartPrefix = [0, 2, 6, 0, 4, 6, 0, 4, 6, 5, 0, 7, 4, 0, 7, 0, 4, 6, 0, 4, 6, 5, 0, 7, 4, 1, 7, 0, 4, 6, 0, 4, 6, 5, 0, 7, 4, 2, 7, 0, 4, 6, 0, 4, 6, 5, 0, 7, 4, 3, 7, 0, 4, 6, 0, 4, 6, 5, 0, 7, 4, 4, 7, 7];
+	var CompPart = function CompPart(_ref2) {
+	  var start = _ref2.start;
+	  var values = _ref2.values;
+
+	  return {
+	    t: BYTECODE_CompPart,
+	    d: [values[0 + start], values[1 + start], values[2 + start], values[3 + start], values[4 + start]]
+	  };
+	};
+
+	var BYTECODE_CompPartPrefix = {
+	  b: [0, 2, 6, 0, 4, 6, 0, 4, 6, 5, 0, 7, 4, 0, 7, 0, 4, 6, 0, 4, 6, 5, 0, 7, 4, 1, 7, 0, 4, 6, 0, 4, 6, 5, 0, 7, 4, 2, 7, 0, 4, 6, 0, 4, 6, 5, 0, 7, 4, 3, 7, 0, 4, 6, 0, 4, 6, 5, 0, 7, 4, 4, 7, 7],
+	  s: ['prefix']
+	};
 	// const BYTECODE_CompPartPrefix = window.BYTECODE_CompPartPrefix =  el('div',
 	//   el('span',
 	//     el('span', _static(0)),
@@ -205,23 +221,13 @@
 	//     dynamic(4
 	//   ))
 	// );
-	var CompPart = function CompPart(_ref2) {
-	  var start = _ref2.start;
-	  var values = _ref2.values;
-
-	  return {
-	    bytecode: BYTECODE_CompPart,
-	    dynamics: [values[0 + start], values[1 + start], values[2 + start], values[3 + start], values[4 + start]]
-	  };
-	};
 
 	var CompPartPrefix = function CompPartPrefix(_ref3) {
 	  var start = _ref3.start;
 	  var values = _ref3.values;
 	  return {
-	    bytecode: BYTECODE_CompPartPrefix,
-	    statics: ['prefix'],
-	    dynamics: [values[0 + start], values[1 + start], values[2 + start], values[3 + start], values[4 + start]]
+	    t: BYTECODE_CompPartPrefix,
+	    d: [values[0 + start], values[1 + start], values[2 + start], values[3 + start], values[4 + start]]
 	  };
 	};
 
@@ -248,26 +254,30 @@
 	//   componentWithProps(1, {dynamics: [0], statics: [38]}),
 	//   componentWithProps(1, {dynamics: [0], statics: [40]})
 	// );
-	var BYTECODE_Comp = [0, 2, 6, 3, 0, 1, 2, 0, 2, 3, 0, 1, 2, 0, 4, 3, 0, 1, 2, 0, 6, 3, 0, 1, 2, 0, 8, 3, 0, 1, 2, 0, 10, 3, 0, 1, 2, 0, 12, 3, 0, 1, 2, 0, 14, 3, 0, 1, 2, 0, 16, 3, 0, 1, 2, 0, 18, 3, 0, 1, 2, 0, 20, 3, 1, 1, 2, 0, 22, 3, 1, 1, 2, 0, 24, 3, 1, 1, 2, 0, 26, 3, 1, 1, 2, 0, 28, 3, 1, 1, 2, 0, 30, 3, 1, 1, 2, 0, 32, 3, 1, 1, 2, 0, 34, 3, 1, 1, 2, 0, 36, 3, 1, 1, 2, 0, 38, 3, 1, 1, 2, 0, 40, 7];
+	var BYTECODE_Comp = {
+	  b: [0, 2, 6, 3, 0, 1, 2, 0, 2, 3, 0, 1, 2, 0, 4, 3, 0, 1, 2, 0, 6, 3, 0, 1, 2, 0, 8, 3, 0, 1, 2, 0, 10, 3, 0, 1, 2, 0, 12, 3, 0, 1, 2, 0, 14, 3, 0, 1, 2, 0, 16, 3, 0, 1, 2, 0, 18, 3, 0, 1, 2, 0, 20, 3, 1, 1, 2, 0, 22, 3, 1, 1, 2, 0, 24, 3, 1, 1, 2, 0, 26, 3, 1, 1, 2, 0, 28, 3, 1, 1, 2, 0, 30, 3, 1, 1, 2, 0, 32, 3, 1, 1, 2, 0, 34, 3, 1, 1, 2, 0, 36, 3, 1, 1, 2, 0, 38, 3, 1, 1, 2, 0, 40, 7],
+	  s: [CompPart, CompPartPrefix, 'start', 0, 'start', 5, 'start', 10, 'start', 15, 'start', 20, 'start', 25, 'start', 30, 'start', 35, 'start', 40, 'start', 45, 'start', 50, 'start', 55, 'start', 60, 'start', 65, 'start', 70, 'start', 75, 'start', 80, 'start', 85, 'start', 90, 'start', 92]
+	};
 
 	var Comp = function Comp(_ref4) {
 	  var values = _ref4.values;
 	  return {
-	    bytecode: BYTECODE_Comp,
-	    statics: [CompPart, CompPartPrefix, 'start', 0, 'start', 5, 'start', 10, 'start', 15, 'start', 20, 'start', 25, 'start', 30, 'start', 35, 'start', 40, 'start', 45, 'start', 50, 'start', 55, 'start', 60, 'start', 65, 'start', 70, 'start', 75, 'start', 80, 'start', 85, 'start', 90, 'start', 92],
-	    dynamics: ['values', values]
+	    t: BYTECODE_Comp,
+	    d: ['values', values]
 	  };
 	};
 
 	// const BYTECODE_MAIN = window.BYTECODE_MAIN = componentWithProps(0, {dynamics: [0]});
-	var BYTECODE_MAIN = [3, 0, 0, 1, 0];
+	var BYTECODE_MAIN = {
+	  b: [3, 0, 0, 1, 0],
+	  s: [Comp]
+	};
 
 	// const renderInstance = (values)=> <Comp values={values} />;
 	var renderInstance = function renderInstance(values) {
 	  return {
-	    bytecode: BYTECODE_MAIN,
-	    statics: [Comp],
-	    dynamics: ['values', values]
+	    t: BYTECODE_MAIN,
+	    d: ['values', values]
 	  };
 	};
 
@@ -842,9 +852,10 @@
 	};
 
 	function xrender(_ref) {
-	  var bytecode = _ref.bytecode;
-	  var statics = _ref.statics;
-	  var dynamics = _ref.dynamics;
+	  var _ref$t = _ref.t;
+	  var bytecode = _ref$t.b;
+	  var statics = _ref$t.s;
+	  var dynamics = _ref.d;
 
 	  var i = 0;
 	  var lastNode = void 0,

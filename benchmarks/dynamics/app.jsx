@@ -87,9 +87,28 @@ const createValues = (counts, numValues, reverse)=>{
 //   el('span', dynamic(3)),
 //   el('span', dynamic(4))
 // );
-const BYTECODE_CompPart = [0,2,6,0,4,6,4,0,7,0,4,6,4,1,7,0,4,6,4,2,7,0,4,6,4,3,7,0,4,6,4,4,7,7];
+const BYTECODE_CompPart = {
+  b: [0,2,6,0,4,6,4,0,7,0,4,6,4,1,7,0,4,6,4,2,7,0,4,6,4,3,7,0,4,6,4,4,7,7],
+  s: []
+};
 
-const BYTECODE_CompPartPrefix = [0,2,6,0,4,6,0,4,6,5,0,7,4,0,7,0,4,6,0,4,6,5,0,7,4,1,7,0,4,6,0,4,6,5,0,7,4,2,7,0,4,6,0,4,6,5,0,7,4,3,7,0,4,6,0,4,6,5,0,7,4,4,7,7];
+const CompPart = ({start, values})=> {
+  return {
+    t: BYTECODE_CompPart,
+    d: [
+      values[0 + start],
+      values[1 + start],
+      values[2 + start],
+      values[3 + start],
+      values[4 + start]
+    ]
+  };
+};
+
+const BYTECODE_CompPartPrefix = {
+  b: [0,2,6,0,4,6,0,4,6,5,0,7,4,0,7,0,4,6,0,4,6,5,0,7,4,1,7,0,4,6,0,4,6,5,0,7,4,2,7,0,4,6,0,4,6,5,0,7,4,3,7,0,4,6,0,4,6,5,0,7,4,4,7,7],
+  s: ['prefix']
+};
 // const BYTECODE_CompPartPrefix = window.BYTECODE_CompPartPrefix =  el('div',
 //   el('span',
 //     el('span', _static(0)),
@@ -112,23 +131,10 @@ const BYTECODE_CompPartPrefix = [0,2,6,0,4,6,0,4,6,5,0,7,4,0,7,0,4,6,0,4,6,5,0,7
 //     dynamic(4
 //   ))
 // );
-const CompPart = ({start, values})=> {
-  return {
-    bytecode: BYTECODE_CompPart,
-    dynamics: [
-      values[0 + start],
-      values[1 + start],
-      values[2 + start],
-      values[3 + start],
-      values[4 + start]
-    ]
-  };
-};
 
 const CompPartPrefix = ({start, values})=>({
-  bytecode: BYTECODE_CompPartPrefix,
-  statics: ['prefix'],
-  dynamics: [
+  t: BYTECODE_CompPartPrefix,
+  d: [
     values[0 + start],
     values[1 + start],
     values[2 + start],
@@ -160,11 +166,9 @@ const CompPartPrefix = ({start, values})=>({
 //   componentWithProps(1, {dynamics: [0], statics: [38]}),
 //   componentWithProps(1, {dynamics: [0], statics: [40]})
 // );
-const BYTECODE_Comp = [0,2,6,3,0,1,2,0,2,3,0,1,2,0,4,3,0,1,2,0,6,3,0,1,2,0,8,3,0,1,2,0,10,3,0,1,2,0,12,3,0,1,2,0,14,3,0,1,2,0,16,3,0,1,2,0,18,3,0,1,2,0,20,3,1,1,2,0,22,3,1,1,2,0,24,3,1,1,2,0,26,3,1,1,2,0,28,3,1,1,2,0,30,3,1,1,2,0,32,3,1,1,2,0,34,3,1,1,2,0,36,3,1,1,2,0,38,3,1,1,2,0,40,7];
-
-const Comp = ({values})=>({
-  bytecode: BYTECODE_Comp,
-  statics: [
+const BYTECODE_Comp = {
+  b: [0,2,6,3,0,1,2,0,2,3,0,1,2,0,4,3,0,1,2,0,6,3,0,1,2,0,8,3,0,1,2,0,10,3,0,1,2,0,12,3,0,1,2,0,14,3,0,1,2,0,16,3,0,1,2,0,18,3,0,1,2,0,20,3,1,1,2,0,22,3,1,1,2,0,24,3,1,1,2,0,26,3,1,1,2,0,28,3,1,1,2,0,30,3,1,1,2,0,32,3,1,1,2,0,34,3,1,1,2,0,36,3,1,1,2,0,38,3,1,1,2,0,40,7],
+  s: [
     CompPart,
     CompPartPrefix,
     'start', 0,
@@ -188,18 +192,24 @@ const Comp = ({values})=>({
     'start', 85,
     'start', 90,
     'start', 92
-  ],
-  dynamics: ['values', values]
+  ]
+};
+
+const Comp = ({values})=>({
+  t: BYTECODE_Comp,
+  d: ['values', values]
 });
 
 // const BYTECODE_MAIN = window.BYTECODE_MAIN = componentWithProps(0, {dynamics: [0]});
-const BYTECODE_MAIN = [3, 0, 0, 1, 0];
+const BYTECODE_MAIN = {
+  b: [3, 0, 0, 1, 0],
+  s: [Comp]
+};
 
 // const renderInstance = (values)=> <Comp values={values} />;
 const renderInstance = (values)=> ({
-  bytecode: BYTECODE_MAIN,
-  statics: [Comp],
-  dynamics: ['values', values]
+  t: BYTECODE_MAIN,
+  d: ['values', values]
 });
 
 // const render = ()=>

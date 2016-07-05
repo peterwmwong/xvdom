@@ -63,9 +63,10 @@ const componentWithProps = (comp, _props)=> [
 ];
 
 
-describe('render(spec, dynamics)', ()=>{
-  const renderHTML = (bytecode, statics, dynamics)=> {
-    const result = getHTMLString(xvdom.xrender({bytecode, statics, dynamics}));
+describe('render(bytecode, dynamics)', ()=>{
+  const renderHTML = (instance)=> {
+    debugger; //eslint-disable-line
+    const result = getHTMLString(xvdom.xrender(instance));
     return result;
   };
 
@@ -218,10 +219,10 @@ describe('render(spec, dynamics)', ()=>{
     });
   });
 
-  const itRenders = (desc, {spec, statics=[], dynamics=[]}, expectedHTML)=>{
+  const itRenders = (desc, {bytecode, statics=[], dynamics=[]}, expectedHTML)=>{
     it(desc, ()=>{
       assert.strictEqual(
-        renderHTML(spec, statics, dynamics),
+        renderHTML({t: {b:bytecode, s:statics}, d:dynamics}),
         expectedHTML
       );
     });
@@ -229,7 +230,7 @@ describe('render(spec, dynamics)', ()=>{
 
   itRenders('elements',
     {
-      spec: trimPops(
+      bytecode: trimPops(
         el('div',
           el('span')
         )
@@ -243,7 +244,7 @@ describe('render(spec, dynamics)', ()=>{
 
   itRenders('elements nesting and siblings',
     {
-      spec: trimPops(
+      bytecode: trimPops(
         el('div',
           el('span',
             el('i')
@@ -264,7 +265,7 @@ describe('render(spec, dynamics)', ()=>{
 
   itRenders('elements with props',
     {
-      spec: trimPops(
+      bytecode: trimPops(
         elWithProps('div', {dynamics: [0]},
           elWithProps('b', {dynamics: [2]},
             elWithProps('i', {dynamics: [4]})
@@ -289,7 +290,7 @@ describe('render(spec, dynamics)', ()=>{
 
   itRenders('dynamics',
     {
-      spec: trimPops(
+      bytecode: trimPops(
         el('div',
           dynamic(0)
         )
@@ -303,7 +304,7 @@ describe('render(spec, dynamics)', ()=>{
 
   itRenders('dynamics 2',
     {
-      spec: trimPops(
+      bytecode: trimPops(
         el('div',
           el('span', dynamic(0)),
           dynamic(1)
@@ -318,20 +319,24 @@ describe('render(spec, dynamics)', ()=>{
   );
 
   const Comp1 = ()=>({
-    bytecode: elWithProps('span', {statics: [0]}),
-    statics: ['className', 'Comp1'],
-    dynamics: []
+    t:{
+      b: elWithProps('span', {statics: [0]}),
+      s: ['className', 'Comp1']
+    },
+    d: []
   });
 
   const Comp2 = ({id, title})=>({
-    bytecode: elWithProps('span', {statics: [0], dynamics: [0, 2]}),
-    statics: ['className', 'Comp2'],
-    dynamics: ['id', id, 'title', title]
+    t:{
+      b: elWithProps('span', {statics: [0], dynamics: [0, 2]}),
+      s: ['className', 'Comp2']
+    },
+    d: ['id', id, 'title', title]
   });
 
   itRenders('components',
     {
-      spec: trimPops(
+      bytecode: trimPops(
         el('div',
           component(0)
         )
@@ -345,7 +350,7 @@ describe('render(spec, dynamics)', ()=>{
 
   itRenders('components with props',
     {
-      spec: trimPops(
+      bytecode: trimPops(
         el('div',
           componentWithProps(0, {statics: [1], dynamics: [0]})
         )
@@ -389,8 +394,11 @@ describe('render(spec, dynamics)', ()=>{
     ))
   );
   const CompPart = ({start, values})=>({
-    bytecode: BYTECODE_CompPart,
-    dynamics: [
+    t: {
+      b: BYTECODE_CompPart,
+      s: []
+    },
+    d: [
       values[0 + start],
       values[1 + start],
       values[2 + start],
@@ -400,9 +408,11 @@ describe('render(spec, dynamics)', ()=>{
   });
 
   const CompPartPrefix = ({start, values})=>({
-    bytecode: BYTECODE_CompPartPrefix,
-    statics: ['prefix'],
-    dynamics: [
+    t: {
+      b: BYTECODE_CompPartPrefix,
+      s: ['prefix']
+    },
+    d: [
       values[0 + start],
       values[1 + start],
       values[2 + start],
@@ -417,14 +427,16 @@ describe('render(spec, dynamics)', ()=>{
   );
 
   const Comp = ({values})=>({
-    bytecode: BYTECODE_Comp,
-    statics: [CompPart, CompPartPrefix, 'start', 0, 'start', 5],
-    dynamics: ['values', values]
+    t: {
+      b: BYTECODE_Comp,
+      s: [CompPart, CompPartPrefix, 'start', 0, 'start', 5]
+    },
+    d: ['values', values]
   });
 
   itRenders('benchmark: dynamics <CompPart />',
     {
-      spec: trimPops(
+      bytecode: trimPops(
         componentWithProps(0, {dynamics: [0, 2]})
       ),
       statics: [CompPart],
@@ -441,7 +453,7 @@ describe('render(spec, dynamics)', ()=>{
 
   itRenders('benchmark: dynamics <CompPartPrefix />',
     {
-      spec: trimPops(
+      bytecode: trimPops(
         componentWithProps(0, {dynamics: [0, 2]})
       ),
       statics: [CompPartPrefix],
@@ -458,7 +470,7 @@ describe('render(spec, dynamics)', ()=>{
 
   itRenders('benchmark: dynamics <Comp />',
     {
-      spec: trimPops(
+      bytecode: trimPops(
         componentWithProps(0, {dynamics: [0]})
       ),
       statics: [Comp],

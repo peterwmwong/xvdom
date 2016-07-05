@@ -527,7 +527,7 @@ const createComponent = (parentNode, bytecode, i, statics, dynamics)=>{
 function RootNode(){ this.root = null; }
 RootNode.prototype.appendChild = function(node){ return this.root = node; };
 
-function xrender({bytecode, statics, dynamics}){
+function xrender({t: {b:bytecode, s:statics}, d:dynamics}){
   let i = 0;
   let lastNode, curNode;
   const rootNode = curNode = new RootNode();
