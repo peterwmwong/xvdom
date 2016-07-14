@@ -19,6 +19,7 @@ export const REF_TO_TAG = [
   'b',
   'div',
   'i',
+  'input',
   'span'
 ];
 
@@ -385,24 +386,6 @@ const createArray = (isOnlyChild, parentNode, value)=>{
   return node;
 };
 
-const createDynamic = (isOnlyChild, parentNode, value)=>{
-  switch(value && value.constructor){
-    case String:
-    case Number:
-    case 0:
-      return createTextNode(value);
-
-    case Object:
-      return internalRenderNoRecycle(value);
-
-    case Array:
-      return createArray(isOnlyChild, parentNode, value);
-
-    default:
-      return createEmptyTextNode();
-  }
-};
-
 const componentRerender = (component, api)=> {
   const instance = internalRerender(api._instance, component(api));
   api._instance = instance;
@@ -484,25 +467,6 @@ export const unmount = node=>{ unmountInstance(node.xvdom, node.parentNode); };
 
 const appendChild = (node, child)=> node.appendChild(child);
 
-const createNode = (parentNode, bytecode, i) =>
-  appendChild(
-    parentNode,
-    document.createElement(REF_TO_TAG[bytecode[i]])
-  );
-
-const assignProps = (node, bytecode, i, statics, dynamics)=> {
-  let keyid;
-  let source;
-  let numStaticProps = bytecode[i++];
-  let j = bytecode[i++];
-  while(j){
-    source = --j < numStaticProps ? statics : dynamics;
-    keyid = bytecode[i++];
-    node[source[keyid]] = source[keyid + 1];
-  }
-  return i;
-};
-
 const _createComponent = (parentNode, component, props)=>{
   const actions   = component.actions;
   const createFn  = actions ? createStatefulComponent : createNoStateComponent;
@@ -524,54 +488,145 @@ const createComponent = (parentNode, bytecode, i, statics, dynamics)=>{
   _createComponent(parentNode, statics[bytecode[i]], {});
 };
 
+function createDynamic(ctx, i, bytecode){
+  let value = ctx.dynamics[ctx.dPtr++];
+  let node;
+  if(value instanceof Object){
+
+  }
+  else {
+    node = createTextNode(value || (value === 0 ? value : ''));
+  }
+
+  // switch(value && value.constructor){
+  //   case String:
+  //   case Number:
+  //   case 0:
+  //     node = createTextNode(value);
+  //     break;
+  //
+  //   // case Object:
+  //   //   node = internalRenderNoRecycle(value);
+  //   //
+  //   // case Array:
+  //   //   node = createArray(isOnlyChild, parentNode, value);
+  //
+  //   default:
+  //     node = createEmptyTextNode();
+  // }
+
+  appendChild(ctx.curNode, node);
+  return i;
+}
+
+
+function createStatic(ctx, i, bytecode){
+  let value = ctx.statics[ctx.sPtr++];
+  let node;
+  switch(value && value.constructor){
+    case String:
+    case Number:
+    case 0:
+      node = createTextNode(value);
+      break;
+
+    // case Object:
+    //   node = internalRenderNoRecycle(value);
+    //
+    // case Array:
+    //   node = createArray(isOnlyChild, parentNode, value);
+
+    default:
+      node = createEmptyTextNode();
+  }
+
+  appendChild(ctx.curNode, node);
+  return i;
+}
+
+function assignProps(node, ctx, bytecode, j, numStaticProps){
+  const {statics, dynamics} = ctx;
+  let key;
+  while(j--){
+    key = statics[ctx.sPtr++];
+    node[key] = j < numStaticProps ? statics[ctx.sPtr++] : dynamics[ctx.dPtr++];
+  }
+}
+
+function createNode(ctx, i, bytecode){
+  const tag  = REF_TO_TAG[bytecode[i++]];
+  const node = ctx.lastNode = appendChild(
+    ctx.curNode,
+    document.createElement(tag)
+  );
+
+  const totalProps = bytecode[i++];
+  if(totalProps > 0){
+    assignProps(node, ctx, bytecode, totalProps, bytecode[i++]);
+  }
+  return i;
+}
+
 function RootNode(){ this.root = null; }
 RootNode.prototype.appendChild = function(node){ return this.root = node; };
 
+const COMMANDS = [
+  createNode,
+  createComponent,
+  createDynamic,
+  createStatic,
+  ((ctx, i)=> { ctx.curNode = ctx.lastNode;           return i; }),
+  ((ctx, i)=> { ctx.curNode = ctx.curNode.parentNode; return i; })
+];
+
 function xrender({t: {b:bytecode, s:statics}, d:dynamics}){
+  const rootNode = new RootNode();
+  const length = bytecode.length;
   let i = 0;
-  let lastNode, curNode;
-  const rootNode = curNode = new RootNode();
-  while(i < bytecode.length){
-    switch(bytecode[i++]){
-      case 0: // el
-        lastNode = createNode(curNode, bytecode, i++);
-        break;
-
-      case 1: // el w/props
-        i = assignProps((lastNode = createNode(curNode, bytecode, i++)), bytecode, i, statics, dynamics);
-        break;
-
-      case 2: // component
-        createComponent(curNode, bytecode, i++, statics);
-        break;
-
-      case 3: // component w/props
-        i = createComponentWithProps(curNode, bytecode, i++, statics, dynamics);
-        break;
-
-      case 4: // dynamic
-        appendChild(
-          curNode,
-          createDynamic(true, curNode, dynamics[bytecode[i++]])
-        );
-        break;
-
-      case 5: // static
-        appendChild(
-          curNode,
-          createDynamic(true, curNode, statics[bytecode[i++]])
-        );
-        break;
-
-      case 6: // COMMAND: next is child (push)
-        curNode = lastNode;
-        break;
-
-      case 7: // COMMAND: parent (pop)
-        curNode = curNode.parentNode;
-        break;
-    };
+  const ctx = {
+    sPtr     : 0,
+    dPtr     : 0,
+    curNode  : rootNode,
+    lastNode : null,
+    statics,
+    dynamics
+  };
+  console.log(bytecode);
+  while(i < length){
+    console.log(i, bytecode[i]);
+    i = COMMANDS[bytecode[i++]](ctx, i, bytecode);
+    console.log('NEXT', i);
   }
+
+  // while(i < bytecode.length){
+  //   switch(bytecode[i++]){
+  //     case 0: // el
+  //       i = assignProps((lastNode = createNode(curNode, bytecode, i++)), bytecode, i, statics, dynamics);
+  //       break;
+  //
+  //     case 1: // component w/props
+  //       // TODO: Combine 2 and 3:
+  //       // Make createComponent() smart enough to see zero dynamic props in bytecode
+  //       i = createComponentWithProps(curNode, bytecode, i++, statics, dynamics);
+  //       break;
+  //
+  //     case 2: // dynamic
+  //       createDynamic(true, curNode, dynamics[bytecode[i++]]);
+  //       break;
+  //
+  //     case 3: // static
+  //       createDynamic(true, curNode, statics[bytecode[i++]]);
+  //       break;
+  //
+  //     case 4: // COMMAND: next is child (push)
+  //       curNode = lastNode;
+  //       break;
+  //
+  //     case 5: // COMMAND: parent (pop)
+  //       curNode = curNode.parentNode;
+  //       break;
+  //   };
+  // }
 
   return rootNode.root;
 }

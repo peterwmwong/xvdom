@@ -19,33 +19,31 @@ const flatten = (arrayOfArrays)=>
 const _elChildren = (children=[])=> {
   const result = (
     children.length
-      ? [6, ...flatten(children), 7]
+      ? [4, ...flatten(children), 5]
       : children
   );
   return result;
 };
 
-const _static = (valueId)=> [5, valueId];
-const dynamic = (valueId)=> [4, valueId];
+const dynamic = (valueId)=> [2, valueId];
+const _static = (valueId)=> [3, valueId];
 
-const props = ({dynamics=[], statics=[]})=>[
-  statics.length,
-  (dynamics.length + statics.length),
-  ...dynamics,
-  ...statics
-];
-
-const el = (tag, ...children)=> [
-  0, TAG_TO_REF[tag],
-    ..._elChildren(children)
-];
+const props = ({dynamics=[], statics=[]}={})=>{
+  const result = [ dynamics.length + statics.length ];
+  if(result[0]){
+    return result.concat([statics.length, ...dynamics, ...statics]);
+  };
+  return result;
+};
 
 // 1, TAG_TO_REF[tag], statics.length, (dynamics.length + statics.length), ...dynamics, ...statics,
-const elWithProps = (tag, _props, ...children)=> [
-  1, TAG_TO_REF[tag],
+const el = (tag, _props, ...children)=> [
+  0, TAG_TO_REF[tag],
     ...props(_props),
     ..._elChildren(children)
 ];
+
+const elWithProps = el;
 
 const trimPops = (commands)=>{
   let lastCommand;
@@ -54,206 +52,42 @@ const trimPops = (commands)=>{
   return commands;
 };
 
-const component = (comp)=> [
-  2, comp
+const component = (comp, _props)=> [
+  1, comp, ...props(_props)
 ];
 
-const componentWithProps = (comp, _props)=> [
-  3, comp, ...props(_props)
-];
+const componentWithProps = component;
 
 
 describe('render(bytecode, dynamics)', ()=>{
-  const renderHTML = (instance)=> {
-    debugger; //eslint-disable-line
-    const result = getHTMLString(xvdom.xrender(instance));
-    return result;
-  };
+  const renderHTML = (instance)=> getHTMLString(xvdom.xrender(instance));
 
-  describe('el(tag:String, children:Array)', () => {
-    it('one child', () => {
-      assert.deepEqual(
-        trimPops(
-          el('div',
-            el('span')
-          )
-        ),
-        [
-          0, TAG_TO_REF.div,
-            6,
-              0, TAG_TO_REF.span
-        ]
-      );
-    });
-
-    it('many children', () => {
-      assert.deepEqual(
-        trimPops(
-          el('div',
-            el('span',
-              el('i')
-            ),
-            el('b'),
-            el('a')
-          )
-        ),
-        [
-          0, TAG_TO_REF.div,
-            6,
-              0, TAG_TO_REF.span,
-                6,
-                  0, TAG_TO_REF.i,
-                7,
-              0, TAG_TO_REF.b,
-              0, TAG_TO_REF.a
-        ]
-      );
-    });
-
-    it('with dynamics', () => {
-      assert.deepEqual(
-        trimPops(
-          el('div',
-            dynamic(0)
-          )
-        ),
-        [
-          0, TAG_TO_REF.div,
-            6,
-              4, 0
-        ]
-      );
-    });
-
-    it('with dynamics 2', () => {
-      assert.deepEqual(
-        trimPops(
-          el('div',
-            el('a',
-              dynamic(0)
-            ),
-            el('b')
-          )
-        ),
-        [
-          0, TAG_TO_REF.div,
-            6,
-              0, TAG_TO_REF.a,
-                6,
-                  4, 0,
-                7,
-              0, TAG_TO_REF.b
-        ]
-      );
-    });
-
-
-    it('with dynamics 3', () => {
-      assert.deepEqual(
-        trimPops(
-          el('div',
-            el('span', dynamic(0)),
-            dynamic(1)
-          )
-        ),
-        [
-          0, TAG_TO_REF.div,
-            6,
-              0, TAG_TO_REF.span,
-                6,
-                  4, 0,
-                7,
-              4, 1
-        ]
-      );
-    });
-  });
-
-
-  it('componentWithProps', () => {
-    assert.deepEqual(
-      trimPops(
-        componentWithProps(0, {dynamics: [2], statics:[4]})
-      ),
-      [
-        3, 0, 1, 2, 2, 4
-      ]
-    );
-  });
-
-  describe('elWithProps', () => {
-    it('nesting', () => {
-      assert.deepEqual(
-        trimPops(
-          elWithProps('div', {dynamics: [0]},
-            elWithProps('span', {statics: [0]},
-              elWithProps('a', {dynamics: [2], statics: [2]})
-            )
-          )
-        ),
-        [
-          1, TAG_TO_REF.div, 0, 1, 0,
-            6,
-              1, TAG_TO_REF.span, 1, 1, 0,
-              6,
-                1, TAG_TO_REF.a, 1, 2, 2, 2
-        ]
-      );
-    });
-
-    it('many children', () => {
-      assert.deepEqual(
-        trimPops(
-          elWithProps('div', {dynamics: [0]},
-            elWithProps('span', {statics: [0]}),
-            elWithProps('a', {dynamics: [2], statics: [2]})
-          )
-        ),
-        [
-          1, TAG_TO_REF.div, 0, 1, 0,
-            6,
-              1, TAG_TO_REF.span, 1, 1, 0,
-              1, TAG_TO_REF.a, 1, 2, 2, 2
-        ]
-      );
-    });
-  });
-
-  const itRenders = (desc, {bytecode, statics=[], dynamics=[]}, expectedHTML)=>{
+  const itRenders = (desc, instance, expectedHTML)=>{
     it(desc, ()=>{
       assert.strictEqual(
-        renderHTML({t: {b:bytecode, s:statics}, d:dynamics}),
+        renderHTML(typeof instance === 'function' ? instance() : instance),
         expectedHTML
       );
     });
   };
 
   itRenders('elements',
-    {
-      bytecode: trimPops(
-        el('div',
-          el('span')
-        )
-      )
-    },
+    <div>
+      <span></span>
+    </div>,
     '<div>'+
-      '<span>'+
-      '</span>'+
+      '<span></span>'+
     '</div>'
   );
 
   itRenders('elements nesting and siblings',
-    {
-      bytecode: trimPops(
-        el('div',
-          el('span',
-            el('i')
-          ),
-          el('b'),
-          el('a')
-        )
-      )
-    },
+    <div>
+      <span>
+        <i></i>
+      </span>
+      <b></b>
+      <a></a>
+    </div>,
     '<div>'+
       '<span>'+
         '<i></i>'+
@@ -264,19 +98,21 @@ describe('render(bytecode, dynamics)', ()=>{
   );
 
   itRenders('elements with props',
-    {
-      bytecode: trimPops(
-        elWithProps('div', {dynamics: [0]},
-          elWithProps('b', {dynamics: [2]},
-            elWithProps('i', {dynamics: [4]})
-          ),
-          elWithProps('span', {statics: [0]},
-            elWithProps('a', {dynamics: [6], statics: [2]})
-          )
-        )
-      ),
-      statics: ['title', 'foo', 'title', 'bar'],
-      dynamics: ['className', 'one', 'className', 'two', 'className', 'three', 'className', 'four']
+    ()=> {
+      const one   = 'one';
+      const two   = 'two';
+      const three = 'three';
+      const four  = 'four';
+      return (
+        <div className={one}>
+          <b className={two}>
+            <i className={three}></i>
+          </b>
+          <span title='foo'>
+            <a className={four} title='bar'></a>
+          </span>
+        </div>
+      );
     },
     '<div class="one">'+
       '<b class="two">'+
@@ -288,14 +124,17 @@ describe('render(bytecode, dynamics)', ()=>{
     '</div>'
   );
 
+  itRenders('statics',
+    <div>{'foo'}</div>,
+    '<div>'+
+      'foo'+
+    '</div>'
+  );
+
   itRenders('dynamics',
-    {
-      bytecode: trimPops(
-        el('div',
-          dynamic(0)
-        )
-      ),
-      dynamics: ['hello']
+    ()=> {
+      const msg = 'hello';
+      return <div>{msg}</div>;
     },
     '<div>'+
       'hello'+
@@ -303,14 +142,13 @@ describe('render(bytecode, dynamics)', ()=>{
   );
 
   itRenders('dynamics 2',
-    {
-      bytecode: trimPops(
-        el('div',
-          el('span', dynamic(0)),
-          dynamic(1)
-        )
-      ),
-      dynamics: ['hello', 'world']
+    ()=> {
+      const msg = 'hello';
+      const msg2 = 'world';
+      return <div>
+        <span>{msg}</span>
+        {msg2}
+      </div>;
     },
     '<div>'+
       '<span>hello</span>'+
@@ -337,8 +175,8 @@ describe('render(bytecode, dynamics)', ()=>{
   itRenders('components',
     {
       bytecode: trimPops(
-        el('div',
-          component(0)
+        el('div', {},
+          component(0, {})
         )
       ),
       statics: [Comp1]
@@ -351,7 +189,7 @@ describe('render(bytecode, dynamics)', ()=>{
   itRenders('components with props',
     {
       bytecode: trimPops(
-        el('div',
+        el('div', {},
           componentWithProps(0, {statics: [1], dynamics: [0]})
         )
       ),
@@ -363,35 +201,35 @@ describe('render(bytecode, dynamics)', ()=>{
     '</div>'
   );
 
-  const BYTECODE_CompPart = el('div',
-    el('span', dynamic(0)),
-    el('span', dynamic(1)),
-    el('span', dynamic(2)),
-    el('span', dynamic(3)),
-    el('span', dynamic(4))
+  const BYTECODE_CompPart = el('div', {},
+    el('span', {}, dynamic(0)),
+    el('span', {}, dynamic(1)),
+    el('span', {}, dynamic(2)),
+    el('span', {}, dynamic(3)),
+    el('span', {}, dynamic(4))
   );
 
-  const BYTECODE_CompPartPrefix = el('div',
-    el('span',
-      el('span', _static(0)),
+  const BYTECODE_CompPartPrefix = el('div', {},
+    el('span', {},
+      el('span', {}, _static(0)),
       dynamic(0)
     ),
-    el('span',
-      el('span', _static(0)),
+    el('span', {},
+      el('span', {}, _static(0)),
       dynamic(1)
     ),
-    el('span',
-      el('span', _static(0)),
+    el('span', {},
+      el('span', {}, _static(0)),
       dynamic(2)
     ),
-    el('span',
-      el('span', _static(0)),
+    el('span', {},
+      el('span', {}, _static(0)),
       dynamic(3)
     ),
-    el('span',
-      el('span', _static(0)),
-      dynamic(4
-    ))
+    el('span', {},
+      el('span', {}, _static(0)),
+      dynamic(4)
+    )
   );
   const CompPart = ({start, values})=>({
     t: {
@@ -421,7 +259,7 @@ describe('render(bytecode, dynamics)', ()=>{
     ]
   });
 
-  const BYTECODE_Comp = el('div',
+  const BYTECODE_Comp = el('div', {},
     componentWithProps(0, {dynamics: [0], statics: [2]}),
     componentWithProps(1, {dynamics: [0], statics: [4]})
   );
