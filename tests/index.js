@@ -12,3 +12,4 @@
 // import './component-stateful-nested.jsx';
 // import './integration.jsx';
 import './xrender.js';
+import './xrerender.js';
