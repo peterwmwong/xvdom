@@ -2,6 +2,10 @@ import assert        from 'assert';
 import getHTMLString from './utils/getHTMLString.js';
 import xvdom         from '../src/index.js';
 
+// const Comp1 = ()=>(
+//   <span className='Comp1' />
+// );
+
 describe('render(bytecode, dynamics)', ()=>{
   const renderHTML = (instance)=> getHTMLString(xvdom.xrender(instance));
 
@@ -113,9 +117,6 @@ describe('render(bytecode, dynamics)', ()=>{
   //   d: []
   // });
 
-  // const Comp1 = ()=>(
-  //   <span className='Comp1' />
-  // );
   //
   // const Comp2 = ({id, title})=>({
   //   t:{
@@ -126,7 +127,7 @@ describe('render(bytecode, dynamics)', ()=>{
   // });
   //
   // itRenders('components',
-  //   (
+  //   ()=>(
   //     <div>
   //       <Comp1 />
   //     </div>
@@ -135,7 +136,7 @@ describe('render(bytecode, dynamics)', ()=>{
   //     '<span class="Comp1"></span>'+
   //   '</div>'
   // );
-  //
+
   // itRenders('components with props',
   //   {
   //     bytecode: trimPops(
