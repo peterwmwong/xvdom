@@ -8,24 +8,13 @@ $x - Pool linked list next pointer
 
 Spec properties:
 
-c - create (or render)
-u - update (or update)
+b - create bytecode
+u - update bytecode
 r - keyed map of unmounted instanced that can be recycled
 
 */
 
-export const REF_TO_TAG = [
-  'a',
-  'b',
-  'div',
-  'i',
-  'input',
-  'span',
-  'table',
-  'tbody',
-  'td',
-  'tr'
-];
+import { REF_TO_TAG } from 'babel-plugin-xvdom';
 
 // Creates an empty object with no built in properties (ie. `constructor`).
 function Hash(){}
@@ -359,41 +348,6 @@ function updateDynamic(isOnlyChild, oldValue, value, contextNode){
   }
 };
 
-const internalRenderNoRecycle = (instance)=> {
-  const node  = instance.$s.c(instance);
-  instance.$n = node;
-  node.xvdom  = instance;
-  return node;
-};
-
-const internalRender = instance=>{
-  const spec = instance.$s;
-  const recycledInstance = spec.r.pop(instance.key);
-  if(recycledInstance){
-    spec.u(instance, recycledInstance);
-    return recycledInstance;
-  }
-  else{
-    internalRenderNoRecycle(instance);
-    return instance;
-  }
-};
-
-export const render = instance=>internalRender(instance).$n;
-
-const internalRerender = (prevInstance, instance)=>{
-  if(internalRerenderInstance(instance, prevInstance)) return prevInstance;
-
-  instance = internalRender(instance);
-  replaceNode(prevInstance.$n, instance.$n);
-  recycle(prevInstance);
-  return instance;
-};
-
-export const rerender = (node, instance)=>internalRerender(node.xvdom, instance).$n;
-
-export const unmount = node=>{ unmountInstance(node.xvdom, node.parentNode); };
-
 const appendChild = (node, child)=>{ node.appendChild(child); };
 
 function createDynamicChild(value){
@@ -406,10 +360,10 @@ function createDynamicChild(value){
 
     case Object:
     case Array:
-      throw "NOT IMPLEMENTED YET";
+      throw 'NOT IMPLEMENTED YET';
 
     default:
-      return createTextNode('');
+      return createEmptyTextNode();
   }
 }
 
@@ -477,10 +431,10 @@ function updateElChild(opArg, contextNode, statics, value, prevValue){
 
       case Object:
       case Array:
-        throw "NOT IMPLEMENTED YET";
+        throw 'NOT IMPLEMENTED YET';
 
       default:
-        contextNode = createTextNode('');
+        contextNode = createEmptyTextNode();
     }
   }
 }
@@ -535,11 +489,8 @@ export function xrerender(node, {t: {u:bytecode, s:statics}, d:dynamics}){
 export default {
   createDynamic,
   el:(tag) => document.createElement(tag),
-  render,
-  rerender,
   xrender,
   xrerender,
-  unmount,
   updateDynamic,
   Pool,
   DEADPOOL
