@@ -403,6 +403,10 @@ function createNode(ctx, statics, dynamics, bytecode){
 
 function RootNode(){ this.root = null; }
 RootNode.prototype.appendChild = function(node){ return this.root = node; };
+RootNode.prototype.finalizeRoot = function(instance){
+  this.root.__xvdom = instance;
+  return this.root;
+};
 
 const COMMANDS = [
   createNode,
@@ -414,13 +418,13 @@ const COMMANDS = [
   ((ctx)=> { ctx.contextNodes.push(ctx.lastNode);  })
 ];
 
-function updateElProp(opArg, contextNode, statics, value, prevValue){
+function updateElProp(staticOffsetToProp, contextNode, statics, value, prevValue){
   if(value !== prevValue){
-    contextNode[statics[opArg >> 16]] = value;
+    contextNode[statics[staticOffsetToProp]] = value;
   }
 }
 
-function updateElChild(opArg, contextNode, statics, value, prevValue){
+function updateElChild(zeroIfOnlyChild, contextNode, statics, value, prevValue){
   if(value !== prevValue){
     switch(value && value.constructor){
       case String:
@@ -464,21 +468,17 @@ export function xrender(instance){
   do { COMMANDS[bytecode[ctx.i++]](ctx, statics, dynamics, bytecode); }
   while(length > ctx.i);
 
-  const root = rootNode.root;
-  root.__xvdom = instance;
-  return root;
+  return rootNode.finalizeRoot(instance);
 }
 
 export function xrerender(node, {t: {u:bytecode, s:statics}, d:dynamics}){
   const {contextNodes, d:prevDynamics} = node.__xvdom;
-  const length = bytecode.length;
   let i = 0;
   let dynamicOffset = 0;
-  let opArg;
-  while(length > i){
+  while(i < bytecode.length){
     RERENDER_COMMANDS[bytecode[i++]](
-      (opArg = bytecode[i++]),
-      contextNodes[opArg & 0xFFFF],
+      bytecode[i++],
+      contextNodes[bytecode[i++]],
       statics,
       dynamics[dynamicOffset],
       prevDynamics[dynamicOffset++]
