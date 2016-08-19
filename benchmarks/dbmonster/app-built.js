@@ -63,132 +63,20 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var _xvdomCreateDynamic = _xvdomMin2.default.createDynamic,
-	    _xvdomEl = _xvdomMin2.default.el,
-	    _xvdomUpdateDynamic = _xvdomMin2.default.updateDynamic;
 	var _xvdomSpec3 = {
-	  c: function c(inst) {
-	    var _n = _xvdomEl('table'),
-	        _n2;
-
-	    _n.className = 'table table-striped latest-data';
-	    _n2 = _xvdomEl('tbody');
-
-	    _n2.appendChild(inst.b = _xvdomCreateDynamic(true, _n2, inst.a));
-
-	    _n.appendChild(_n2);
-
-	    return _n;
-	  },
-	  u: function u(inst, pInst) {
-	    var v;
-
-	    if (inst.a !== pInst.a) {
-	      pInst.b = _xvdomUpdateDynamic(true, pInst.a, pInst.a = inst.a, pInst.b);
-	    }
-	  },
-	  r: _xvdomMin2.default.DEADPOOL
+	  b: [0, 6, 1, 1, 4, 0, 7, 0, 4, 0, 9, 0, 4, 0, 8, 0, 4, 3],
+	  s: ['className', 'table table-striped latest-data', 'Hello world'],
+	  u: []
 	};
 	var _xvdomSpec2 = {
-	  c: function c(inst) {
-	    var _n = _xvdomEl('tr'),
-	        _n2,
-	        _n3;
-
-	    _n2 = _xvdomEl('td');
-	    _n2.className = 'dbname';
-
-	    _n2.appendChild(inst.b = _xvdomCreateDynamic(true, _n2, inst.a));
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomEl('td');
-	    _n2.className = 'query-count';
-	    _n3 = _xvdomEl('span');
-	    inst.d = _n3;
-	    _n3.className = inst.c;
-
-	    _n3.appendChild(inst.f = _xvdomCreateDynamic(true, _n3, inst.e));
-
-	    _n2.appendChild(_n3);
-
-	    _n.appendChild(_n2);
-
-	    _n.appendChild(inst.h = _xvdomCreateDynamic(false, _n, inst.g));
-
-	    return _n;
-	  },
-	  u: function u(inst, pInst) {
-	    var v;
-
-	    if (inst.a !== pInst.a) {
-	      pInst.b = _xvdomUpdateDynamic(true, pInst.a, pInst.a = inst.a, pInst.b);
-	    }
-
-	    v = inst.c;
-
-	    if (v !== pInst.c) {
-	      pInst.d.className = v;
-	      pInst.c = v;
-	    }
-
-	    if (inst.e !== pInst.e) {
-	      pInst.f = _xvdomUpdateDynamic(true, pInst.e, pInst.e = inst.e, pInst.f);
-	    }
-
-	    if (inst.g !== pInst.g) {
-	      pInst.h = _xvdomUpdateDynamic(false, pInst.g, pInst.g = inst.g, pInst.h);
-	    }
-	  },
-	  r: _xvdomMin2.default.DEADPOOL
+	  b: [0, 9, 0, 4, 0, 8, 1, 1, 4, 2, 5, 0, 8, 1, 1, 4, 0, 5, 1, 0, 6, 4, 2, 5, 5, 2],
+	  s: ['className', 'dbname', 'className', 'query-count', 'className'],
+	  u: [1, 0, 0, 262145, 1, 2, 1, 3]
 	};
 	var _xvdomSpec = {
-	  c: function c(inst) {
-	    var _n = _xvdomEl('td'),
-	        _n2,
-	        _n3;
-
-	    inst.b = _n;
-	    _n.className = inst.a;
-
-	    _n.appendChild(inst.d = _xvdomCreateDynamic(false, _n, inst.c));
-
-	    _n2 = _xvdomEl('div');
-	    _n2.className = 'popover left';
-	    _n3 = _xvdomEl('div');
-	    _n3.className = 'popover-content';
-
-	    _n3.appendChild(inst.f = _xvdomCreateDynamic(true, _n3, inst.e));
-
-	    _n2.appendChild(_n3);
-
-	    _n3 = _xvdomEl('div');
-	    _n3.className = 'arrow';
-
-	    _n2.appendChild(_n3);
-
-	    _n.appendChild(_n2);
-
-	    return _n;
-	  },
-	  u: function u(inst, pInst) {
-	    var v;
-	    v = inst.a;
-
-	    if (v !== pInst.a) {
-	      pInst.b.className = v;
-	      pInst.a = v;
-	    }
-
-	    if (inst.c !== pInst.c) {
-	      pInst.d = _xvdomUpdateDynamic(false, pInst.c, pInst.c = inst.c, pInst.d);
-	    }
-
-	    if (inst.e !== pInst.e) {
-	      pInst.f = _xvdomUpdateDynamic(true, pInst.e, pInst.e = inst.e, pInst.f);
-	    }
-	  },
-	  r: _xvdomMin2.default.DEADPOOL
+	  b: [0, 8, 1, 0, 6, 4, 2, 0, 2, 1, 1, 4, 0, 2, 1, 1, 4, 2, 5, 0, 2, 1, 1],
+	  s: ['className', 'className', 'popover left', 'className', 'popover-content', 'className', 'arrow'],
+	  u: [0, 0, 1, 1, 1, 2]
 	};
 
 
@@ -222,29 +110,29 @@
 	  var elapsed = _ref.elapsed;
 	  var query = _ref.query;
 	  return {
-	    $s: _xvdomSpec,
-	    a: queryClasses(elapsed),
-	    c: elapsed && entryFormatElapsed(elapsed),
-	    e: query,
-	    key: j
+	    t: _xvdomSpec,
+	    d: [queryClasses(elapsed), elapsed && entryFormatElapsed(elapsed), query]
 	  };
 	};
 
 	var renderDatabase = function renderDatabase(db, i) {
 	  var count = db.queries.length;
 	  return {
-	    $s: _xvdomSpec2,
-	    a: db.name,
-	    c: counterClasses(count),
-	    e: count,
-	    g: map(db.getTopFiveQueries(), renderQuery),
-	    key: i
+	    t: _xvdomSpec2,
+	    d: [db.name, counterClasses(count), count, map(db.getTopFiveQueries(), renderQuery)]
 	  };
 	};
+	// const renderTable = (data)=>
+	//   <table className="table table-striped latest-data">
+	//     <tbody>
+	//     {map(data, renderDatabase)}
+	//     </tbody>
+	//   </table>;
+
 	var renderTable = function renderTable(data) {
 	  return {
-	    $s: _xvdomSpec3,
-	    a: map(data, renderDatabase)
+	    t: _xvdomSpec3,
+	    d: []
 	  };
 	};
 
@@ -259,13 +147,13 @@
 	  (0, _perfMonitor.endProfile)('data');
 
 	  (0, _perfMonitor.startProfile)('view');
-	  _xvdomMin2.default.rerender(dbmonApp, renderTable(dbs.dbs));
+	  _xvdomMin2.default.xrerender(dbmonApp, renderTable(dbs.dbs));
 	  (0, _perfMonitor.endProfile)('view');
 
 	  requestAnimationFrame(render);
 	};
 
-	window.app.appendChild(dbmonApp = _xvdomMin2.default.render(renderTable(dbs.dbs)));
+	window.app.appendChild(dbmonApp = _xvdomMin2.default.xrender(renderTable(dbs.dbs)));
 	requestAnimationFrame(render);
 
 /***/ },
@@ -527,193 +415,199 @@
 
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-	!function (n, e) {
-	  "object" == ( false ? "undefined" : _typeof(exports)) && "object" == ( false ? "undefined" : _typeof(module)) ? module.exports = e() :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (e), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : "object" == (typeof exports === "undefined" ? "undefined" : _typeof(exports)) ? exports.xvdom = e() : n.xvdom = e();
+	!function (e, n) {
+	  "object" == ( false ? "undefined" : _typeof(exports)) && "object" == ( false ? "undefined" : _typeof(module)) ? module.exports = n() :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (n), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : "object" == (typeof exports === "undefined" ? "undefined" : _typeof(exports)) ? exports.xvdom = n() : e.xvdom = n();
 	}(undefined, function () {
-	  return function (n) {
-	    function e(r) {
-	      if (t[r]) return t[r].exports;var o = t[r] = { exports: {}, id: r, loaded: !1 };return n[r].call(o.exports, o, o.exports, e), o.loaded = !0, o.exports;
-	    }var t = {};return e.m = n, e.c = t, e.p = "", e(0);
-	  }([function (n, e, t) {
-	    n.exports = t(1);
-	  }, function (n, e) {
+	  return function (e) {
+	    function n(r) {
+	      if (t[r]) return t[r].exports;var o = t[r] = { exports: {}, id: r, loaded: !1 };return e[r].call(o.exports, o, o.exports, n), o.loaded = !0, o.exports;
+	    }var t = {};return n.m = e, n.c = t, n.p = "", n(0);
+	  }([function (e, n, t) {
+	    e.exports = t(1);
+	  }, function (e, n) {
 	    "use strict";
 	    function t() {}function r() {
 	      this.map = new t();
-	    }e.__esModule = !0, t.prototype = Object.create(null);var o = new t(),
-	        u = e.DEADPOOL = { push: function push() {}, pop: function pop() {} };r.prototype.push = function (n) {
-	      var e = n.key,
-	          t = this.map;n.$x = t[e], t[e] = n;
-	    }, r.prototype.pop = function (n) {
-	      var e = this.map[n];if (e) return this.map[n] = e.$x, e;
-	    };var c = function c(n) {
-	      n.$s.r.push(n);
+	    }function o(e, n, t) {
+	      switch (n && n.constructor) {case String:case Number:case 0:
+	          return t.nodeValue = n, t;case Object:case Array:
+	          return j(e, n, t);default:
+	          return t.nodeValue = "", t;}
+	    }function u(e, n, t, r) {
+	      switch (n && n.constructor) {case Array:
+	          return L(e, t, n, r.xvdomContext) || r;case Object:
+	          return M(e, t, n, r);default:
+	          return o(e, t, r);}
+	    }function c(e, n, t) {
+	      var r = void 0;switch (t && t.constructor) {case String:case Number:case 0:
+	          r = m(t);break;case Object:case Array:
+	          throw "NOT IMPLEMENTED YET";default:
+	          r = m("");}e.push(r), G(n, r);
+	    }function i(e, n, t) {
+	      c(e.contextNodes, e.curNode, t[e.dPtr++]);
+	    }function a(e, n) {
+	      c(e.contextNodes, e.curNode, n[e.sPtr++]);
+	    }function d(e, n, t, r, o, u, c) {
+	      for (var i = void 0, a = void 0; r--;) {
+	        a = u[n.sPtr++], i = o > r ? u[n.sPtr++] : c[n.dPtr++], null != i && (e[a] = i);
+	      }
+	    }function f(e, n, t, r) {
+	      var o = e.lastNode = G(e.curNode, document.createElement(h[r[e.i++]])),
+	          u = r[e.i++];u > 0 && d(o, e, r, u, r[e.i++], n, t);
+	    }function s() {
+	      this.root = null;
+	    }function p(e, n, t, r, o) {
+	      r !== o && (n[t[e >> 16]] = r);
+	    }function l(e, n, t, r, o) {
+	      if (r !== o) switch (r && r.constructor) {case String:case Number:case 0:
+	          console.log(n), n.textContent = r;break;case Object:case Array:
+	          throw "NOT IMPLEMENTED YET";default:
+	          node = m("");}
+	    }function v(e) {
+	      var n = e.t,
+	          t = n.b,
+	          r = n.s,
+	          o = e.d,
+	          u = new s(),
+	          c = t.length,
+	          i = { i: 0, sPtr: 0, dPtr: 0, curNode: u, lastNode: null, contextNodes: e.contextNodes = [] };do {
+	        R[t[i.i++]](i, r, o, t);
+	      } while (c > i.i);var a = u.root;return a.__xvdom = e, a;
+	    }function x(e, n) {
+	      for (var t = n.t, r = t.u, o = t.s, u = n.d, c = e.__xvdom, i = c.contextNodes, a = c.d, d = r.length, f = 0, s = 0, p = void 0; d > f;) {
+	        q[r[f++]](p = r[f++], i[65535 & p], o, u[s], a[s++]);
+	      }
+	    }n.__esModule = !0, n.xrender = v, n.xrerender = x;var h = n.REF_TO_TAG = ["a", "b", "div", "i", "input", "span", "table", "tbody", "td", "tr"];t.prototype = Object.create(null);var y = (new t(), n.DEADPOOL = { push: function push() {}, pop: function pop() {} });r.prototype.push = function (e) {
+	      var n = e.key,
+	          t = this.map;e.$x = t[n], t[n] = e;
+	    }, r.prototype.pop = function (e) {
+	      var n = this.map[e];if (n) return this.map[e] = n.$x, n;
+	    };var N = function N(e) {
+	      e.$s.r.push(e);
 	    },
-	        i = function i(n) {
-	      return document.createTextNode(n);
+	        m = function m(e) {
+	      return document.createTextNode(e);
 	    },
-	        a = function a() {
-	      return i("");
+	        $ = function $(e, n) {
+	      var t = e.parentNode;t && t.replaceChild(n, e);
 	    },
-	        f = function f(n, e) {
-	      var t = n.parentNode;t && t.replaceChild(e, n);
+	        b = function b(e, n, t) {
+	      return t ? e.insertBefore(n, t) : e.appendChild(n);
 	    },
-	        d = function d(n, e, t) {
-	      return t ? n.insertBefore(e, t) : n.appendChild(e);
+	        k = function k(e, n) {
+	      N(e), n.removeChild(e.$n);
 	    },
-	        s = function s(n, e) {
-	      c(n), e.removeChild(n.$n);
-	    },
-	        p = function p(n, e) {
-	      for (var t = n.length, r = 0; t > r;) {
-	        s(n[r++], e);
+	        g = function g(e, n) {
+	      for (var t = e.length, r = 0; t > r;) {
+	        k(e[r++], n);
 	      }
 	    },
-	        v = function v(n, e) {
-	      for (var t = n.length, r = 0; t > r;) {
-	        c(n[r++]);
-	      }e.textContent = "";
+	        E = function E(e, n) {
+	      for (var t = e.length, r = 0; t > r;) {
+	        N(e[r++]);
+	      }n.textContent = "";
 	    },
-	        l = function l(n, e) {
-	      return e.$s === n.$s && (n.$s.u(n, e), !0);
+	        O = function O(e, n) {
+	      return n.$s === e.$s && (e.$s.u(e, n), !0);
 	    },
-	        m = function m(n, e, t, r) {
+	        P = function P(e, n, t, r) {
 	      for (var o = 0; t > o;) {
-	        d(n, (e[o] = T(e[o])).$n, r), ++o;
+	        b(e, (n[o] = I(n[o])).$n, r), ++o;
 	      }
 	    },
-	        y = function y(n, e, t) {
+	        w = function w(e, n, t) {
 	      for (var r = 0; t > r;) {
-	        n.appendChild((e[r] = T(e[r])).$n), ++r;
+	        e.appendChild((n[r] = I(n[r])).$n), ++r;
 	      }
 	    },
-	        $ = function $(n, e, t, r, o, u, c, i, a) {
-	      for (var f = new Map(), p = i.$n, v = void 0, l = void 0, m = void 0; a >= c;) {
-	        v = t[c++], f.set(v.key, v);
+	        C = function C(e, n, t, r, o, u, c, i, a) {
+	      for (var d = new Map(), f = i.$n, s = void 0, p = void 0, l = void 0; a >= c;) {
+	        s = t[c++], d.set(s.key, s);
 	      }for (; o >= r;) {
-	        m = e[r], l = m.key, v = f.get(l), v ? (v === i && (p = p.nextSibling), f["delete"](l), m = B(v, m)) : m = T(m), e[r] = m, d(n, m.$n, p), ++r;
-	      }f.forEach(function (e) {
-	        s(e, n);
+	        l = n[r], p = l.key, s = d.get(p), s ? (s === i && (f = f.nextSibling), d["delete"](p), l = Y(s, l)) : l = I(l), n[r] = l, b(e, l.$n, f), ++r;
+	      }d.forEach(function (n) {
+	        k(n, e);
 	      });
 	    },
-	        x = function x(n, e, t, r, o, u, c, i, a, f, p, v) {
-	      if (i > f) for (; u >= r;) {
-	        o = e[r], d(n, (e[r] = T(o)).$n, v), ++r;
-	      } else if (r > u) for (; f >= i;) {
-	        s(t[i++], n);
-	      } else $(n, e, t, r, u, a, i, p, f);
+	        T = function T(e, n, t, r, o, u, c, i, a, d, f, s) {
+	      if (i > d) for (; u >= r;) {
+	        o = n[r], b(e, (n[r] = I(o)).$n, s), ++r;
+	      } else if (r > u) for (; d >= i;) {
+	        k(t[i++], e);
+	      } else C(e, n, t, r, u, a, i, f, d);
 	    },
-	        h = function h(n, e, t, r, o, u) {
+	        A = function A(e, n, t, r, o, u) {
 	      var c = 0,
 	          i = 0,
 	          a = !0,
-	          f = e[0],
-	          s = r[0],
-	          p = u,
-	          v = void 0,
+	          d = n[0],
+	          f = r[0],
+	          s = u,
+	          p = void 0,
 	          l = void 0,
-	          m = void 0;t--, o--;n: for (; a && o >= c && t >= i;) {
-	        for (a = !1; s.key === f.key;) {
-	          if (e[i] = B(s, f), c++, i++, c > o || i > t) break n;s = r[c], f = e[i], a = !0;
-	        }for (v = r[o], l = e[t]; v.key === l.key;) {
-	          if (p = (e[t] = B(v, l)).$n, o--, t--, c > o || i > t) break n;v = r[o], l = e[t], a = !0;
-	        }for (; s.key === l.key;) {
-	          if (m = (e[t] = B(s, l)).$n, v.key !== l.key && (p = d(n, m, p)), c++, t--, c > o || i > t) break n;s = r[c], l = e[t], a = !0;
-	        }for (; v.key === f.key;) {
-	          if (d(n, (e[i] = B(v, f)).$n, s.$n), o--, i++, c > o || i > t) break n;v = r[o], f = e[i], a = !0;
+	          v = void 0;t--, o--;e: for (; a && o >= c && t >= i;) {
+	        for (a = !1; f.key === d.key;) {
+	          if (n[i] = Y(f, d), c++, i++, c > o || i > t) break e;f = r[c], d = n[i], a = !0;
+	        }for (p = r[o], l = n[t]; p.key === l.key;) {
+	          if (s = (n[t] = Y(p, l)).$n, o--, t--, c > o || i > t) break e;p = r[o], l = n[t], a = !0;
+	        }for (; f.key === l.key;) {
+	          if (v = (n[t] = Y(f, l)).$n, p.key !== l.key && (s = b(e, v, s)), c++, t--, c > o || i > t) break e;f = r[c], l = n[t], a = !0;
+	        }for (; p.key === d.key;) {
+	          if (b(e, (n[i] = Y(p, d)).$n, f.$n), o--, i++, c > o || i > t) break e;p = r[o], d = n[i], a = !0;
 	        }
-	      }(t >= i || o >= c) && x(n, e, r, i, f, t, l, c, s, o, v, p);
+	      }(t >= i || o >= c) && T(e, n, r, i, d, t, l, c, f, o, p, s);
 	    },
-	        k = function k(n, e, t) {
-	      var r = n.parentNode,
-	          o = e.length,
-	          u = t.length;o ? u ? h(r, e, o, t, u, n) : m(r, e, o, n) : p(t, r);
+	        D = function D(e, n, t) {
+	      var r = e.parentNode,
+	          o = n.length,
+	          u = t.length;o ? u ? A(r, n, o, t, u, e) : P(r, n, o, e) : g(t, r);
 	    },
-	        b = function b(n, e, t) {
-	      var r = e.length,
-	          o = t.length;r ? o ? h(n, e, r, t, o, null) : y(n, e, r) : v(t, n);
+	        _ = function _(e, n, t) {
+	      var r = n.length,
+	          o = t.length;r ? o ? A(e, n, r, t, o, null) : w(e, n, r) : E(t, e);
 	    },
-	        g = function g(n, e, t) {
-	      switch (e && e.constructor) {case String:case Number:case 0:
-	          return t.nodeValue = e, t;case Object:case Array:
-	          return C(n, e, t);default:
-	          return t.nodeValue = "", t;}
+	        j = function j(e, n, t) {
+	      var r = i(e, t.parentNode, n);return $(t, r), r;
 	    },
-	        C = function C(n, e, t) {
-	      var r = A(n, t.parentNode, e);return f(t, r), r;
+	        M = function M(e, n, t, r) {
+	      var o = void 0;return n && O(n, o = t.$r || t) ? (n.$r = o, r) : j(e, n, r);
 	    },
-	        _ = function _(n, e, t, r) {
-	      var o = void 0;return e && l(e, o = t.$r || t) ? (e.$r = o, r) : C(n, e, r);
+	        L = function L(e, n, t, r) {
+	      return n instanceof Array ? void (e ? _(r, n, t) : D(r, n, t)) : e ? (E(t, r), r.appendChild(i(!0, r, n))) : (g(t, r.parentNode), j(!1, n, r));
 	    },
-	        N = function N(n, e, t, r, u) {
-	      var c = n(e || o);l(c, t) || f(t.$n, (r[u] = T(c)).$n);
+	        S = function S(e) {
+	      var n = e.$s.c(e);return e.$n = n, n.xvdom = e, n;
 	    },
-	        D = function D(n, e, t, r) {
-	      return e instanceof Array ? void (n ? b(r, e, t) : k(r, e, t)) : n ? (v(t, r), r.appendChild(A(!0, r, e))) : (p(t, r.parentNode), C(!1, e, r));
+	        I = function I(e) {
+	      var n = e.$s,
+	          t = n.r.pop(e.key);return t ? (n.u(e, t), t) : (S(e), e);
 	    },
-	        O = function O(n, e, t) {
-	      var r = t._onProps,
-	          o = t.props;t.props = e, r ? S(n, t, r, o) : P(n, t);
+	        V = n.render = function (e) {
+	      return I(e).$n;
 	    },
-	        j = function j(n, e, t, r) {
-	      switch (e && e.constructor) {case Array:
-	          return D(n, t, e, r.xvdomContext) || r;case Object:
-	          return _(n, t, e, r);default:
-	          return g(n, t, r);}
+	        Y = function Y(e, n) {
+	      return O(n, e) ? e : (n = I(n), $(e.$n, n.$n), N(e), n);
 	    },
-	        w = function w(n, e, t) {
-	      var r = document.createDocumentFragment();return y(r, t, t.length), r.xvdomContext = n ? e : r.appendChild(a()), r;
+	        B = n.rerender = function (e, n) {
+	      return Y(e.xvdom, n).$n;
 	    },
-	        A = function A(n, e, t) {
-	      switch (t && t.constructor) {case String:case Number:case 0:
-	          return i(t);case Object:
-	          return M(t);case Array:
-	          return w(n, e, t);default:
-	          return a();}
+	        F = n.unmount = function (e) {
+	      k(e.xvdom, e.parentNode);
 	    },
-	        P = function P(n, e) {
-	      var t = B(e._instance, n(e));e._instance = t, t.$n.xvdom = e._parentInst;
-	    },
-	        S = function S(n, e, t, r) {
-	      if (t) {
-	        var o = t(e, r);o !== e.state && (e.state = o, P(n, e));
-	      }
-	    },
-	        E = function E(n, e, r, o, u, c) {
-	      var i = new t(),
-	          a = { _onProps: c.onProps, _parentInst: r, props: e, bindSend: function bindSend(e) {
-	          return i[e] || (i[e] = function (t) {
-	            S(n, a, c[e], t);
-	          });
-	        } };return a.state = c.onInit(a), r[o] = O, r[u] = a, M(a._instance = n(a));
-	    },
-	        I = e.createNoStateComponent = function (n, e, t, r, o) {
-	      return t[r] = N, M(t[o] = n(e));
-	    },
-	        L = e.createComponent = function (n, e, t, r, u, c) {
-	      var i = e ? E : I;return i(n, t || o, r, u, c, e);
-	    },
-	        M = function M(n) {
-	      var e = n.$s.c(n);return n.$n = e, e.xvdom = n, e;
-	    },
-	        T = function T(n) {
-	      var e = n.$s,
-	          t = e.r.pop(n.key);return t ? (e.u(n, t), t) : (M(n), n);
-	    },
-	        V = e.render = function (n) {
-	      return T(n).$n;
-	    },
-	        B = function B(n, e) {
-	      return l(e, n) ? n : (e = T(e), f(n.$n, e.$n), c(n), e);
-	    },
-	        F = e.rerender = function (n, e) {
-	      return B(n.xvdom, e).$n;
-	    },
-	        q = e.unmount = function (n) {
-	      s(n.xvdom, n.parentNode);
-	    };e["default"] = { createComponent: L, createDynamic: A, el: function el(n) {
-	        return document.createElement(n);
-	      }, render: V, rerender: F, unmount: q, updateDynamic: j, Pool: r, DEADPOOL: u };e._ = { rerenderText: g, rerenderInstance: _, rerenderDynamic: C, rerenderArray: D };
+	        G = function G(e, n) {
+	      return e.appendChild(n);
+	    };s.prototype.appendChild = function (e) {
+	      return this.root = e;
+	    };var R = [f, function () {}, i, a, function (e) {
+	      e.curNode = e.lastNode;
+	    }, function (e) {
+	      e.curNode = e.curNode.parentNode;
+	    }, function (e) {
+	      e.contextNodes.push(e.lastNode);
+	    }],
+	        q = [p, l];n["default"] = { createDynamic: i, el: function el(e) {
+	        return document.createElement(e);
+	      }, render: V, rerender: B, xrender: v, xrerender: x, unmount: F, updateDynamic: u, Pool: r, DEADPOOL: y };n._ = { rerenderText: o, rerenderInstance: M, rerenderDynamic: j, rerenderArray: L };
 	  }]);
 	});
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)(module)))

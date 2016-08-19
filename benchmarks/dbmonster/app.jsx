@@ -26,7 +26,7 @@ const map = (array, fn)=> {
     ++i;
 	}
 	return newArray;
-}
+};
 
 const renderQuery = ({elapsed, query}, j)=>
   <td key={j} className={queryClasses(elapsed)}>
@@ -55,10 +55,21 @@ const renderDatabase = (db, i)=> {
     </tr>
   );
 }
+// const renderTable = (data)=>
+//   <table className="table table-striped latest-data">
+//     <tbody>
+//     {map(data, renderDatabase)}
+//     </tbody>
+//   </table>;
+
 const renderTable = (data)=>
   <table className="table table-striped latest-data">
     <tbody>
-      {map(data, renderDatabase)}
+      <tr>
+        <td>
+          Hello world
+        </td>
+      </tr>
     </tbody>
   </table>;
 
@@ -74,14 +85,14 @@ const render = ()=>{
   endProfile('data');
 
   startProfile('view');
-  xvdom.rerender(dbmonApp, renderTable(dbs.dbs));
+  xvdom.xrerender(dbmonApp, renderTable(dbs.dbs));
   endProfile('view');
 
   requestAnimationFrame(render);
 }
 
 window.app.appendChild(
-  dbmonApp = xvdom.render(
+  dbmonApp = xvdom.xrender(
     renderTable(dbs.dbs)
   )
 );

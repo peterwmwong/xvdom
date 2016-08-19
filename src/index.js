@@ -20,7 +20,11 @@ export const REF_TO_TAG = [
   'div',
   'i',
   'input',
-  'span'
+  'span',
+  'table',
+  'tbody',
+  'td',
+  'tr'
 ];
 
 // Creates an empty object with no built in properties (ie. `constructor`).
@@ -319,17 +323,6 @@ const rerenderInstance = (isOnlyChild, value, prevValue, node)=>{
   return rerenderDynamic(isOnlyChild, value, node);
 };
 
-// TODO: Figure out whether we're using all these arguments
-// const rerenderComponent = (component, props, componentInstance, instance, componentInstanceProp)=>{
-//   const newCompInstance = component(props || EMPTY_PROPS);
-//   if(!internalRerenderInstance(newCompInstance, componentInstance)){
-//     replaceNode(
-//       componentInstance.$n,
-//       (instance[componentInstanceProp] = internalRender(newCompInstance)).$n
-//     );
-//   }
-// };
-
 const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode)=>{
   if(array instanceof Array){
     if(isOnlyChild){
@@ -353,14 +346,6 @@ const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode)=>{
   }
 };
 
-// const rerenderStatefulComponent = (component, newProps, api)=>{
-//   const {_onProps, props} = api;
-//   api.props = newProps;
-//
-//   if(_onProps) componentSend(component, api, _onProps, props);
-//   else componentRerender(component, api);
-// };
-
 function updateDynamic(isOnlyChild, oldValue, value, contextNode){
   switch(oldValue && oldValue.constructor){
     case Array:
@@ -373,57 +358,6 @@ function updateDynamic(isOnlyChild, oldValue, value, contextNode){
       return rerenderText(isOnlyChild, value, contextNode);
   }
 };
-
-// const createArray = (isOnlyChild, parentNode, value)=>{
-//   const node = document.createDocumentFragment();
-//   renderArrayToParent(node, value, value.length);
-//   node.xvdomContext = isOnlyChild ? parentNode : node.appendChild(createEmptyTextNode());
-//   return node;
-// };
-
-// const componentRerender = (component, api)=> {
-//   const instance = internalRerender(api._instance, component(api));
-//   api._instance = instance;
-//   instance.$n.xvdom = api._parentInst;
-// };
-//
-// const componentSend = (component, api, actionFn, context)=> {
-//   // TODO: process.ENV === 'development', console.error(`Action not found #{action}`);
-//   if(!actionFn) return;
-//
-//   const newState = actionFn(api, context);
-//   if(newState !== api.state){
-//     api.state = newState;
-//     componentRerender(component, api);
-//   }
-// };
-//
-// const createStatefulComponent = (component, props, instance, rerenderFuncProp, componentInstanceProp, actions)=>{
-//   const boundActions  = new Hash();
-//
-//   const api = {
-//     _onProps:    actions.onProps,
-//     _parentInst: instance,
-//
-//     props,
-//     bindSend: (action)=> boundActions[action] || (
-//       boundActions[action] = (context)=>{ componentSend(component, api, actions[action], context); }
-//     )
-//   };
-//
-//   //TODO: process.ENV === 'development', console.error(`Stateful components require atleast an 'onInit' function to provide the initial state (see)`);
-//   api.state = actions.onInit(api);
-//
-//   instance[rerenderFuncProp]      = rerenderStatefulComponent;
-//   instance[componentInstanceProp] = api;
-//   return internalRenderNoRecycle(api._instance = component(api));
-// };
-//
-// export const createNoStateComponent = (component, props)=>{
-//   return xrender(
-//     component(props)
-//   );
-// };
 
 const internalRenderNoRecycle = (instance)=> {
   const node  = instance.$s.c(instance);
@@ -460,34 +394,14 @@ export const rerender = (node, instance)=>internalRerender(node.xvdom, instance)
 
 export const unmount = node=>{ unmountInstance(node.xvdom, node.parentNode); };
 
-const appendChild = (node, child)=> node.appendChild(child);
+const appendChild = (node, child)=>{ node.appendChild(child); };
 
-// const _createComponent = (parentNode, component, props)=>{
-//   const actions   = component.actions;
-//   const createFn  = actions ? createStatefulComponent : createNoStateComponent;
-//   appendChild(
-//     parentNode,
-//     createFn(component, props, actions)
-//   );
-// };
-//
-// function createComponentAllStaticProps(ctx, statics){
-//   _createComponent(ctx.curNode, statics[ctx.sPtr++], statics[ctx.sPtr++]);
-// }
-//
-// function createComponentAllDynamicProps(ctx, statics, dynamics){
-//   _createComponent(ctx.curNode, dynamics[ctx.dPtr++], dynamics[ctx.dPtr++]);
-// }
-//
-// const createComponent = createComponentAllDynamicProps;
-
-function createDynamicChild(contextNodes, parentNode, value){
-  let node;
+function createDynamicChild(value){
   switch(value && value.constructor){
     case String:
     case Number:
     case 0:
-      node = createTextNode(value);
+      return createTextNode(value);
       break;
 
     case Object:
@@ -495,19 +409,21 @@ function createDynamicChild(contextNodes, parentNode, value){
       throw "NOT IMPLEMENTED YET";
 
     default:
-      node = createTextNode('');
+      return createTextNode('');
   }
-  debugger; //eslint-disable-line
-  contextNodes.push(node);
-  appendChild(parentNode, node);
 }
 
 function createDynamic(ctx, statics, dynamics){
-  createDynamicChild(ctx.contextNodes, ctx.curNode, dynamics[ctx.dPtr++]);
+  const node = createDynamicChild(dynamics[ctx.dPtr++]);
+  ctx.contextNodes.push(node);
+  appendChild(ctx.curNode, node);
 }
 
 function createStatic(ctx, statics){
-  createDynamicChild(ctx.contextNodes, ctx.curNode, statics[ctx.sPtr++]);
+  appendChild(
+    ctx.curNode,
+    createDynamicChild(statics[ctx.sPtr++])
+  );
 }
 
 function assignProps(node, ctx, bytecode, j, numStaticProps, statics, dynamics){
@@ -520,12 +436,10 @@ function assignProps(node, ctx, bytecode, j, numStaticProps, statics, dynamics){
 }
 
 function createNode(ctx, statics, dynamics, bytecode){
-  const node = ctx.lastNode = appendChild(
-    ctx.curNode,
-    document.createElement(
-      REF_TO_TAG[bytecode[ctx.i++]]
-    )
+  const node = ctx.lastNode = document.createElement(
+    REF_TO_TAG[bytecode[ctx.i++]]
   );
+  appendChild(ctx.curNode, node);
 
   const totalProps = bytecode[ctx.i++];
   if(totalProps > 0){
@@ -548,7 +462,6 @@ const COMMANDS = [
 
 function updateElProp(opArg, contextNode, statics, value, prevValue){
   if(value !== prevValue){
-    debugger; //eslint-disable-line
     contextNode[statics[opArg >> 16]] = value;
   }
 }
@@ -559,9 +472,6 @@ function updateElChild(opArg, contextNode, statics, value, prevValue){
       case String:
       case Number:
       case 0:
-        debugger; //eslint-disable-line
-        console.log(contextNode);
-        // node = createTextNode(value);
         contextNode.textContent = value;
         break;
 
@@ -570,7 +480,7 @@ function updateElChild(opArg, contextNode, statics, value, prevValue){
         throw "NOT IMPLEMENTED YET";
 
       default:
-        node = createTextNode('');
+        contextNode = createTextNode('');
     }
   }
 }
@@ -580,7 +490,7 @@ const RERENDER_COMMANDS = [
   updateElChild
 ];
 
-function xrender(instance){
+export function xrender(instance){
   const {t: {b:bytecode, s:statics}, d:dynamics} = instance;
   const rootNode = new RootNode();
   const length = bytecode.length;
@@ -605,7 +515,7 @@ function xrender(instance){
   return root;
 }
 
-function xrerender(node, {t: {u:bytecode, s:statics}, d:dynamics}){
+export function xrerender(node, {t: {u:bytecode, s:statics}, d:dynamics}){
   const {contextNodes, d:prevDynamics} = node.__xvdom;
   const length = bytecode.length;
   let i = 0;

@@ -90,23 +90,35 @@ describe('rerender(bytecode, dynamics)', ()=>{
       '<div>two</div>'
     );
 
+    itRenders('multiple dynamic child',
+      (text, text2)=>(<div>{text}{text2}</div>),
+      ['one', 'two'],
+      '<div>onetwo</div>',
+
+      ['one-1', 'two-1'],
+      '<div>one-1two-1</div>'
+    );
+
     itRenders('dynamic props and children',
-      (title, className, text)=>(
+      (title, className, text, text2)=>(
         <div title={title}>
           <span className={className}></span>
           {text}
+          {text2}
         </div>
       ),
-      ['one', 'two', 'three'],
+      ['one', 'two', 'three', 'four'],
       '<div title="one">'+
         '<span class="two"></span>'+
         'three'+
+        'four'+
       '</div>',
 
-      ['one-1', 'two-1', 'three-1'],
+      ['one-1', 'two-1', 'three-1', 'four-1'],
       '<div title="one-1">'+
         '<span class="two-1"></span>'+
         'three-1'+
+        'four-1'+
       '</div>'
     );
   });

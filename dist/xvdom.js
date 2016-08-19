@@ -64,6 +64,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	'use strict';
 
 	exports.__esModule = true;
+	exports.xrender = xrender;
+	exports.xrerender = xrerender;
 	/*
 
 	Instance properties:
@@ -79,6 +81,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	r - keyed map of unmounted instanced that can be recycled
 
 	*/
+
+	var REF_TO_TAG = exports.REF_TO_TAG = ['a', 'b', 'div', 'i', 'input', 'span', 'table', 'tbody', 'td', 'tr'];
 
 	// Creates an empty object with no built in properties (ie. `constructor`).
 	function Hash() {}
@@ -330,7 +334,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	};
 
-	var rerenderText = function rerenderText(isOnlyChild, value, contextNode) {
+	function rerenderText(isOnlyChild, value, contextNode) {
 	  switch (value && value.constructor) {
 	    case String:
 	    case Number:
@@ -364,14 +368,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return rerenderDynamic(isOnlyChild, value, node);
 	};
 
-	// TODO: Figure out whether we're using all these arguments
-	var rerenderComponent = function rerenderComponent(component, props, componentInstance, instance, componentInstanceProp) {
-	  var newCompInstance = component(props || EMPTY_PROPS);
-	  if (!internalRerenderInstance(newCompInstance, componentInstance)) {
-	    replaceNode(componentInstance.$n, (instance[componentInstanceProp] = internalRender(newCompInstance)).$n);
-	  }
-	};
-
 	var rerenderArrayMaybe = function rerenderArrayMaybe(isOnlyChild, array, oldArray, markerNode) {
 	  if (array instanceof Array) {
 	    if (isOnlyChild) {
@@ -390,16 +386,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	};
 
-	var rerenderStatefulComponent = function rerenderStatefulComponent(component, newProps, api) {
-	  var _onProps = api._onProps;
-	  var props = api.props;
-
-	  api.props = newProps;
-
-	  if (_onProps) componentSend(component, api, _onProps, props);else componentRerender(component, api);
-	};
-
-	var updateDynamic = function updateDynamic(isOnlyChild, oldValue, value, contextNode) {
+	function updateDynamic(isOnlyChild, oldValue, value, contextNode) {
 	  switch (oldValue && oldValue.constructor) {
 	    case Array:
 	      return rerenderArrayMaybe(isOnlyChild, value, oldValue, contextNode.xvdomContext) || contextNode;
@@ -410,81 +397,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    default:
 	      return rerenderText(isOnlyChild, value, contextNode);
 	  }
-	};
-
-	var createArray = function createArray(isOnlyChild, parentNode, value) {
-	  var node = document.createDocumentFragment();
-	  renderArrayToParent(node, value, value.length);
-	  node.xvdomContext = isOnlyChild ? parentNode : node.appendChild(createEmptyTextNode());
-	  return node;
-	};
-
-	var createDynamic = function createDynamic(isOnlyChild, parentNode, value) {
-	  switch (value && value.constructor) {
-	    case String:
-	    case Number:
-	    case 0:
-	      return createTextNode(value);
-
-	    case Object:
-	      return internalRenderNoRecycle(value);
-
-	    case Array:
-	      return createArray(isOnlyChild, parentNode, value);
-
-	    default:
-	      return createEmptyTextNode();
-	  }
-	};
-
-	var componentRerender = function componentRerender(component, api) {
-	  var instance = internalRerender(api._instance, component(api));
-	  api._instance = instance;
-	  instance.$n.xvdom = api._parentInst;
-	};
-
-	var componentSend = function componentSend(component, api, actionFn, context) {
-	  // TODO: process.ENV === 'development', console.error(`Action not found #{action}`);
-	  if (!actionFn) return;
-
-	  var newState = actionFn(api, context);
-	  if (newState !== api.state) {
-	    api.state = newState;
-	    componentRerender(component, api);
-	  }
-	};
-
-	var createStatefulComponent = function createStatefulComponent(component, props, instance, rerenderFuncProp, componentInstanceProp, actions) {
-	  var boundActions = new Hash();
-
-	  var api = {
-	    _onProps: actions.onProps,
-	    _parentInst: instance,
-
-	    props: props,
-	    bindSend: function bindSend(action) {
-	      return boundActions[action] || (boundActions[action] = function (context) {
-	        componentSend(component, api, actions[action], context);
-	      });
-	    }
-	  };
-
-	  //TODO: process.ENV === 'development', console.error(`Stateful components require atleast an 'onInit' function to provide the initial state (see)`);
-	  api.state = actions.onInit(api);
-
-	  instance[rerenderFuncProp] = rerenderStatefulComponent;
-	  instance[componentInstanceProp] = api;
-	  return internalRenderNoRecycle(api._instance = component(api));
-	};
-
-	var createNoStateComponent = exports.createNoStateComponent = function createNoStateComponent(component, props, instance, rerenderFuncProp, componentInstanceProp) {
-	  instance[rerenderFuncProp] = rerenderComponent;
-	  return internalRenderNoRecycle(instance[componentInstanceProp] = component(props));
-	};
-
-	var createComponent = exports.createComponent = function createComponent(component, actions, props, instance, rerenderFuncProp, componentInstanceProp) {
-	  var createFn = actions ? createStatefulComponent : createNoStateComponent;
-	  return createFn(component, props || EMPTY_PROPS, instance, rerenderFuncProp, componentInstanceProp, actions);
 	};
 
 	var internalRenderNoRecycle = function internalRenderNoRecycle(instance) {
@@ -527,14 +439,157 @@ return /******/ (function(modules) { // webpackBootstrap
 	  unmountInstance(node.xvdom, node.parentNode);
 	};
 
+	var appendChild = function appendChild(node, child) {
+	  node.appendChild(child);
+	};
+
+	function createDynamicChild(value) {
+	  switch (value && value.constructor) {
+	    case String:
+	    case Number:
+	    case 0:
+	      return createTextNode(value);
+	      break;
+
+	    case Object:
+	    case Array:
+	      throw "NOT IMPLEMENTED YET";
+
+	    default:
+	      return createTextNode('');
+	  }
+	}
+
+	function createDynamic(ctx, statics, dynamics) {
+	  var node = createDynamicChild(dynamics[ctx.dPtr++]);
+	  ctx.contextNodes.push(node);
+	  appendChild(ctx.curNode, node);
+	}
+
+	function createStatic(ctx, statics) {
+	  appendChild(ctx.curNode, createDynamicChild(statics[ctx.sPtr++]));
+	}
+
+	function assignProps(node, ctx, bytecode, j, numStaticProps, statics, dynamics) {
+	  var value = void 0,
+	      prop = void 0;
+	  while (j--) {
+	    prop = statics[ctx.sPtr++];
+	    value = j < numStaticProps ? statics[ctx.sPtr++] : dynamics[ctx.dPtr++];
+	    if (value != null) node[prop] = value;
+	  }
+	}
+
+	function createNode(ctx, statics, dynamics, bytecode) {
+	  var node = ctx.lastNode = document.createElement(REF_TO_TAG[bytecode[ctx.i++]]);
+	  appendChild(ctx.curNode, node);
+
+	  var totalProps = bytecode[ctx.i++];
+	  if (totalProps > 0) {
+	    assignProps(node, ctx, bytecode, totalProps, bytecode[ctx.i++], statics, dynamics);
+	  }
+	}
+
+	function RootNode() {
+	  this.root = null;
+	}
+	RootNode.prototype.appendChild = function (node) {
+	  return this.root = node;
+	};
+
+	var COMMANDS = [createNode, function () {}, // createComponentAllStaticProps,
+	createDynamic, createStatic, function (ctx) {
+	  ctx.curNode = ctx.lastNode;
+	}, function (ctx) {
+	  ctx.curNode = ctx.curNode.parentNode;
+	}, function (ctx) {
+	  ctx.contextNodes.push(ctx.lastNode);
+	}];
+
+	function updateElProp(opArg, contextNode, statics, value, prevValue) {
+	  if (value !== prevValue) {
+	    contextNode[statics[opArg >> 16]] = value;
+	  }
+	}
+
+	function updateElChild(opArg, contextNode, statics, value, prevValue) {
+	  if (value !== prevValue) {
+	    switch (value && value.constructor) {
+	      case String:
+	      case Number:
+	      case 0:
+	        contextNode.textContent = value;
+	        break;
+
+	      case Object:
+	      case Array:
+	        throw "NOT IMPLEMENTED YET";
+
+	      default:
+	        contextNode = createTextNode('');
+	    }
+	  }
+	}
+
+	var RERENDER_COMMANDS = [updateElProp, updateElChild];
+
+	function xrender(instance) {
+	  var _instance$t = instance.t;
+	  var bytecode = _instance$t.b;
+	  var statics = _instance$t.s;
+	  var dynamics = instance.d;
+
+	  var rootNode = new RootNode();
+	  var length = bytecode.length;
+
+	  // TOOD: Consider RISC approach, where all Render Commands take X params
+	  //    Pros: context no longer needs `i`
+	  //    Cons: wasteful (padding, params for commands that take fewer params)
+	  var ctx = {
+	    i: 0,
+	    sPtr: 0,
+	    dPtr: 0,
+	    curNode: rootNode,
+	    lastNode: null,
+	    contextNodes: instance.contextNodes = []
+	  };
+
+	  do {
+	    COMMANDS[bytecode[ctx.i++]](ctx, statics, dynamics, bytecode);
+	  } while (length > ctx.i);
+
+	  var root = rootNode.root;
+	  root.__xvdom = instance;
+	  return root;
+	}
+
+	function xrerender(node, _ref) {
+	  var _ref$t = _ref.t;
+	  var bytecode = _ref$t.u;
+	  var statics = _ref$t.s;
+	  var dynamics = _ref.d;
+	  var _node$__xvdom = node.__xvdom;
+	  var contextNodes = _node$__xvdom.contextNodes;
+	  var prevDynamics = _node$__xvdom.d;
+
+	  var length = bytecode.length;
+	  var i = 0;
+	  var dynamicOffset = 0;
+	  var opArg = void 0;
+	  while (length > i) {
+	    RERENDER_COMMANDS[bytecode[i++]](opArg = bytecode[i++], contextNodes[opArg & 0xFFFF], statics, dynamics[dynamicOffset], prevDynamics[dynamicOffset++]);
+	  }
+	}
+
 	exports.default = {
-	  createComponent: createComponent,
 	  createDynamic: createDynamic,
 	  el: function el(tag) {
 	    return document.createElement(tag);
 	  },
 	  render: render,
 	  rerender: rerender,
+	  xrender: xrender,
+	  xrerender: xrerender,
 	  unmount: unmount,
 	  updateDynamic: updateDynamic,
 	  Pool: Pool,
