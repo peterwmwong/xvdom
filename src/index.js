@@ -367,20 +367,20 @@ function createDynamicChild(value){
   }
 }
 
-function createDynamic(ctx, statics, dynamics){
+function createDynamic(ctx, contextNodes, statics, dynamics){
   const node = createDynamicChild(dynamics[ctx.dPtr++]);
-  ctx.contextNodes.push(node);
+  contextNodes.push(node);
   appendChild(ctx.curNode, node);
 }
 
-function createStatic(ctx, statics){
+function createStatic(ctx, contextNodes, statics){
   appendChild(
     ctx.curNode,
     createDynamicChild(statics[ctx.sPtr++])
   );
 }
 
-function assignProps(node, ctx, bytecode, j, numStaticProps, statics, dynamics){
+function assignProps(node, ctx, j, numStaticProps, statics, dynamics){
   let value, prop;
   while(j--){
     prop  = statics[ctx.sPtr++];
@@ -389,7 +389,7 @@ function assignProps(node, ctx, bytecode, j, numStaticProps, statics, dynamics){
   }
 }
 
-function createNode(ctx, statics, dynamics, bytecode){
+function createNode(ctx, contextNodes, statics, dynamics, bytecode){
   const node = ctx.lastNode = document.createElement(
     REF_TO_TAG[bytecode[ctx.i++]]
   );
@@ -397,7 +397,7 @@ function createNode(ctx, statics, dynamics, bytecode){
 
   const totalProps = bytecode[ctx.i++];
   if(totalProps > 0){
-    assignProps(node, ctx, bytecode, totalProps, bytecode[ctx.i++], statics, dynamics);
+    assignProps(node, ctx, totalProps, bytecode[ctx.i++], statics, dynamics);
   }
 }
 
@@ -415,7 +415,7 @@ const COMMANDS = [
   createStatic,
   ((ctx)=> { ctx.curNode = ctx.lastNode;           }),
   ((ctx)=> { ctx.curNode = ctx.curNode.parentNode; }),
-  ((ctx)=> { ctx.contextNodes.push(ctx.lastNode);  })
+  ((ctx, contextNodes)=> { contextNodes.push(ctx.lastNode);  })
 ];
 
 function updateElProp(staticOffsetToProp, contextNode, statics, value, prevValue){
@@ -452,6 +452,7 @@ export function xrender(instance){
   const {t: {b:bytecode, s:statics}, d:dynamics} = instance;
   const rootNode = new RootNode();
   const length = bytecode.length;
+  const contextNodes = instance.contextNodes = [];
 
   // TOOD: Consider RISC approach, where all Render Commands take X params
   //    Pros: context no longer needs `i`
@@ -461,11 +462,10 @@ export function xrender(instance){
     sPtr     : 0,
     dPtr     : 0,
     curNode  : rootNode,
-    lastNode : null,
-    contextNodes: instance.contextNodes = []
+    lastNode : null
   };
 
-  do { COMMANDS[bytecode[ctx.i++]](ctx, statics, dynamics, bytecode); }
+  do { COMMANDS[bytecode[ctx.i++]](ctx, contextNodes, statics, dynamics, bytecode); }
   while(length > ctx.i);
 
   return rootNode.finalizeRoot(instance);

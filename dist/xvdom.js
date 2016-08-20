@@ -421,17 +421,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	}
 
-	function createDynamic(ctx, statics, dynamics) {
+	function createDynamic(ctx, contextNodes, statics, dynamics) {
 	  var node = createDynamicChild(dynamics[ctx.dPtr++]);
-	  ctx.contextNodes.push(node);
+	  contextNodes.push(node);
 	  appendChild(ctx.curNode, node);
 	}
 
-	function createStatic(ctx, statics) {
+	function createStatic(ctx, contextNodes, statics) {
 	  appendChild(ctx.curNode, createDynamicChild(statics[ctx.sPtr++]));
 	}
 
-	function assignProps(node, ctx, bytecode, j, numStaticProps, statics, dynamics) {
+	function assignProps(node, ctx, j, numStaticProps, statics, dynamics) {
 	  var value = void 0,
 	      prop = void 0;
 	  while (j--) {
@@ -441,13 +441,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	}
 
-	function createNode(ctx, statics, dynamics, bytecode) {
+	function createNode(ctx, contextNodes, statics, dynamics, bytecode) {
 	  var node = ctx.lastNode = document.createElement(_babelPluginXvdom.REF_TO_TAG[bytecode[ctx.i++]]);
 	  appendChild(ctx.curNode, node);
 
 	  var totalProps = bytecode[ctx.i++];
 	  if (totalProps > 0) {
-	    assignProps(node, ctx, bytecode, totalProps, bytecode[ctx.i++], statics, dynamics);
+	    assignProps(node, ctx, totalProps, bytecode[ctx.i++], statics, dynamics);
 	  }
 	}
 
@@ -467,8 +467,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  ctx.curNode = ctx.lastNode;
 	}, function (ctx) {
 	  ctx.curNode = ctx.curNode.parentNode;
-	}, function (ctx) {
-	  ctx.contextNodes.push(ctx.lastNode);
+	}, function (ctx, contextNodes) {
+	  contextNodes.push(ctx.lastNode);
 	}];
 
 	function updateElProp(staticOffsetToProp, contextNode, statics, value, prevValue) {
@@ -506,6 +506,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	  var rootNode = new RootNode();
 	  var length = bytecode.length;
+	  var contextNodes = instance.contextNodes = [];
 
 	  // TOOD: Consider RISC approach, where all Render Commands take X params
 	  //    Pros: context no longer needs `i`
@@ -515,12 +516,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    sPtr: 0,
 	    dPtr: 0,
 	    curNode: rootNode,
-	    lastNode: null,
-	    contextNodes: instance.contextNodes = []
+	    lastNode: null
 	  };
 
 	  do {
-	    COMMANDS[bytecode[ctx.i++]](ctx, statics, dynamics, bytecode);
+	    COMMANDS[bytecode[ctx.i++]](ctx, contextNodes, statics, dynamics, bytecode);
 	  } while (length > ctx.i);
 
 	  return rootNode.finalizeRoot(instance);
