@@ -6,7 +6,7 @@ import xvdom         from '../src/index.js';
 //   <span className='Comp1' />
 // );
 
-describe('render(bytecode, dynamics)', ()=>{
+describe('render(instance)', ()=>{
   const renderHTML = (instance)=> getHTMLString(xvdom.xrender(instance));
 
   const itRenders = (desc, instance, expectedHTML)=>{

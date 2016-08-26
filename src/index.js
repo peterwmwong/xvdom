@@ -350,15 +350,19 @@ function updateDynamic(isOnlyChild, oldValue, value, contextNode){
 
 const appendChild = (node, child)=>{ node.appendChild(child); };
 
-function createDynamicChild(value){
+function createDynamicChild(value, contextNodes){
   switch(value && value.constructor){
     case String:
     case Number:
     case 0:
       return createTextNode(value);
-      break;
 
     case Object:
+      const node = xrender(value);
+      node.__xvdomDynId = contextNodes.length;
+      node.__xvdomDynContextNodes = contextNodes;
+      return node;
+
     case Array:
       throw 'NOT IMPLEMENTED YET';
 
@@ -368,7 +372,7 @@ function createDynamicChild(value){
 }
 
 function createDynamic(ctx, contextNodes, statics, dynamics){
-  const node = createDynamicChild(dynamics[ctx.dPtr++]);
+  const node = createDynamicChild(dynamics[ctx.dPtr++], contextNodes);
   contextNodes.push(node);
   appendChild(ctx.curNode, node);
 }
@@ -431,14 +435,18 @@ function updateElChild(zeroIfOnlyChild, contextNode, statics, value, prevValue){
       case Number:
       case 0:
         contextNode.textContent = value;
-        break;
+        return;
 
       case Object:
+        xrerender(contextNode, value);
+        return;
+
       case Array:
         throw 'NOT IMPLEMENTED YET';
 
       default:
-        contextNode = createEmptyTextNode();
+        contextNode.parentNode.replace(contextNode, createEmptyTextNode());
+        return;
     }
   }
 }
@@ -471,8 +479,26 @@ export function xrender(instance){
   return rootNode.finalizeRoot(instance);
 }
 
-export function xrerender(node, {t: {u:bytecode, s:statics}, d:dynamics}){
-  const {contextNodes, d:prevDynamics} = node.__xvdom;
+function renderAndReplace(prevNode, instance){
+  const node = xrender(instance);
+  const parentNode = prevNode.parentNode;
+  if(parentNode){
+    parentNode.replaceChild(node, prevNode);
+    const { __xvdomDynId, __xvdomDynContextNodes } = prevNode;
+    if(__xvdomDynContextNodes){
+      __xvdomDynContextNodes[__xvdomDynId] = node;
+    }
+  }
+  return node;
+}
+
+export function xrerender(node, instance){
+  const prevInstance = node.__xvdom;
+  if(prevInstance.t !== instance.t) return renderAndReplace(node, instance);
+
+  const {t: {u:bytecode, s:statics}, d:dynamics} = instance;
+  const {contextNodes, d:prevDynamics} = prevInstance;
+
   let i = 0;
   let dynamicOffset = 0;
   while(i < bytecode.length){
@@ -484,11 +510,11 @@ export function xrerender(node, {t: {u:bytecode, s:statics}, d:dynamics}){
       prevDynamics[dynamicOffset++]
     );
   }
+  return node;
 }
 
 export default {
   createDynamic,
-  el:(tag) => document.createElement(tag),
   xrender,
   xrerender,
   updateDynamic,

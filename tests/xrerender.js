@@ -2,15 +2,26 @@ import assert        from 'assert';
 import getHTMLString from './utils/getHTMLString.js';
 import xvdom         from '../src/index.js';
 
-describe('rerender(bytecode, dynamics)', ()=>{
+const pairs = (array)=>{
+  const result = [];
+  while(array.length) result.push(array.splice(0, 2));
+  return result;
+};
+
+describe('xrerender(node, instance)', ()=>{
   const itRenders = (
-    desc, instance, renderArgs, expectedRenderHTML, rerenderArgs,
-    expectedRerenderHTML
+    desc, instance, renderArgs, expectedRenderHTML,
+    ...rerenders
   )=>{
     describe(desc, () =>{
       let node;
 
-      beforeEach(()=>{ node = xvdom.xrender(instance(...renderArgs)); });
+      const rerender = ([rerenderArgs])=>
+        xvdom.xrerender(node, instance(...rerenderArgs));
+
+      beforeEach(()=>
+        node = xvdom.xrender(instance(...renderArgs))
+      );
 
       it('renders', ()=>{
         assert.strictEqual(
@@ -19,15 +30,48 @@ describe('rerender(bytecode, dynamics)', ()=>{
         );
       });
 
-      it('rerenders', ()=>{
-        xvdom.xrerender(node, instance(...rerenderArgs));
-        assert.strictEqual(
-          getHTMLString(node),
-          expectedRerenderHTML
-        );
+      pairs(rerenders).forEach(([rerenderArgs, expectedRerenderHTML], i, previous) => {
+        it(`rerenders ${i++ > 0 ? i : ''}`, ()=>{
+          previous.slice(0, i).forEach(rerender);
+          assert.strictEqual(
+            getHTMLString(node),
+            expectedRerenderHTML
+          );
+        });
       });
     });
   };
+
+  describe('when the instance is for a different template', ()=>{
+    let node;
+    beforeEach(()=>
+      node = xvdom.xrender(<div>initial</div>)
+    );
+
+    it('does nothing to `node`', ()=>{
+      xvdom.xrerender(node, <span>changed</span>);
+      assert.strictEqual(
+        getHTMLString(node),
+        '<div>initial</div>'
+      );
+    });
+
+    it('returns newly rendered node and replaces `node`', ()=>{
+      const parentNode = document.createElement('div');
+      parentNode.appendChild(node);
+
+      const newNode = xvdom.xrerender(node, <span>changed</span>);
+      assert.strictEqual(
+        getHTMLString(newNode),
+        '<span>changed</span>'
+      );
+
+      assert.strictEqual(
+        parentNode.firstChild,
+        newNode
+      );
+    });
+  });
 
   describe('elements', ()=>{
     itRenders('no dynamics',
@@ -121,5 +165,30 @@ describe('rerender(bytecode, dynamics)', ()=>{
         'four-1'+
       '</div>'
     );
+
+    describe('when the dynamic child...', () => {
+      itRenders('is an instance',
+        (child)=>(
+          <div>
+            {child}
+          </div>
+        ),
+
+        [<a>one</a>],
+        '<div>'+
+          '<a>one</a>'+
+        '</div>',
+
+        [<b>two</b>],
+        '<div>'+
+          '<b>two</b>'+
+        '</div>',
+
+        [<span>three</span>],
+        '<div>'+
+          '<span>three</span>'+
+        '</div>'
+      );
+    });
   });
 });
