@@ -1,6 +1,6 @@
-import assert        from 'assert';
-import getHTMLString from './utils/getHTMLString.js';
-import xvdom         from '../src/index.js';
+import assert                 from 'assert';
+import getHTMLString          from './utils/getHTMLString.js';
+import { xrender, xrerender } from '../src/index.js';
 
 const pairs = (array)=>{
   const result = [];
@@ -17,11 +17,11 @@ describe('xrerender(node, instance)', ()=>{
       let node;
 
       const rerender = ([rerenderArgs])=>
-        xvdom.xrerender(node, instance(...rerenderArgs));
+        xrerender(node, instance(...rerenderArgs));
 
-      beforeEach(()=>
-        node = xvdom.xrender(instance(...renderArgs))
-      );
+      beforeEach(()=>{
+        node = xrender(instance(...renderArgs));
+      });
 
       it('renders', ()=>{
         assert.strictEqual(
@@ -45,11 +45,11 @@ describe('xrerender(node, instance)', ()=>{
   describe('when the instance is for a different template', ()=>{
     let node;
     beforeEach(()=>
-      node = xvdom.xrender(<div>initial</div>)
+      node = xrender(<div>initial</div>)
     );
 
     it('does nothing to `node`', ()=>{
-      xvdom.xrerender(node, <span>changed</span>);
+      xrerender(node, <span>changed</span>);
       assert.strictEqual(
         getHTMLString(node),
         '<div>initial</div>'
@@ -60,7 +60,7 @@ describe('xrerender(node, instance)', ()=>{
       const parentNode = document.createElement('div');
       parentNode.appendChild(node);
 
-      const newNode = xvdom.xrerender(node, <span>changed</span>);
+      const newNode = xrerender(node, <span>changed</span>);
       assert.strictEqual(
         getHTMLString(newNode),
         '<span>changed</span>'
@@ -166,8 +166,8 @@ describe('xrerender(node, instance)', ()=>{
       '</div>'
     );
 
-    describe('when the dynamic child...', () => {
-      itRenders('is an instance',
+    describe('when the dynamic child is...', () => {
+      itRenders('an instance',
         (child)=>(
           <div>
             {child}
@@ -187,6 +187,40 @@ describe('xrerender(node, instance)', ()=>{
         [<span>three</span>],
         '<div>'+
           '<span>three</span>'+
+        '</div>'
+      );
+
+      itRenders('an array',
+        (child)=>(
+          <div>
+            {child}
+          </div>
+        ),
+
+        [
+          [
+            <a key={1}>one</a>,
+            <b key={2}>two</b>,
+            <span key={3}>three</span>
+          ]
+        ],
+        '<div>'+
+          '<a>one</a>'+
+          '<b>two</b>'+
+          '<span>three</span>'+
+        '</div>',
+
+        [
+          [
+            <span key={3}>three</span>,
+            <b key={2}>two</b>,
+            <a key={1}>one</a>
+          ]
+        ],
+        '<div>'+
+          '<span>three</span>'+
+          '<b>two</b>'+
+          '<a>one</a>'+
         '</div>'
       );
     });

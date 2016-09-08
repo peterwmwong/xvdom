@@ -1,13 +1,13 @@
 import assert        from 'assert';
 import getHTMLString from './utils/getHTMLString.js';
-import xvdom         from '../src/index.js';
+import { xrender }    from '../src/index.js';
 
 // const Comp1 = ()=>(
 //   <span className='Comp1' />
 // );
 
 describe('render(instance)', ()=>{
-  const renderHTML = (instance)=> getHTMLString(xvdom.xrender(instance));
+  const renderHTML = (instance)=> getHTMLString(xrender(instance));
 
   const itRenders = (desc, instance, expectedHTML)=>{
     it(desc, ()=>{
