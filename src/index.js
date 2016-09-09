@@ -89,6 +89,14 @@ export function xrerender(node, instance){
 
   const {t: {u:bytecode, s:statics}, d:dynamics} = instance;
   const {contextNodes, d:prevDynamics}           = prevInstance;
+  const {
+    t: {
+      u:bytecode,
+      s:statics
+    },
+    d:dynamics
+  } = instance;
+  const {contextNodes, d:prevDynamics} = prevInstance;
 
   let i             = 0;
   let dynamicOffset = 0;
@@ -109,6 +117,7 @@ export function xrerender(node, instance){
       );
     }
   }
+  prevInstance.d = dynamics;
   return node;
 }
 

@@ -131,7 +131,10 @@ describe('xrerender(node, instance)', ()=>{
       '<div>one</div>',
 
       ['two'],
-      '<div>two</div>'
+      '<div>two</div>',
+
+      ['one'],
+      '<div>one</div>'
     );
 
     itRenders('multiple dynamic child',
