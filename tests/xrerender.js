@@ -226,6 +226,46 @@ describe('xrerender(node, instance)', ()=>{
           '<a>one</a>'+
         '</div>'
       );
+
+      itRenders('an array',
+        (child)=>(
+          <div>
+            before
+            {child}
+            after
+          </div>
+        ),
+
+        [
+          [
+            <a key={1}>one</a>,
+            <b key={2}>two</b>,
+            <span key={3}>three</span>
+          ]
+        ],
+        '<div>'+
+          'before'+
+          '<a>one</a>'+
+          '<b>two</b>'+
+          '<span>three</span>'+
+          'after'+
+        '</div>',
+
+        [
+          [
+            <span key={3}>three</span>,
+            <b key={2}>two</b>,
+            <a key={1}>one</a>
+          ]
+        ],
+        '<div>'+
+          'before'+
+          '<span>three</span>'+
+          '<b>two</b>'+
+          '<a>one</a>'+
+          'after'+
+        '</div>'
+      );
     });
   });
 });

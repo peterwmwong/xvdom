@@ -1,7 +1,7 @@
 import REF_TO_TAG from 'babel-plugin-xvdom/lib/ref_to_tag';
 
 const appendChild           = (node, child) => node.appendChild(child);
-const insertBefore          = (parentNode, node, beforeNode) => node.insertBefore(node, beforeNode);
+const insertBefore          = (parentNode, node, beforeNode) => parentNode.insertBefore(node, beforeNode);
 const createTextNode        = v => document.createTextNode(v);
 
 const isDynamicTextable     = v => !v || typeof v !== 'object';
@@ -38,6 +38,28 @@ function updateElOnlyChildArray(parentNode, value, prevValue){
     }
     else{
       rerenderArray_reconcile(parentNode, value, length, prevValue, oldLength, null);
+    }
+  }
+}
+
+function removeChildrenBefore(beforeNode, num){
+  while(num--){
+    beforeNode.previousSibling.remove();
+  }
+}
+
+function updateElChildArray(markerNode, value, prevValue){
+  if(value instanceof Array){
+    const length    = value.length;
+    const oldLength = prevValue.length;
+    if(!length){
+      removeChildrenBefore(markerNode);
+    }
+    else if(!oldLength){
+      throw "UNIMPLEMENTED!!!";
+    }
+    else{
+      rerenderArray_reconcile(markerNode.parentNode, value, length, prevValue, oldLength, markerNode);
     }
   }
 }
@@ -409,12 +431,12 @@ export default { xrender, xrerender };
 //
 //   while(oldStartIndex <= oldEndIndex){
 //     item = oldArray[oldStartIndex++];
-//     oldListNodeKeyMap.set(item.key, item);
+//     oldListNodeKeyMap.set(item.k, item);
 //   }
 //
 //   while(startIndex <= endIndex){
 //     startItem = array[startIndex];
-//     key = startItem.key;
+//     key = startItem.k;
 //     item = oldListNodeKeyMap.get(key);
 //
 //     if(item){
@@ -457,6 +479,9 @@ export default { xrender, xrerender };
 //   }
 // };
 
+const withinBounds = (oldStartIndex, oldEndIndex, startIndex, endIndex)=>
+  oldStartIndex > oldEndIndex || startIndex > endIndex;
+
 function rerenderArray_reconcile(parentNode, array, endIndex, oldArray, oldEndIndex, markerNode){
   let oldStartIndex    = 0;
   let startIndex       = 0;
@@ -468,15 +493,15 @@ function rerenderArray_reconcile(parentNode, array, endIndex, oldArray, oldEndIn
   endIndex--;
   oldEndIndex--;
 
-  outer: while(successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex){
+  outer: while(successful && !withinBounds(oldStartIndex, oldEndIndex, startIndex, endIndex)){
     successful = false;
 
-    while (oldStartItem.key === startItem.key){
+    while (oldStartItem.k === startItem.k){
       rerenderInstance(oldStartItem, startItem);
       array[startIndex] = oldStartItem;
 
       oldStartIndex++; startIndex++;
-      if (oldStartIndex > oldEndIndex || startIndex > endIndex){
+      if (withinBounds(oldStartIndex, oldEndIndex, startIndex, endIndex)){
         break outer;
       }
       else{
@@ -489,13 +514,13 @@ function rerenderArray_reconcile(parentNode, array, endIndex, oldArray, oldEndIn
     oldEndItem = oldArray[oldEndIndex];
     endItem = array[endIndex];
 
-    while (oldEndItem.key === endItem.key){
+    while (oldEndItem.k === endItem.k){
       rerenderInstance(oldEndItem, endItem);
       array[endIndex] = oldEndItem;
       insertBeforeNode = oldEndItem.n;
 
       oldEndIndex--; endIndex--;
-      if (oldStartIndex > oldEndIndex || startIndex > endIndex){
+      if (withinBounds(oldStartIndex, oldEndIndex, startIndex, endIndex)){
         break outer;
       }
       else{
@@ -505,16 +530,16 @@ function rerenderArray_reconcile(parentNode, array, endIndex, oldArray, oldEndIn
       }
     }
 
-    while (oldStartItem.key === endItem.key){
+    while (oldStartItem.k === endItem.k){
       rerenderInstance(oldStartItem, endItem);
       array[endIndex] = oldStartItem;
       node = oldStartItem.n;
 
-      if(oldEndItem.key !== endItem.key){
+      if(oldEndItem.k !== endItem.k){
         insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
       }
       oldStartIndex++; endIndex--;
-      if (oldStartIndex > oldEndIndex || startIndex > endIndex){
+      if (withinBounds(oldStartIndex, oldEndIndex, startIndex, endIndex)){
         break outer;
       }
       else{
@@ -524,13 +549,13 @@ function rerenderArray_reconcile(parentNode, array, endIndex, oldArray, oldEndIn
       }
     }
 
-    while (oldEndItem.key === startItem.key){
+    while (oldEndItem.k === startItem.k){
       rerenderInstance(oldEndItem, startItem);
       array[startIndex] = oldEndItem;
       insertBefore(parentNode, oldEndItem.n, oldStartItem.n);
 
       oldEndIndex--; startIndex++;
-      if (oldStartIndex > oldEndIndex || startIndex > endIndex){
+      if (withinBounds(oldStartIndex, oldEndIndex, startIndex, endIndex)){
         break outer;
       }
       else{
