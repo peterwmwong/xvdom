@@ -65,21 +65,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	exports.__esModule = true;
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; }; /*
-	                                                                                                                                                                                                                                                  
-	                                                                                                                                                                                                                                                  Instance properties:
-	                                                                                                                                                                                                                                                  
-	                                                                                                                                                                                                                                                  $n = DOM node
-	                                                                                                                                                                                                                                                  $s - spec (see below)
-	                                                                                                                                                                                                                                                  $x - Pool linked list next pointer
-	                                                                                                                                                                                                                                                  
-	                                                                                                                                                                                                                                                  Spec properties:
-	                                                                                                                                                                                                                                                  
-	                                                                                                                                                                                                                                                  b - create bytecode
-	                                                                                                                                                                                                                                                  u - update bytecode
-	                                                                                                                                                                                                                                                  r - keyed map of unmounted instanced that can be recycled
-	                                                                                                                                                                                                                                                  
-	                                                                                                                                                                                                                                                  */
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 	exports.xrerender = xrerender;
 	exports.xrender = xrender;
@@ -93,11 +79,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	var appendChild = function appendChild(node, child) {
 	  return node.appendChild(child);
 	};
-	var createTextNode = function createTextNode(value) {
-	  return document.createTextNode(value);
+	var insertBefore = function insertBefore(parentNode, node, beforeNode) {
+	  return node.insertBefore(node, beforeNode);
 	};
-	var createEmptyTextNode = function createEmptyTextNode() {
-	  return createTextNode('');
+	var createTextNode = function createTextNode(v) {
+	  return document.createTextNode(v);
 	};
 
 	var isDynamicTextable = function isDynamicTextable(v) {
@@ -112,21 +98,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var getConstructor = function getConstructor(v) {
 	  return v && v.constructor;
 	};
-
-	function renderAndReplace(prevNode, instance) {
-	  var node = xrender(instance);
-	  var parentNode = prevNode.parentNode;
-	  if (parentNode) {
-	    parentNode.replaceChild(node, prevNode);
-	    var __xvdomDynId = prevNode.__xvdomDynId;
-	    var __xvdomDynContextNodes = prevNode.__xvdomDynContextNodes;
-
-	    if (__xvdomDynContextNodes) {
-	      __xvdomDynContextNodes[__xvdomDynId] = node;
-	    }
-	  }
-	  return node;
-	}
 
 	function replaceDynamicElChild(contextNode, value) {
 	  var node = createDynamicChild(value);
@@ -143,18 +114,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if (isDynamicTextable(value)) contextNode.textContent = dynamicToText(value);else replaceDynamicElChild(contextNode, value);
 	}
 
-	function updateElChildArray(contextNode, value) {
-	  throw "TODO: NOT IMPLEMENTED";
+	function updateElOnlyChildArray(parentNode, value, prevValue) {
+	  if (value instanceof Array) {
+	    var length = value.length;
+	    var oldLength = prevValue.length;
+	    if (!length) {
+	      parentNode.textContent = '';
+	    } else if (!oldLength) {
+	      createStaticChildArray(value, parentNode);
+	    } else {
+	      rerenderArray_reconcile(parentNode, value, length, prevValue, oldLength, null);
+	    }
+	  }
 	}
 
 	function updateElOnlyChild(_, contextNode, statics, value, prevValue) {
 	  var type = getConstructor(prevValue);
-	  if (type === Object) xrerender(contextNode, value);else if (type === Array) updateElChildArray(contextNode, value);else updateElOnlyChildText(contextNode, value);
+	  if (type === Object) xrerender(contextNode, value);else if (type === Array) updateElOnlyChildArray(contextNode, value, prevValue);else updateElOnlyChildText(contextNode, value);
 	}
 
 	function updateElChild(_, contextNode, statics, value, prevValue) {
 	  var type = prevValue && prevValue.constructor;
-	  if (type === Object) xrerender(contextNode, value);else if (type === Array) updateElChildArray(contextNode, value);else updateElChildText(contextNode, value);
+	  if (type === Object) xrerender(contextNode, value);else if (type === Array) updateElChildArray(contextNode, value, prevValue);else updateElChildText(contextNode, value);
 	}
 
 	function updateElProp(staticOffsetToProp, contextNode, statics, value, prevValue) {
@@ -163,15 +144,32 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var UPDATE_COMMANDS = [updateElProp, updateElChild, updateElOnlyChild];
 
-	function xrerender(node, instance) {
-	  var prevInstance = node.__xvdom;
-	  if (prevInstance.t !== instance.t) return renderAndReplace(node, instance);
+	function rerenderInstanceWithTemplateAndDynamics(prevInstance, template, dynamics) {
+	  var prevNode = prevInstance.n;
+	  prevInstance.t = template;
+	  prevInstance.d = dynamics;
 
-	  var _instance$t = instance.t;
-	  var bytecode = _instance$t.u;
-	  var statics = _instance$t.s;
-	  var dynamics = instance.d;
+	  var node = xrender(prevInstance);
+	  var parentNode = prevNode.parentNode;
+
+	  if (parentNode) {
+	    parentNode.replaceChild(node, prevNode);
+	    var __xvdomDynId = prevNode.__xvdomDynId;
+	    var __xvdomDynContextNodes = prevNode.__xvdomDynContextNodes;
+
+	    if (__xvdomDynContextNodes) {
+	      __xvdomDynContextNodes[__xvdomDynId] = node;
+	      node.__xvdomDynId = __xvdomDynId;
+	      node.__xvdomDynContextNodes = __xvdomDynContextNodes;
+	    }
+	  }
+	}
+
+	function rerenderInstanceWithDynamics(prevInstance, dynamics) {
 	  var contextNodes = prevInstance.contextNodes;
+	  var _prevInstance$t = prevInstance.t;
+	  var bytecode = _prevInstance$t.u;
+	  var statics = _prevInstance$t.s;
 	  var prevDynamics = prevInstance.d;
 
 
@@ -188,7 +186,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	      UPDATE_COMMANDS[bytecode[i++]](bytecode[i++], contextNodes[bytecode[i++]], statics, value, prevValue);
 	    }
 	  }
-	  return node;
+
+	  prevInstance.d = dynamics;
+	}
+
+	/*
+
+	TODO: Should rerenderInstance() make the new instance (or prev instance) the current
+	instance?
+
+	Prev Instance
+	  - update dynamics
+
+	New Instance
+	  - set contextNodes
+	  - update node.__xvdom
+
+	*/
+
+	function rerenderInstance(prevInstance, _ref /* instance */) {
+	  var t = _ref.t;
+	  var d = _ref.d;
+
+	  if (t === prevInstance.t) rerenderInstanceWithDynamics(prevInstance, d);else rerenderInstanceWithTemplateAndDynamics(prevInstance, t, d);
+	}
+
+	function xrerender(_ref2, instance) {
+	  var prevInstance = _ref2.__xvdom;
+
+	  // TODO: Do the use cases of xrerender really need a node to be returned?
+	  rerenderInstance(prevInstance, instance);
+	  return prevInstance.n;
 	}
 
 	function addContextNode(node, contextNodes) {
@@ -214,7 +242,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	function createStaticChildEmptyTextNode(parentNode) {
-	  return appendChild(parentNode, createEmptyTextNode());
+	  return appendChild(parentNode, createTextNode(''));
 	}
 
 	function createDynamicChildTextNode(value, parentNode, contextNodes) {
@@ -302,8 +330,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return this.root = node;
 	};
 	RootNode.prototype.finalizeRoot = function (instance) {
-	  this.root.__xvdom = instance;
-	  return this.root;
+	  var root = this.root;
+
+	  root.__xvdom = instance;
+	  return instance.n = root;
 	};
 
 	var CREATE_COMMANDS = [createNode, function () {}, // createComponentAllStaticProps,
@@ -316,9 +346,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	}];
 
 	function xrender(instance) {
-	  var _instance$t2 = instance.t;
-	  var bytecode = _instance$t2.b;
-	  var statics = _instance$t2.s;
+	  var _instance$t = instance.t;
+	  var bytecode = _instance$t.b;
+	  var statics = _instance$t.s;
 	  var dynamics = instance.d;
 
 	  var rootNode = new RootNode();
@@ -344,10 +374,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return rootNode.finalizeRoot(instance);
 	}
 
-	exports.default = {
-	  xrender: xrender,
-	  xrerender: xrerender
-	};
+	exports.default = { xrender: xrender, xrerender: xrerender };
 
 	// ======================
 	// Recycling support code
@@ -498,93 +525,94 @@ return /******/ (function(modules) { // webpackBootstrap
 	//     rerenderArray_reconcileWithMap(parentNode, array, oldArray, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex);
 	//   }
 	// };
-	//
-	// const rerenderArray_reconcile = (parentNode, array, endIndex, oldArray, oldEndIndex, markerNode)=>{
-	//   let oldStartIndex    = 0;
-	//   let startIndex       = 0;
-	//   let successful       = true;
-	//   let startItem        = array[0];
-	//   let oldStartItem     = oldArray[0];
-	//   let insertBeforeNode = markerNode;
-	//   let oldEndItem, endItem, node;
-	//   endIndex--;
-	//   oldEndIndex--;
-	//
-	//   outer: while(successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex){
-	//     successful = false;
-	//
-	//     while (oldStartItem.key === startItem.key){
-	//       array[startIndex] = internalRerender(oldStartItem, startItem);
-	//
-	//       oldStartIndex++; startIndex++;
-	//       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
-	//         break outer;
-	//       }
-	//       else{
-	//         oldStartItem = oldArray[oldStartIndex];
-	//         startItem = array[startIndex];
-	//         successful = true;
-	//       }
-	//     }
-	//
-	//     oldEndItem = oldArray[oldEndIndex];
-	//     endItem = array[endIndex];
-	//
-	//     while (oldEndItem.key === endItem.key){
-	//       insertBeforeNode = (array[endIndex] = internalRerender(oldEndItem, endItem)).$n;
-	//
-	//       oldEndIndex--; endIndex--;
-	//       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
-	//         break outer;
-	//       }
-	//       else{
-	//         oldEndItem = oldArray[oldEndIndex];
-	//         endItem = array[endIndex];
-	//         successful = true;
-	//       }
-	//     }
-	//
-	//     while (oldStartItem.key === endItem.key){
-	//       node = (array[endIndex] = internalRerender(oldStartItem, endItem)).$n;
-	//
-	//       if(oldEndItem.key !== endItem.key){
-	//         insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
-	//       }
-	//       oldStartIndex++; endIndex--;
-	//       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
-	//         break outer;
-	//       }
-	//       else{
-	//         oldStartItem = oldArray[oldStartIndex];
-	//         endItem = array[endIndex];
-	//         successful = true;
-	//       }
-	//     }
-	//
-	//     while (oldEndItem.key === startItem.key){
-	//       insertBefore(
-	//         parentNode,
-	//         (array[startIndex] = internalRerender(oldEndItem, startItem)).$n,
-	//         oldStartItem.$n
-	//       );
-	//
-	//       oldEndIndex--; startIndex++;
-	//       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
-	//         break outer;
-	//       }
-	//       else{
-	//         oldEndItem = oldArray[oldEndIndex];
-	//         startItem = array[startIndex];
-	//         successful = true;
-	//       }
-	//     }
-	//   }
-	//
-	//   if(startIndex <= endIndex || oldStartIndex <= oldEndIndex){
-	//     rerenderArray_afterReconcile(parentNode, array, oldArray, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode);
-	//   }
-	// };
-	//
+
+	function rerenderArray_reconcile(parentNode, array, endIndex, oldArray, oldEndIndex, markerNode) {
+	  var oldStartIndex = 0;
+	  var startIndex = 0;
+	  var successful = true;
+	  var startItem = array[0];
+	  var oldStartItem = oldArray[0];
+	  var insertBeforeNode = markerNode;
+	  var oldEndItem = void 0,
+	      endItem = void 0,
+	      node = void 0;
+	  endIndex--;
+	  oldEndIndex--;
+
+	  outer: while (successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex) {
+	    successful = false;
+
+	    while (oldStartItem.key === startItem.key) {
+	      rerenderInstance(oldStartItem, startItem);
+	      array[startIndex] = oldStartItem;
+
+	      oldStartIndex++;startIndex++;
+	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
+	        break outer;
+	      } else {
+	        oldStartItem = oldArray[oldStartIndex];
+	        startItem = array[startIndex];
+	        successful = true;
+	      }
+	    }
+
+	    oldEndItem = oldArray[oldEndIndex];
+	    endItem = array[endIndex];
+
+	    while (oldEndItem.key === endItem.key) {
+	      rerenderInstance(oldEndItem, endItem);
+	      array[endIndex] = oldEndItem;
+	      insertBeforeNode = oldEndItem.n;
+
+	      oldEndIndex--;endIndex--;
+	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
+	        break outer;
+	      } else {
+	        oldEndItem = oldArray[oldEndIndex];
+	        endItem = array[endIndex];
+	        successful = true;
+	      }
+	    }
+
+	    while (oldStartItem.key === endItem.key) {
+	      rerenderInstance(oldStartItem, endItem);
+	      array[endIndex] = oldStartItem;
+	      node = oldStartItem.n;
+
+	      if (oldEndItem.key !== endItem.key) {
+	        insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
+	      }
+	      oldStartIndex++;endIndex--;
+	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
+	        break outer;
+	      } else {
+	        oldStartItem = oldArray[oldStartIndex];
+	        endItem = array[endIndex];
+	        successful = true;
+	      }
+	    }
+
+	    while (oldEndItem.key === startItem.key) {
+	      rerenderInstance(oldEndItem, startItem);
+	      array[startIndex] = oldEndItem;
+	      insertBefore(parentNode, oldEndItem.n, oldStartItem.n);
+
+	      oldEndIndex--;startIndex++;
+	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
+	        break outer;
+	      } else {
+	        oldEndItem = oldArray[oldEndIndex];
+	        startItem = array[startIndex];
+	        successful = true;
+	      }
+	    }
+	  }
+
+	  if (startIndex <= endIndex || oldStartIndex <= oldEndIndex) {
+	    rerenderArray_afterReconcile(parentNode, array, oldArray, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode);
+	  }
+	}
+
 	// const rerenderArray = (markerNode, array, oldArray)=>{
 	//   const parentNode = markerNode.parentNode;
 	//   const length = array.length;
@@ -597,43 +625,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	//   }
 	//   else{
 	//     rerenderArray_reconcile(parentNode, array, length, oldArray, oldLength, markerNode);
-	//   }
-	// };
-	//
-	// const rerenderArrayOnlyChild = (parentNode, array, oldArray)=>{
-	//   const length = array.length;
-	//   const oldLength = oldArray.length;
-	//   if(!length){
-	//     removeArrayNodesOnlyChild(oldArray, parentNode);
-	//   }
-	//   else if(!oldLength){
-	//     renderArrayToParent(parentNode, array, length);
-	//   }
-	//   else{
-	//     rerenderArray_reconcile(parentNode, array, length, oldArray, oldLength, null);
-	//   }
-	// };
-	//
-	// const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode)=>{
-	//   if(array instanceof Array){
-	//     if(isOnlyChild){
-	//       rerenderArrayOnlyChild(markerNode, array, oldArray);
-	//     }
-	//     else{
-	//       rerenderArray(markerNode, array, oldArray);
-	//     }
-	//   }
-	//   else{
-	//     if(isOnlyChild){
-	//       removeArrayNodesOnlyChild(oldArray, markerNode);
-	//       return markerNode.appendChild(
-	//         createDynamic(true, markerNode, array)
-	//       );
-	//     }
-	//     else{
-	//       removeArrayNodes(oldArray, markerNode.parentNode);
-	//       return rerenderDynamic(false, array, markerNode);
-	//     }
 	//   }
 	// };
 

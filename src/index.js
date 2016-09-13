@@ -1,42 +1,13 @@
-/*
-
-Instance properties:
-
-$n = DOM node
-$s - spec (see below)
-$x - Pool linked list next pointer
-
-Spec properties:
-
-b - create bytecode
-u - update bytecode
-r - keyed map of unmounted instanced that can be recycled
-
-*/
-
 import REF_TO_TAG from 'babel-plugin-xvdom/lib/ref_to_tag';
 
-const appendChild = (node, child)=> node.appendChild(child);
-const createTextNode = (value)=>document.createTextNode(value);
-const createEmptyTextNode = ()=>createTextNode('');
+const appendChild           = (node, child) => node.appendChild(child);
+const insertBefore          = (parentNode, node, beforeNode) => node.insertBefore(node, beforeNode);
+const createTextNode        = v => document.createTextNode(v);
 
 const isDynamicTextable     = v => !v || typeof v !== 'object';
 const isDynamicNotBlankText = v => v || v === 0;
 const dynamicToText         = v => isDynamicNotBlankText(v) ? v : '';
 const getConstructor        = v => v && v.constructor;
-
-function renderAndReplace(prevNode, instance){
-  const node = xrender(instance);
-  const parentNode = prevNode.parentNode;
-  if(parentNode){
-    parentNode.replaceChild(node, prevNode);
-    const { __xvdomDynId, __xvdomDynContextNodes } = prevNode;
-    if(__xvdomDynContextNodes){
-      __xvdomDynContextNodes[__xvdomDynId] = node;
-    }
-  }
-  return node;
-}
 
 function replaceDynamicElChild(contextNode, value){
   const node = createDynamicChild(value);
@@ -55,21 +26,33 @@ function updateElOnlyChildText(contextNode, value){
   else                         replaceDynamicElChild(contextNode, value);
 }
 
-function updateElChildArray(contextNode, value){
-  throw "TODO: NOT IMPLEMENTED";
+function updateElOnlyChildArray(parentNode, value, prevValue){
+  if(value instanceof Array){
+    const length    = value.length;
+    const oldLength = prevValue.length;
+    if(!length){
+      parentNode.textContent = '';
+    }
+    else if(!oldLength){
+      createStaticChildArray(value, parentNode);
+    }
+    else{
+      rerenderArray_reconcile(parentNode, value, length, prevValue, oldLength, null);
+    }
+  }
 }
 
 function updateElOnlyChild(_, contextNode, statics, value, prevValue){
   const type = getConstructor(prevValue);
   if(type === Object)     xrerender(contextNode, value);
-  else if(type === Array) updateElChildArray(contextNode, value);
+  else if(type === Array) updateElOnlyChildArray(contextNode, value, prevValue);
   else                    updateElOnlyChildText(contextNode, value);
 }
 
 function updateElChild(_, contextNode, statics, value, prevValue){
   const type = prevValue && prevValue.constructor;
   if(type === Object)     xrerender(contextNode, value);
-  else if(type === Array) updateElChildArray(contextNode, value);
+  else if(type === Array) updateElChildArray(contextNode, value, prevValue);
   else                    updateElChildText(contextNode, value);
 }
 
@@ -83,20 +66,34 @@ const UPDATE_COMMANDS = [
   updateElOnlyChild
 ];
 
-export function xrerender(node, instance){
-  const prevInstance = node.__xvdom;
-  if(prevInstance.t !== instance.t) return renderAndReplace(node, instance);
+function rerenderInstanceWithTemplateAndDynamics(prevInstance, template, dynamics){
+  const prevNode = prevInstance.n;
+  prevInstance.t = template;
+  prevInstance.d = dynamics;
 
-  const {t: {u:bytecode, s:statics}, d:dynamics} = instance;
-  const {contextNodes, d:prevDynamics}           = prevInstance;
+  const node       = xrender(prevInstance);
+  const parentNode = prevNode.parentNode;
+
+  if(parentNode){
+    parentNode.replaceChild(node, prevNode);
+    const { __xvdomDynId, __xvdomDynContextNodes } = prevNode;
+    if(__xvdomDynContextNodes){
+      __xvdomDynContextNodes[__xvdomDynId] = node;
+      node.__xvdomDynId                    = __xvdomDynId;
+      node.__xvdomDynContextNodes          = __xvdomDynContextNodes;
+    }
+  }
+}
+
+function rerenderInstanceWithDynamics(prevInstance, dynamics){
   const {
+    contextNodes,
     t: {
       u:bytecode,
       s:statics
     },
-    d:dynamics
-  } = instance;
-  const {contextNodes, d:prevDynamics} = prevInstance;
+    d:prevDynamics
+  } = prevInstance;
 
   let i             = 0;
   let dynamicOffset = 0;
@@ -117,9 +114,36 @@ export function xrerender(node, instance){
       );
     }
   }
+
   prevInstance.d = dynamics;
-  return node;
 }
+
+/*
+
+TODO: Should rerenderInstance() make the new instance (or prev instance) the current
+instance?
+
+Prev Instance
+  - update dynamics
+
+New Instance
+  - set contextNodes
+  - update node.__xvdom
+
+*/
+
+
+function rerenderInstance(prevInstance, {t, d}/* instance */){
+  if(t === prevInstance.t) rerenderInstanceWithDynamics(prevInstance, d);
+  else rerenderInstanceWithTemplateAndDynamics(prevInstance, t, d);
+}
+
+export function xrerender({__xvdom: prevInstance}, instance){
+  // TODO: Do the use cases of xrerender really need a node to be returned?
+  rerenderInstance(prevInstance, instance);
+  return prevInstance.n;
+}
+
 
 function addContextNode(node, contextNodes){
   node.__xvdomDynId = contextNodes.length;
@@ -127,7 +151,6 @@ function addContextNode(node, contextNodes){
   contextNodes.push(node);
   return node;
 }
-
 
 function createStaticChildTextNode(value, parentNode){
   return appendChild(parentNode, createTextNode(dynamicToText(value)));
@@ -145,7 +168,7 @@ function createStaticChildArray(value, parentNode){
 };
 
 function createStaticChildEmptyTextNode(parentNode){
-  return appendChild(parentNode, createEmptyTextNode());
+  return appendChild(parentNode, createTextNode(''));
 }
 
 function createDynamicChildTextNode(value, parentNode, contextNodes){
@@ -240,8 +263,9 @@ function createNode(ctx, contextNodes, statics, dynamics, bytecode){
 function RootNode(){ this.root = null; }
 RootNode.prototype.appendChild = function(node){ return this.root = node; };
 RootNode.prototype.finalizeRoot = function(instance){
-  this.root.__xvdom = instance;
-  return this.root;
+  const { root } = this;
+  root.__xvdom = instance;
+  return instance.n = root;
 };
 
 const CREATE_COMMANDS = [
@@ -280,10 +304,7 @@ export function xrender(instance){
   return rootNode.finalizeRoot(instance);
 }
 
-export default {
-  xrender,
-  xrerender
-};
+export default { xrender, xrerender };
 
 // ======================
 // Recycling support code
@@ -435,93 +456,96 @@ export default {
 //     rerenderArray_reconcileWithMap(parentNode, array, oldArray, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex);
 //   }
 // };
-//
-// const rerenderArray_reconcile = (parentNode, array, endIndex, oldArray, oldEndIndex, markerNode)=>{
-//   let oldStartIndex    = 0;
-//   let startIndex       = 0;
-//   let successful       = true;
-//   let startItem        = array[0];
-//   let oldStartItem     = oldArray[0];
-//   let insertBeforeNode = markerNode;
-//   let oldEndItem, endItem, node;
-//   endIndex--;
-//   oldEndIndex--;
-//
-//   outer: while(successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex){
-//     successful = false;
-//
-//     while (oldStartItem.key === startItem.key){
-//       array[startIndex] = internalRerender(oldStartItem, startItem);
-//
-//       oldStartIndex++; startIndex++;
-//       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
-//         break outer;
-//       }
-//       else{
-//         oldStartItem = oldArray[oldStartIndex];
-//         startItem = array[startIndex];
-//         successful = true;
-//       }
-//     }
-//
-//     oldEndItem = oldArray[oldEndIndex];
-//     endItem = array[endIndex];
-//
-//     while (oldEndItem.key === endItem.key){
-//       insertBeforeNode = (array[endIndex] = internalRerender(oldEndItem, endItem)).$n;
-//
-//       oldEndIndex--; endIndex--;
-//       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
-//         break outer;
-//       }
-//       else{
-//         oldEndItem = oldArray[oldEndIndex];
-//         endItem = array[endIndex];
-//         successful = true;
-//       }
-//     }
-//
-//     while (oldStartItem.key === endItem.key){
-//       node = (array[endIndex] = internalRerender(oldStartItem, endItem)).$n;
-//
-//       if(oldEndItem.key !== endItem.key){
-//         insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
-//       }
-//       oldStartIndex++; endIndex--;
-//       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
-//         break outer;
-//       }
-//       else{
-//         oldStartItem = oldArray[oldStartIndex];
-//         endItem = array[endIndex];
-//         successful = true;
-//       }
-//     }
-//
-//     while (oldEndItem.key === startItem.key){
-//       insertBefore(
-//         parentNode,
-//         (array[startIndex] = internalRerender(oldEndItem, startItem)).$n,
-//         oldStartItem.$n
-//       );
-//
-//       oldEndIndex--; startIndex++;
-//       if (oldStartIndex > oldEndIndex || startIndex > endIndex){
-//         break outer;
-//       }
-//       else{
-//         oldEndItem = oldArray[oldEndIndex];
-//         startItem = array[startIndex];
-//         successful = true;
-//       }
-//     }
-//   }
-//
-//   if(startIndex <= endIndex || oldStartIndex <= oldEndIndex){
-//     rerenderArray_afterReconcile(parentNode, array, oldArray, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode);
-//   }
-// };
-//
+
+function rerenderArray_reconcile(parentNode, array, endIndex, oldArray, oldEndIndex, markerNode){
+  let oldStartIndex    = 0;
+  let startIndex       = 0;
+  let successful       = true;
+  let startItem        = array[0];
+  let oldStartItem     = oldArray[0];
+  let insertBeforeNode = markerNode;
+  let oldEndItem, endItem, node;
+  endIndex--;
+  oldEndIndex--;
+
+  outer: while(successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex){
+    successful = false;
+
+    while (oldStartItem.key === startItem.key){
+      rerenderInstance(oldStartItem, startItem);
+      array[startIndex] = oldStartItem;
+
+      oldStartIndex++; startIndex++;
+      if (oldStartIndex > oldEndIndex || startIndex > endIndex){
+        break outer;
+      }
+      else{
+        oldStartItem = oldArray[oldStartIndex];
+        startItem = array[startIndex];
+        successful = true;
+      }
+    }
+
+    oldEndItem = oldArray[oldEndIndex];
+    endItem = array[endIndex];
+
+    while (oldEndItem.key === endItem.key){
+      rerenderInstance(oldEndItem, endItem);
+      array[endIndex] = oldEndItem;
+      insertBeforeNode = oldEndItem.n;
+
+      oldEndIndex--; endIndex--;
+      if (oldStartIndex > oldEndIndex || startIndex > endIndex){
+        break outer;
+      }
+      else{
+        oldEndItem = oldArray[oldEndIndex];
+        endItem = array[endIndex];
+        successful = true;
+      }
+    }
+
+    while (oldStartItem.key === endItem.key){
+      rerenderInstance(oldStartItem, endItem);
+      array[endIndex] = oldStartItem;
+      node = oldStartItem.n;
+
+      if(oldEndItem.key !== endItem.key){
+        insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
+      }
+      oldStartIndex++; endIndex--;
+      if (oldStartIndex > oldEndIndex || startIndex > endIndex){
+        break outer;
+      }
+      else{
+        oldStartItem = oldArray[oldStartIndex];
+        endItem = array[endIndex];
+        successful = true;
+      }
+    }
+
+    while (oldEndItem.key === startItem.key){
+      rerenderInstance(oldEndItem, startItem);
+      array[startIndex] = oldEndItem;
+      insertBefore(parentNode, oldEndItem.n, oldStartItem.n);
+
+      oldEndIndex--; startIndex++;
+      if (oldStartIndex > oldEndIndex || startIndex > endIndex){
+        break outer;
+      }
+      else{
+        oldEndItem = oldArray[oldEndIndex];
+        startItem = array[startIndex];
+        successful = true;
+      }
+    }
+  }
+
+  if(startIndex <= endIndex || oldStartIndex <= oldEndIndex){
+    rerenderArray_afterReconcile(parentNode, array, oldArray, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode);
+  }
+}
+
 // const rerenderArray = (markerNode, array, oldArray)=>{
 //   const parentNode = markerNode.parentNode;
 //   const length = array.length;
@@ -534,42 +558,5 @@ export default {
 //   }
 //   else{
 //     rerenderArray_reconcile(parentNode, array, length, oldArray, oldLength, markerNode);
-//   }
-// };
-//
-// const rerenderArrayOnlyChild = (parentNode, array, oldArray)=>{
-//   const length = array.length;
-//   const oldLength = oldArray.length;
-//   if(!length){
-//     removeArrayNodesOnlyChild(oldArray, parentNode);
-//   }
-//   else if(!oldLength){
-//     renderArrayToParent(parentNode, array, length);
-//   }
-//   else{
-//     rerenderArray_reconcile(parentNode, array, length, oldArray, oldLength, null);
-//   }
-// };
-//
-// const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode)=>{
-//   if(array instanceof Array){
-//     if(isOnlyChild){
-//       rerenderArrayOnlyChild(markerNode, array, oldArray);
-//     }
-//     else{
-//       rerenderArray(markerNode, array, oldArray);
-//     }
-//   }
-//   else{
-//     if(isOnlyChild){
-//       removeArrayNodesOnlyChild(oldArray, markerNode);
-//       return markerNode.appendChild(
-//         createDynamic(true, markerNode, array)
-//       );
-//     }
-//     else{
-//       removeArrayNodes(oldArray, markerNode.parentNode);
-//       return rerenderDynamic(false, array, markerNode);
-//     }
 //   }
 // };

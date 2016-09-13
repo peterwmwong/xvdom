@@ -193,7 +193,7 @@ describe('xrerender(node, instance)', ()=>{
         '</div>'
       );
 
-      itRenders('an array',
+      itRenders('an array (only child)',
         (child)=>(
           <div>
             {child}
