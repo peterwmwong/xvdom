@@ -14,13 +14,15 @@ describe('xrerender(node, instance)', ()=>{
     ...rerenders
   )=>{
     describe(desc, () =>{
-      let node;
+      let node, parentNode;
 
       const rerender = ([rerenderArgs])=>
         xrerender(node, instance(...rerenderArgs));
 
       beforeEach(()=>{
+        parentNode = document.createElement('div');
         node = xrender(instance(...renderArgs));
+        parentNode.appendChild(node);
       });
 
       it('renders', ()=>{
@@ -34,7 +36,7 @@ describe('xrerender(node, instance)', ()=>{
         it(`rerenders ${i++ > 0 ? i : ''}`, ()=>{
           previous.slice(0, i).forEach(rerender);
           assert.strictEqual(
-            getHTMLString(node),
+            getHTMLString(parentNode.firstChild),
             expectedRerenderHTML
           );
         });

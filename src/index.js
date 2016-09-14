@@ -1,10 +1,11 @@
 import REF_TO_TAG from 'babel-plugin-xvdom/lib/ref_to_tag';
 
+const replaceChild          = (prev, cur) => prev.parentNode.replaceChild(cur, prev);
 const appendChild           = (node, child) => node.appendChild(child);
 const insertBefore          = (parentNode, node, beforeNode) => parentNode.insertBefore(node, beforeNode);
 const createTextNode        = v => document.createTextNode(v);
 
-const isDynamicTextable     = v => !v || typeof v !== 'object';
+const isDynamicTextable     = v => typeof v !== 'object';
 const isDynamicNotBlankText = v => v || v === 0;
 const dynamicToText         = v => isDynamicNotBlankText(v) ? v : '';
 const getConstructor        = v => v && v.constructor;
@@ -13,7 +14,7 @@ function replaceDynamicElChild(contextNode, value){
   const node = createDynamicChild(value);
   node.__xvdomDynId           = contextNode.__xvdomDynId;
   node.__xvdomDynContextNodes = contextNode.__xvdomDynContextNodes;
-  contextNode.parentNode.replaceChild(contextNode, node);
+  replaceChild(contextNode, node);
 }
 
 function updateElChildText(contextNode, value){
@@ -66,14 +67,14 @@ function updateElChildArray(markerNode, value, prevValue){
 
 function updateElOnlyChild(_, contextNode, statics, value, prevValue){
   const type = getConstructor(prevValue);
-  if(type === Object)     xrerender(contextNode, value);
+  if(type === Object)     rerenderInstance(prevValue, value);
   else if(type === Array) updateElOnlyChildArray(contextNode, value, prevValue);
   else                    updateElOnlyChildText(contextNode, value);
 }
 
 function updateElChild(_, contextNode, statics, value, prevValue){
   const type = prevValue && prevValue.constructor;
-  if(type === Object)     xrerender(contextNode, value);
+  if(type === Object)     rerenderInstance(prevValue, value);
   else if(type === Array) updateElChildArray(contextNode, value, prevValue);
   else                    updateElChildText(contextNode, value);
 }
@@ -88,26 +89,21 @@ const UPDATE_COMMANDS = [
   updateElOnlyChild
 ];
 
-function rerenderInstanceWithTemplateAndDynamics(prevInstance, template, dynamics){
-  const prevNode = prevInstance.n;
-  prevInstance.t = template;
-  prevInstance.d = dynamics;
 
-  const node       = xrender(prevInstance);
-  const parentNode = prevNode.parentNode;
+function rerenderInstanceWithTemplateAndDynamics(prevInstance, instance){
+  const prevNode   = prevInstance.n;
+  const node       = xrender(instance);
 
-  if(parentNode){
-    parentNode.replaceChild(node, prevNode);
-    const { __xvdomDynId, __xvdomDynContextNodes } = prevNode;
-    if(__xvdomDynContextNodes){
-      __xvdomDynContextNodes[__xvdomDynId] = node;
-      node.__xvdomDynId                    = __xvdomDynId;
-      node.__xvdomDynContextNodes          = __xvdomDynContextNodes;
-    }
+  replaceChild(prevNode, node);
+  const { __xvdomDynContextNodes } = prevNode;
+  if(__xvdomDynContextNodes){
+    __xvdomDynContextNodes[node.__xvdomDynId = prevNode.__xvdomDynId] = node;
+    node.__xvdomDynContextNodes = __xvdomDynContextNodes;
   }
 }
 
-function rerenderInstanceWithDynamics(prevInstance, dynamics){
+function rerenderInstanceWithDynamics(prevInstance, instance){
+  const dynamics = instance.d;
   const {
     contextNodes,
     t: {
@@ -137,33 +133,22 @@ function rerenderInstanceWithDynamics(prevInstance, dynamics){
     }
   }
 
-  prevInstance.d = dynamics;
+  instance.contextNodes = contextNodes;
+  (instance.n = prevInstance.n).__xvdom = instance;
 }
 
-/*
-
-TODO: Should rerenderInstance() make the new instance (or prev instance) the current
-instance?
-
-Prev Instance
-  - update dynamics
-
-New Instance
-  - set contextNodes
-  - update node.__xvdom
-
-*/
-
-
-function rerenderInstance(prevInstance, {t, d}/* instance */){
-  if(t === prevInstance.t) rerenderInstanceWithDynamics(prevInstance, d);
-  else rerenderInstanceWithTemplateAndDynamics(prevInstance, t, d);
+function rerenderInstance(prevInstance, instance){
+  if(instance.t === prevInstance.t) rerenderInstanceWithDynamics(prevInstance, instance);
+  else rerenderInstanceWithTemplateAndDynamics(prevInstance, instance);
 }
 
-export function xrerender({__xvdom: prevInstance}, instance){
-  // TODO: Do the use cases of xrerender really need a node to be returned?
+function rerenderInstanceAndReturnNode(prevInstance, instance){
   rerenderInstance(prevInstance, instance);
-  return prevInstance.n;
+  return instance.n;
+}
+
+export function xrerender(node, instance){
+  if (node.parentNode) return rerenderInstanceAndReturnNode(node.__xvdom, instance);
 }
 
 
@@ -498,7 +483,6 @@ function rerenderArray_reconcile(parentNode, array, endIndex, oldArray, oldEndIn
 
     while (oldStartItem.k === startItem.k){
       rerenderInstance(oldStartItem, startItem);
-      array[startIndex] = oldStartItem;
 
       oldStartIndex++; startIndex++;
       if (withinBounds(oldStartIndex, oldEndIndex, startIndex, endIndex)){
@@ -515,9 +499,7 @@ function rerenderArray_reconcile(parentNode, array, endIndex, oldArray, oldEndIn
     endItem = array[endIndex];
 
     while (oldEndItem.k === endItem.k){
-      rerenderInstance(oldEndItem, endItem);
-      array[endIndex] = oldEndItem;
-      insertBeforeNode = oldEndItem.n;
+      insertBeforeNode = rerenderInstanceAndReturnNode(oldEndItem, endItem);
 
       oldEndIndex--; endIndex--;
       if (withinBounds(oldStartIndex, oldEndIndex, startIndex, endIndex)){
@@ -531,9 +513,7 @@ function rerenderArray_reconcile(parentNode, array, endIndex, oldArray, oldEndIn
     }
 
     while (oldStartItem.k === endItem.k){
-      rerenderInstance(oldStartItem, endItem);
-      array[endIndex] = oldStartItem;
-      node = oldStartItem.n;
+      node = rerenderInstanceAndReturnNode(oldStartItem, endItem);
 
       if(oldEndItem.k !== endItem.k){
         insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
@@ -550,9 +530,7 @@ function rerenderArray_reconcile(parentNode, array, endIndex, oldArray, oldEndIn
     }
 
     while (oldEndItem.k === startItem.k){
-      rerenderInstance(oldEndItem, startItem);
-      array[startIndex] = oldEndItem;
-      insertBefore(parentNode, oldEndItem.n, oldStartItem.n);
+      insertBefore(parentNode, oldEndItem.n, rerenderInstanceAndReturnNode(oldEndItem, startItem));
 
       oldEndIndex--; startIndex++;
       if (withinBounds(oldStartIndex, oldEndIndex, startIndex, endIndex)){
@@ -567,7 +545,8 @@ function rerenderArray_reconcile(parentNode, array, endIndex, oldArray, oldEndIn
   }
 
   if(startIndex <= endIndex || oldStartIndex <= oldEndIndex){
-    rerenderArray_afterReconcile(parentNode, array, oldArray, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode);
+    // rerenderArray_afterReconcile(parentNode, array, oldArray, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode);
+    throw "NOT IMPLEMENTED!";
   }
 }
 

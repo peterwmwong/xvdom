@@ -76,18 +76,21 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+	var replaceChild = function replaceChild(prev, cur) {
+	  return prev.parentNode.replaceChild(cur, prev);
+	};
 	var appendChild = function appendChild(node, child) {
 	  return node.appendChild(child);
 	};
 	var insertBefore = function insertBefore(parentNode, node, beforeNode) {
-	  return node.insertBefore(node, beforeNode);
+	  return parentNode.insertBefore(node, beforeNode);
 	};
 	var createTextNode = function createTextNode(v) {
 	  return document.createTextNode(v);
 	};
 
 	var isDynamicTextable = function isDynamicTextable(v) {
-	  return !v || (typeof v === 'undefined' ? 'undefined' : _typeof(v)) !== 'object';
+	  return (typeof v === 'undefined' ? 'undefined' : _typeof(v)) !== 'object';
 	};
 	var isDynamicNotBlankText = function isDynamicNotBlankText(v) {
 	  return v || v === 0;
@@ -103,7 +106,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var node = createDynamicChild(value);
 	  node.__xvdomDynId = contextNode.__xvdomDynId;
 	  node.__xvdomDynContextNodes = contextNode.__xvdomDynContextNodes;
-	  contextNode.parentNode.replaceChild(contextNode, node);
+	  replaceChild(contextNode, node);
 	}
 
 	function updateElChildText(contextNode, value) {
@@ -128,14 +131,34 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	}
 
+	function removeChildrenBefore(beforeNode, num) {
+	  while (num--) {
+	    beforeNode.previousSibling.remove();
+	  }
+	}
+
+	function updateElChildArray(markerNode, value, prevValue) {
+	  if (value instanceof Array) {
+	    var length = value.length;
+	    var oldLength = prevValue.length;
+	    if (!length) {
+	      removeChildrenBefore(markerNode);
+	    } else if (!oldLength) {
+	      throw "UNIMPLEMENTED!!!";
+	    } else {
+	      rerenderArray_reconcile(markerNode.parentNode, value, length, prevValue, oldLength, markerNode);
+	    }
+	  }
+	}
+
 	function updateElOnlyChild(_, contextNode, statics, value, prevValue) {
 	  var type = getConstructor(prevValue);
-	  if (type === Object) xrerender(contextNode, value);else if (type === Array) updateElOnlyChildArray(contextNode, value, prevValue);else updateElOnlyChildText(contextNode, value);
+	  if (type === Object) rerenderInstance(prevValue, value);else if (type === Array) updateElOnlyChildArray(contextNode, value, prevValue);else updateElOnlyChildText(contextNode, value);
 	}
 
 	function updateElChild(_, contextNode, statics, value, prevValue) {
 	  var type = prevValue && prevValue.constructor;
-	  if (type === Object) xrerender(contextNode, value);else if (type === Array) updateElChildArray(contextNode, value, prevValue);else updateElChildText(contextNode, value);
+	  if (type === Object) rerenderInstance(prevValue, value);else if (type === Array) updateElChildArray(contextNode, value, prevValue);else updateElChildText(contextNode, value);
 	}
 
 	function updateElProp(staticOffsetToProp, contextNode, statics, value, prevValue) {
@@ -144,28 +167,21 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var UPDATE_COMMANDS = [updateElProp, updateElChild, updateElOnlyChild];
 
-	function rerenderInstanceWithTemplateAndDynamics(prevInstance, template, dynamics) {
+	function rerenderInstanceWithTemplateAndDynamics(prevInstance, instance) {
 	  var prevNode = prevInstance.n;
-	  prevInstance.t = template;
-	  prevInstance.d = dynamics;
+	  var node = xrender(instance);
 
-	  var node = xrender(prevInstance);
-	  var parentNode = prevNode.parentNode;
+	  replaceChild(prevNode, node);
+	  var __xvdomDynContextNodes = prevNode.__xvdomDynContextNodes;
 
-	  if (parentNode) {
-	    parentNode.replaceChild(node, prevNode);
-	    var __xvdomDynId = prevNode.__xvdomDynId;
-	    var __xvdomDynContextNodes = prevNode.__xvdomDynContextNodes;
-
-	    if (__xvdomDynContextNodes) {
-	      __xvdomDynContextNodes[__xvdomDynId] = node;
-	      node.__xvdomDynId = __xvdomDynId;
-	      node.__xvdomDynContextNodes = __xvdomDynContextNodes;
-	    }
+	  if (__xvdomDynContextNodes) {
+	    __xvdomDynContextNodes[node.__xvdomDynId = prevNode.__xvdomDynId] = node;
+	    node.__xvdomDynContextNodes = __xvdomDynContextNodes;
 	  }
 	}
 
-	function rerenderInstanceWithDynamics(prevInstance, dynamics) {
+	function rerenderInstanceWithDynamics(prevInstance, instance) {
+	  var dynamics = instance.d;
 	  var contextNodes = prevInstance.contextNodes;
 	  var _prevInstance$t = prevInstance.t;
 	  var bytecode = _prevInstance$t.u;
@@ -187,36 +203,21 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	  }
 
-	  prevInstance.d = dynamics;
+	  instance.contextNodes = contextNodes;
+	  (instance.n = prevInstance.n).__xvdom = instance;
 	}
 
-	/*
-
-	TODO: Should rerenderInstance() make the new instance (or prev instance) the current
-	instance?
-
-	Prev Instance
-	  - update dynamics
-
-	New Instance
-	  - set contextNodes
-	  - update node.__xvdom
-
-	*/
-
-	function rerenderInstance(prevInstance, _ref /* instance */) {
-	  var t = _ref.t;
-	  var d = _ref.d;
-
-	  if (t === prevInstance.t) rerenderInstanceWithDynamics(prevInstance, d);else rerenderInstanceWithTemplateAndDynamics(prevInstance, t, d);
+	function rerenderInstance(prevInstance, instance) {
+	  if (instance.t === prevInstance.t) rerenderInstanceWithDynamics(prevInstance, instance);else rerenderInstanceWithTemplateAndDynamics(prevInstance, instance);
 	}
 
-	function xrerender(_ref2, instance) {
-	  var prevInstance = _ref2.__xvdom;
-
-	  // TODO: Do the use cases of xrerender really need a node to be returned?
+	function rerenderInstanceAndReturnNode(prevInstance, instance) {
 	  rerenderInstance(prevInstance, instance);
-	  return prevInstance.n;
+	  return instance.n;
+	}
+
+	function xrerender(node, instance) {
+	  if (node.parentNode) return rerenderInstanceAndReturnNode(node.__xvdom, instance);
 	}
 
 	function addContextNode(node, contextNodes) {
@@ -478,12 +479,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	//
 	//   while(oldStartIndex <= oldEndIndex){
 	//     item = oldArray[oldStartIndex++];
-	//     oldListNodeKeyMap.set(item.key, item);
+	//     oldListNodeKeyMap.set(item.k, item);
 	//   }
 	//
 	//   while(startIndex <= endIndex){
 	//     startItem = array[startIndex];
-	//     key = startItem.key;
+	//     key = startItem.k;
 	//     item = oldListNodeKeyMap.get(key);
 	//
 	//     if(item){
@@ -526,6 +527,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	//   }
 	// };
 
+	var withinBounds = function withinBounds(oldStartIndex, oldEndIndex, startIndex, endIndex) {
+	  return oldStartIndex > oldEndIndex || startIndex > endIndex;
+	};
+
 	function rerenderArray_reconcile(parentNode, array, endIndex, oldArray, oldEndIndex, markerNode) {
 	  var oldStartIndex = 0;
 	  var startIndex = 0;
@@ -539,15 +544,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	  endIndex--;
 	  oldEndIndex--;
 
-	  outer: while (successful && oldStartIndex <= oldEndIndex && startIndex <= endIndex) {
+	  outer: while (successful && !withinBounds(oldStartIndex, oldEndIndex, startIndex, endIndex)) {
 	    successful = false;
 
-	    while (oldStartItem.key === startItem.key) {
+	    while (oldStartItem.k === startItem.k) {
 	      rerenderInstance(oldStartItem, startItem);
-	      array[startIndex] = oldStartItem;
 
 	      oldStartIndex++;startIndex++;
-	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
+	      if (withinBounds(oldStartIndex, oldEndIndex, startIndex, endIndex)) {
 	        break outer;
 	      } else {
 	        oldStartItem = oldArray[oldStartIndex];
@@ -559,13 +563,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	    oldEndItem = oldArray[oldEndIndex];
 	    endItem = array[endIndex];
 
-	    while (oldEndItem.key === endItem.key) {
-	      rerenderInstance(oldEndItem, endItem);
-	      array[endIndex] = oldEndItem;
-	      insertBeforeNode = oldEndItem.n;
+	    while (oldEndItem.k === endItem.k) {
+	      insertBeforeNode = rerenderInstanceAndReturnNode(oldEndItem, endItem);
 
 	      oldEndIndex--;endIndex--;
-	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
+	      if (withinBounds(oldStartIndex, oldEndIndex, startIndex, endIndex)) {
 	        break outer;
 	      } else {
 	        oldEndItem = oldArray[oldEndIndex];
@@ -574,16 +576,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 
-	    while (oldStartItem.key === endItem.key) {
-	      rerenderInstance(oldStartItem, endItem);
-	      array[endIndex] = oldStartItem;
-	      node = oldStartItem.n;
+	    while (oldStartItem.k === endItem.k) {
+	      node = rerenderInstanceAndReturnNode(oldStartItem, endItem);
 
-	      if (oldEndItem.key !== endItem.key) {
+	      if (oldEndItem.k !== endItem.k) {
 	        insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
 	      }
 	      oldStartIndex++;endIndex--;
-	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
+	      if (withinBounds(oldStartIndex, oldEndIndex, startIndex, endIndex)) {
 	        break outer;
 	      } else {
 	        oldStartItem = oldArray[oldStartIndex];
@@ -592,13 +592,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      }
 	    }
 
-	    while (oldEndItem.key === startItem.key) {
-	      rerenderInstance(oldEndItem, startItem);
-	      array[startIndex] = oldEndItem;
-	      insertBefore(parentNode, oldEndItem.n, oldStartItem.n);
+	    while (oldEndItem.k === startItem.k) {
+	      insertBefore(parentNode, oldEndItem.n, rerenderInstanceAndReturnNode(oldEndItem, startItem));
 
 	      oldEndIndex--;startIndex++;
-	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
+	      if (withinBounds(oldStartIndex, oldEndIndex, startIndex, endIndex)) {
 	        break outer;
 	      } else {
 	        oldEndItem = oldArray[oldEndIndex];
@@ -609,7 +607,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  if (startIndex <= endIndex || oldStartIndex <= oldEndIndex) {
-	    rerenderArray_afterReconcile(parentNode, array, oldArray, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode);
+	    // rerenderArray_afterReconcile(parentNode, array, oldArray, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode);
+	    throw "NOT IMPLEMENTED!";
 	  }
 	}
 
