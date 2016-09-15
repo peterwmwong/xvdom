@@ -5,7 +5,7 @@ import {DatabaseList} from './data.js';
 const MUTATION_RATE = 0.5;
 const dbs = new DatabaseList(50);
 
-const entryFormatElapsed = (v)=> v.toFixed(2)
+const entryFormatElapsed = (v)=> v.toFixed(2);
 
 const counterClasses = (count)=>
     count >= 20 ? 'label label-important'
@@ -54,25 +54,14 @@ const renderDatabase = (db, i)=> {
       {map(db.getTopFiveQueries(), renderQuery)}
     </tr>
   );
-}
-// const renderTable = (data)=>
-//   <table className="table table-striped latest-data">
-//     <tbody>
-//     {map(data, renderDatabase)}
-//     </tbody>
-//   </table>;
+};
 
 const renderTable = (data)=>
   <table className="table table-striped latest-data">
     <tbody>
-      <tr>
-        <td>
-          Hello world
-        </td>
-      </tr>
+    {map(data, renderDatabase)}
     </tbody>
   </table>;
-
 
 let dbmonApp;
 startFPSMonitor();
@@ -89,7 +78,7 @@ const render = ()=>{
   endProfile('view');
 
   requestAnimationFrame(render);
-}
+};
 
 window.app.appendChild(
   dbmonApp = xvdom.xrender(

@@ -474,7 +474,7 @@ function rerenderArray_reconcile(parentNode, array, endIndex, oldArray, oldEndIn
   let startItem        = array[0];
   let oldStartItem     = oldArray[0];
   let insertBeforeNode = markerNode;
-  let oldEndItem, endItem, node;
+  let oldEndItem, endItem;
   endIndex--;
   oldEndIndex--;
 
@@ -513,10 +513,10 @@ function rerenderArray_reconcile(parentNode, array, endIndex, oldArray, oldEndIn
     }
 
     while (oldStartItem.k === endItem.k){
-      node = rerenderInstanceAndReturnNode(oldStartItem, endItem);
+      rerenderInstance(oldStartItem, endItem);
 
       if(oldEndItem.k !== endItem.k){
-        insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
+        insertBeforeNode = insertBefore(parentNode, endItem.n, insertBeforeNode);
       }
       oldStartIndex++; endIndex--;
       if (withinBounds(oldStartIndex, oldEndIndex, startIndex, endIndex)){

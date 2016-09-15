@@ -64,19 +64,19 @@
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var _xvdomSpec3 = {
-	  b: [0, 6, 1, 1, 4, 0, 7, 0, 4, 0, 9, 0, 4, 0, 8, 0, 4, 3],
-	  s: ['className', 'table table-striped latest-data', 'Hello world'],
-	  u: []
+	  b: [0, 6, 1, 1, 6, 0, 7, 0, 6, 4],
+	  s: ['className', 'table table-striped latest-data'],
+	  u: [2, 0, 0]
 	};
 	var _xvdomSpec2 = {
-	  b: [0, 9, 0, 4, 0, 8, 1, 1, 4, 2, 5, 0, 8, 1, 1, 4, 0, 5, 1, 0, 6, 4, 2, 5, 5, 2],
+	  b: [0, 9, 0, 6, 0, 8, 1, 1, 6, 4, 7, 0, 8, 1, 1, 6, 0, 5, 1, 0, 8, 6, 4, 7, 7, 2],
 	  s: ['className', 'dbname', 'className', 'query-count', 'className'],
-	  u: [1, 0, 0, 262145, 1, 2, 1, 3]
+	  u: [2, 0, 0, 0, 4, 1, 2, 0, 2, 1, 0, 3]
 	};
 	var _xvdomSpec = {
-	  b: [0, 8, 1, 0, 6, 4, 2, 0, 2, 1, 1, 4, 0, 2, 1, 1, 4, 2, 5, 0, 2, 1, 1],
+	  b: [0, 8, 1, 0, 8, 6, 2, 0, 2, 1, 1, 6, 0, 2, 1, 1, 6, 4, 7, 0, 2, 1, 1],
 	  s: ['className', 'className', 'popover left', 'className', 'popover-content', 'className', 'arrow'],
-	  u: [0, 0, 1, 1, 1, 2]
+	  u: [0, 0, 0, 1, 0, 1, 2, 0, 2]
 	};
 
 
@@ -111,7 +111,8 @@
 	  var query = _ref.query;
 	  return {
 	    t: _xvdomSpec,
-	    d: [queryClasses(elapsed), elapsed && entryFormatElapsed(elapsed), query]
+	    d: [queryClasses(elapsed), elapsed && entryFormatElapsed(elapsed), query],
+	    k: j
 	  };
 	};
 
@@ -119,20 +120,15 @@
 	  var count = db.queries.length;
 	  return {
 	    t: _xvdomSpec2,
-	    d: [db.name, counterClasses(count), count, map(db.getTopFiveQueries(), renderQuery)]
+	    d: [db.name, counterClasses(count), count, map(db.getTopFiveQueries(), renderQuery)],
+	    k: i
 	  };
 	};
-	// const renderTable = (data)=>
-	//   <table className="table table-striped latest-data">
-	//     <tbody>
-	//     {map(data, renderDatabase)}
-	//     </tbody>
-	//   </table>;
 
 	var renderTable = function renderTable(data) {
 	  return {
 	    t: _xvdomSpec3,
-	    d: []
+	    d: [map(data, renderDatabase)]
 	  };
 	};
 
@@ -415,199 +411,180 @@
 
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
-	!function (e, n) {
-	  "object" == ( false ? "undefined" : _typeof(exports)) && "object" == ( false ? "undefined" : _typeof(module)) ? module.exports = n() :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (n), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : "object" == (typeof exports === "undefined" ? "undefined" : _typeof(exports)) ? exports.xvdom = n() : e.xvdom = n();
+	!function (n, t) {
+	  "object" == ( false ? "undefined" : _typeof(exports)) && "object" == ( false ? "undefined" : _typeof(module)) ? module.exports = t() :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (t), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : "object" == (typeof exports === "undefined" ? "undefined" : _typeof(exports)) ? exports.xvdom = t() : n.xvdom = t();
 	}(undefined, function () {
-	  return function (e) {
-	    function n(r) {
-	      if (t[r]) return t[r].exports;var o = t[r] = { exports: {}, id: r, loaded: !1 };return e[r].call(o.exports, o, o.exports, n), o.loaded = !0, o.exports;
-	    }var t = {};return n.m = e, n.c = t, n.p = "", n(0);
-	  }([function (e, n, t) {
-	    e.exports = t(1);
-	  }, function (e, n) {
+	  return function (n) {
+	    function t(e) {
+	      if (o[e]) return o[e].exports;var r = o[e] = { exports: {}, id: e, loaded: !1 };return n[e].call(r.exports, r, r.exports, t), r.loaded = !0, r.exports;
+	    }var o = {};return t.m = n, t.c = o, t.p = "", t(0);
+	  }([function (n, t, o) {
+	    n.exports = o(1);
+	  }, function (n, t, o) {
 	    "use strict";
-	    function t() {}function r() {
-	      this.map = new t();
-	    }function o(e, n, t) {
-	      switch (n && n.constructor) {case String:case Number:case 0:
-	          return t.nodeValue = n, t;case Object:case Array:
-	          return j(e, n, t);default:
-	          return t.nodeValue = "", t;}
-	    }function u(e, n, t, r) {
-	      switch (n && n.constructor) {case Array:
-	          return L(e, t, n, r.xvdomContext) || r;case Object:
-	          return M(e, t, n, r);default:
-	          return o(e, t, r);}
-	    }function c(e, n, t) {
-	      var r = void 0;switch (t && t.constructor) {case String:case Number:case 0:
-	          r = m(t);break;case Object:case Array:
-	          throw "NOT IMPLEMENTED YET";default:
-	          r = m("");}e.push(r), G(n, r);
-	    }function i(e, n, t) {
-	      c(e.contextNodes, e.curNode, t[e.dPtr++]);
-	    }function a(e, n) {
-	      c(e.contextNodes, e.curNode, n[e.sPtr++]);
-	    }function d(e, n, t, r, o, u, c) {
-	      for (var i = void 0, a = void 0; r--;) {
-	        a = u[n.sPtr++], i = o > r ? u[n.sPtr++] : c[n.dPtr++], null != i && (e[a] = i);
+	    function e(n) {
+	      return n && n.__esModule ? n : { "default": n };
+	    }function r(n, t) {
+	      var o = g(t);o.__xvdomDynId = n.__xvdomDynId, o.__xvdomDynContextNodes = n.__xvdomDynContextNodes, F(n, o);
+	    }function u(n, t) {
+	      K(t) ? n.nodeValue = W(t) : r(n, t);
+	    }function i(n, t) {
+	      K(t) ? n.textContent = W(t) : r(n, t);
+	    }function f(n, t, o) {
+	      if (t instanceof Array) {
+	        var e = t.length,
+	            r = o.length;e ? r ? B(n, t, e, o, r, null) : h(t, n) : n.textContent = "";
 	      }
-	    }function f(e, n, t, r) {
-	      var o = e.lastNode = G(e.curNode, document.createElement(h[r[e.i++]])),
-	          u = r[e.i++];u > 0 && d(o, e, r, u, r[e.i++], n, t);
-	    }function s() {
+	    }function c(n, t) {
+	      for (; t--;) {
+	        n.previousSibling.remove();
+	      }
+	    }function d(n, t, o) {
+	      if (t instanceof Array) {
+	        var e = t.length,
+	            r = o.length;if (e) {
+	          if (!r) throw "UNIMPLEMENTED!!!";B(n.parentNode, t, e, o, r, n);
+	        } else c(n);
+	      }
+	    }function a(n, t, o, e, r) {
+	      var u = X(r);u === Object ? p(r, e) : u === Array ? f(t, e, r) : i(t, e);
+	    }function s(n, t, o, e, r) {
+	      var i = r && r.constructor;i === Object ? p(r, e) : i === Array ? d(t, e, r) : u(t, e);
+	    }function l(n, t, o, e, r) {
+	      t[o[n]] = e;
+	    }function v(n, t) {
+	      var o = n.n,
+	          e = R(t);F(o, e);var r = o.__xvdomDynContextNodes;r && (r[e.__xvdomDynId = o.__xvdomDynId] = e, e.__xvdomDynContextNodes = r);
+	    }function x(n, t) {
+	      for (var o = t.d, e = n.contextNodes, r = n.t, u = r.u, i = r.s, f = n.d, c = 0, d = 0, a = void 0, s = void 0; c < u.length;) {
+	        a = o[d], s = f[d++], a === s ? c += 3 : Y[u[c++]](u[c++], e[u[c++]], i, a, s);
+	      }t.contextNodes = e, (t.n = n.n).__xvdom = t;
+	    }function p(n, t) {
+	      t.t === n.t ? x(n, t) : v(n, t);
+	    }function y(n, t) {
+	      return p(n, t), t.n;
+	    }function _(n, t) {
+	      return n.parentNode ? y(n.__xvdom, t) : void 0;
+	    }function N(n, t) {
+	      return n.__xvdomDynId = t.length, n.__xvdomDynContextNodes = t, t.push(n), n;
+	    }function m(n, t) {
+	      return G(t, J(W(n)));
+	    }function b(n, t) {
+	      return G(t, R(n));
+	    }function h(n, t) {
+	      for (var o = 0; o < n.length;) {
+	        t.appendChild(R(n[o++]));
+	      }
+	    }function k(n) {
+	      return G(n, J(""));
+	    }function C(n, t, o) {
+	      N(m(n, t), o);
+	    }function D(n, t, o) {
+	      N(b(n, t), o);
+	    }function P(n, t, o) {
+	      h(n, t), N(k(t), o);
+	    }function j(n, t, o) {
+	      h(n, t), N(t, o);
+	    }function g(n, t, o) {
+	      var e = X(n);e === Object && D(n, t, o), e === Array ? P(n, t, o) : C(W(n), t, o);
+	    }function A(n, t, o) {
+	      var e = X(n);e === Object ? D(n, t, o) : e === Array ? j(n, t, o) : (Q(n) && (t.textContent = n), N(t, o));
+	    }function E(n, t) {
+	      var o = X(n);o === Object ? b(n, t) : o === Array ? h(n, t) : Q(n) && m(n, t);
+	    }function I(n, t) {
+	      var o = X(n);o === Object ? b(n, t) : o === Array ? h(n, t) : Q(n) && (t.textContent = W(n));
+	    }function M(n, t, o, e) {
+	      g(e[n.dPtr++], n.curNode, t);
+	    }function O(n, t, o) {
+	      E(o[n.sPtr++], n.curNode);
+	    }function S(n, t, o, e) {
+	      A(e[n.dPtr++], n.curNode, t);
+	    }function w(n, t, o) {
+	      I(o[n.sPtr++], n.curNode);
+	    }function T(n, t, o, e, r, u) {
+	      for (var i = void 0, f = void 0; o--;) {
+	        f = r[t.sPtr++], i = e > o ? r[t.sPtr++] : u[t.dPtr++], null != i && (n[f] = i);
+	      }
+	    }function z(n, t, o, e, r) {
+	      var u = n.lastNode = document.createElement(q["default"][r[n.i++]]);G(n.curNode, u);var i = r[n.i++];i > 0 && T(u, n, i, r[n.i++], o, e);
+	    }function L() {
 	      this.root = null;
-	    }function p(e, n, t, r, o) {
-	      r !== o && (n[t[e >> 16]] = r);
-	    }function l(e, n, t, r, o) {
-	      if (r !== o) switch (r && r.constructor) {case String:case Number:case 0:
-	          console.log(n), n.textContent = r;break;case Object:case Array:
-	          throw "NOT IMPLEMENTED YET";default:
-	          node = m("");}
-	    }function v(e) {
-	      var n = e.t,
-	          t = n.b,
-	          r = n.s,
-	          o = e.d,
-	          u = new s(),
-	          c = t.length,
-	          i = { i: 0, sPtr: 0, dPtr: 0, curNode: u, lastNode: null, contextNodes: e.contextNodes = [] };do {
-	        R[t[i.i++]](i, r, o, t);
-	      } while (c > i.i);var a = u.root;return a.__xvdom = e, a;
-	    }function x(e, n) {
-	      for (var t = n.t, r = t.u, o = t.s, u = n.d, c = e.__xvdom, i = c.contextNodes, a = c.d, d = r.length, f = 0, s = 0, p = void 0; d > f;) {
-	        q[r[f++]](p = r[f++], i[65535 & p], o, u[s], a[s++]);
-	      }
-	    }n.__esModule = !0, n.xrender = v, n.xrerender = x;var h = n.REF_TO_TAG = ["a", "b", "div", "i", "input", "span", "table", "tbody", "td", "tr"];t.prototype = Object.create(null);var y = (new t(), n.DEADPOOL = { push: function push() {}, pop: function pop() {} });r.prototype.push = function (e) {
-	      var n = e.key,
-	          t = this.map;e.$x = t[n], t[n] = e;
-	    }, r.prototype.pop = function (e) {
-	      var n = this.map[e];if (n) return this.map[e] = n.$x, n;
-	    };var N = function N(e) {
-	      e.$s.r.push(e);
-	    },
-	        m = function m(e) {
-	      return document.createTextNode(e);
-	    },
-	        $ = function $(e, n) {
-	      var t = e.parentNode;t && t.replaceChild(n, e);
-	    },
-	        b = function b(e, n, t) {
-	      return t ? e.insertBefore(n, t) : e.appendChild(n);
-	    },
-	        k = function k(e, n) {
-	      N(e), n.removeChild(e.$n);
-	    },
-	        g = function g(e, n) {
-	      for (var t = e.length, r = 0; t > r;) {
-	        k(e[r++], n);
-	      }
-	    },
-	        E = function E(e, n) {
-	      for (var t = e.length, r = 0; t > r;) {
-	        N(e[r++]);
-	      }n.textContent = "";
-	    },
-	        O = function O(e, n) {
-	      return n.$s === e.$s && (e.$s.u(e, n), !0);
-	    },
-	        P = function P(e, n, t, r) {
-	      for (var o = 0; t > o;) {
-	        b(e, (n[o] = I(n[o])).$n, r), ++o;
-	      }
-	    },
-	        w = function w(e, n, t) {
-	      for (var r = 0; t > r;) {
-	        e.appendChild((n[r] = I(n[r])).$n), ++r;
-	      }
-	    },
-	        C = function C(e, n, t, r, o, u, c, i, a) {
-	      for (var d = new Map(), f = i.$n, s = void 0, p = void 0, l = void 0; a >= c;) {
-	        s = t[c++], d.set(s.key, s);
-	      }for (; o >= r;) {
-	        l = n[r], p = l.key, s = d.get(p), s ? (s === i && (f = f.nextSibling), d["delete"](p), l = Y(s, l)) : l = I(l), n[r] = l, b(e, l.$n, f), ++r;
-	      }d.forEach(function (n) {
-	        k(n, e);
-	      });
-	    },
-	        T = function T(e, n, t, r, o, u, c, i, a, d, f, s) {
-	      if (i > d) for (; u >= r;) {
-	        o = n[r], b(e, (n[r] = I(o)).$n, s), ++r;
-	      } else if (r > u) for (; d >= i;) {
-	        k(t[i++], e);
-	      } else C(e, n, t, r, u, a, i, f, d);
-	    },
-	        A = function A(e, n, t, r, o, u) {
-	      var c = 0,
-	          i = 0,
-	          a = !0,
-	          d = n[0],
-	          f = r[0],
+	    }function R(n) {
+	      var t = n.t,
+	          o = t.b,
+	          e = t.s,
+	          r = n.d,
+	          u = new L(),
+	          i = o.length,
+	          f = n.contextNodes = [],
+	          c = { i: 0, sPtr: 0, dPtr: 0, curNode: u, lastNode: null };do {
+	        Z[o[c.i++]](c, f, e, r, o);
+	      } while (i > c.i);return u.finalizeRoot(n);
+	    }function B(n, t, o, e, r, u) {
+	      var i = 0,
+	          f = 0,
+	          c = !0,
+	          d = t[0],
+	          a = e[0],
 	          s = u,
-	          p = void 0,
 	          l = void 0,
-	          v = void 0;t--, o--;e: for (; a && o >= c && t >= i;) {
-	        for (a = !1; f.key === d.key;) {
-	          if (n[i] = Y(f, d), c++, i++, c > o || i > t) break e;f = r[c], d = n[i], a = !0;
-	        }for (p = r[o], l = n[t]; p.key === l.key;) {
-	          if (s = (n[t] = Y(p, l)).$n, o--, t--, c > o || i > t) break e;p = r[o], l = n[t], a = !0;
-	        }for (; f.key === l.key;) {
-	          if (v = (n[t] = Y(f, l)).$n, p.key !== l.key && (s = b(e, v, s)), c++, t--, c > o || i > t) break e;f = r[c], l = n[t], a = !0;
-	        }for (; p.key === d.key;) {
-	          if (b(e, (n[i] = Y(p, d)).$n, f.$n), o--, i++, c > o || i > t) break e;p = r[o], d = n[i], a = !0;
+	          v = void 0;o--, r--;n: for (; c && !$(i, r, f, o);) {
+	        for (c = !1; a.k === d.k;) {
+	          if (p(a, d), i++, f++, $(i, r, f, o)) break n;a = e[i], d = t[f], c = !0;
+	        }for (l = e[r], v = t[o]; l.k === v.k;) {
+	          if (s = y(l, v), r--, o--, $(i, r, f, o)) break n;l = e[r], v = t[o], c = !0;
+	        }for (; a.k === v.k;) {
+	          if (p(a, v), l.k !== v.k && (s = H(n, v.n, s)), i++, o--, $(i, r, f, o)) break n;a = e[i], v = t[o], c = !0;
+	        }for (; l.k === d.k;) {
+	          if (H(n, l.n, y(l, d)), r--, f++, $(i, r, f, o)) break n;l = e[r], d = t[f], c = !0;
 	        }
-	      }(t >= i || o >= c) && T(e, n, r, i, d, t, l, c, f, o, p, s);
+	      }if (o >= f || r >= i) throw "NOT IMPLEMENTED!";
+	    }t.__esModule = !0;var U = "function" == typeof Symbol && "symbol" == _typeof(Symbol.iterator) ? function (n) {
+	      return typeof n === "undefined" ? "undefined" : _typeof(n);
+	    } : function (n) {
+	      return n && "function" == typeof Symbol && n.constructor === Symbol ? "symbol" : typeof n === "undefined" ? "undefined" : _typeof(n);
+	    };t.xrerender = _, t.xrender = R;var V = o(2),
+	        q = e(V),
+	        F = function F(n, t) {
+	      return n.parentNode.replaceChild(t, n);
 	    },
-	        D = function D(e, n, t) {
-	      var r = e.parentNode,
-	          o = n.length,
-	          u = t.length;o ? u ? A(r, n, o, t, u, e) : P(r, n, o, e) : g(t, r);
+	        G = function G(n, t) {
+	      return n.appendChild(t);
 	    },
-	        _ = function _(e, n, t) {
-	      var r = n.length,
-	          o = t.length;r ? o ? A(e, n, r, t, o, null) : w(e, n, r) : E(t, e);
+	        H = function H(n, t, o) {
+	      return n.insertBefore(t, o);
 	    },
-	        j = function j(e, n, t) {
-	      var r = i(e, t.parentNode, n);return $(t, r), r;
+	        J = function J(n) {
+	      return document.createTextNode(n);
 	    },
-	        M = function M(e, n, t, r) {
-	      var o = void 0;return n && O(n, o = t.$r || t) ? (n.$r = o, r) : j(e, n, r);
+	        K = function K(n) {
+	      return "object" !== ("undefined" == typeof n ? "undefined" : U(n));
 	    },
-	        L = function L(e, n, t, r) {
-	      return n instanceof Array ? void (e ? _(r, n, t) : D(r, n, t)) : e ? (E(t, r), r.appendChild(i(!0, r, n))) : (g(t, r.parentNode), j(!1, n, r));
+	        Q = function Q(n) {
+	      return n || 0 === n;
 	    },
-	        S = function S(e) {
-	      var n = e.$s.c(e);return e.$n = n, n.xvdom = e, n;
+	        W = function W(n) {
+	      return Q(n) ? n : "";
 	    },
-	        I = function I(e) {
-	      var n = e.$s,
-	          t = n.r.pop(e.key);return t ? (n.u(e, t), t) : (S(e), e);
+	        X = function X(n) {
+	      return n && n.constructor;
 	    },
-	        V = n.render = function (e) {
-	      return I(e).$n;
-	    },
-	        Y = function Y(e, n) {
-	      return O(n, e) ? e : (n = I(n), $(e.$n, n.$n), N(e), n);
-	    },
-	        B = n.rerender = function (e, n) {
-	      return Y(e.xvdom, n).$n;
-	    },
-	        F = n.unmount = function (e) {
-	      k(e.xvdom, e.parentNode);
-	    },
-	        G = function G(e, n) {
-	      return e.appendChild(n);
-	    };s.prototype.appendChild = function (e) {
-	      return this.root = e;
-	    };var R = [f, function () {}, i, a, function (e) {
-	      e.curNode = e.lastNode;
-	    }, function (e) {
-	      e.curNode = e.curNode.parentNode;
-	    }, function (e) {
-	      e.contextNodes.push(e.lastNode);
-	    }],
-	        q = [p, l];n["default"] = { createDynamic: i, el: function el(e) {
-	        return document.createElement(e);
-	      }, render: V, rerender: B, xrender: v, xrerender: x, unmount: F, updateDynamic: u, Pool: r, DEADPOOL: y };n._ = { rerenderText: o, rerenderInstance: M, rerenderDynamic: j, rerenderArray: L };
+	        Y = [l, s, a];L.prototype.appendChild = function (n) {
+	      return this.root = n;
+	    }, L.prototype.finalizeRoot = function (n) {
+	      var t = this.root;return t.__xvdom = n, n.n = t;
+	    };var Z = [z, function () {}, M, O, S, w, function (n) {
+	      n.curNode = n.lastNode;
+	    }, function (n) {
+	      n.curNode = n.curNode.parentNode;
+	    }, function (n, t) {
+	      t.push(n.lastNode);
+	    }];t["default"] = { xrender: R, xrerender: _ };var $ = function $(n, t, o, e) {
+	      return n > t || o > e;
+	    };
+	  }, function (n, t) {
+	    "use strict";
+	    t.__esModule = !0, t["default"] = ["a", "b", "div", "i", "input", "span", "table", "tbody", "td", "tr"];
 	  }]);
 	});
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)(module)))

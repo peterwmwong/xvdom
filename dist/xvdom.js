@@ -539,8 +539,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var oldStartItem = oldArray[0];
 	  var insertBeforeNode = markerNode;
 	  var oldEndItem = void 0,
-	      endItem = void 0,
-	      node = void 0;
+	      endItem = void 0;
 	  endIndex--;
 	  oldEndIndex--;
 
@@ -577,10 +576,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    while (oldStartItem.k === endItem.k) {
-	      node = rerenderInstanceAndReturnNode(oldStartItem, endItem);
+	      rerenderInstance(oldStartItem, endItem);
 
 	      if (oldEndItem.k !== endItem.k) {
-	        insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
+	        insertBeforeNode = insertBefore(parentNode, endItem.n, insertBeforeNode);
 	      }
 	      oldStartIndex++;endIndex--;
 	      if (withinBounds(oldStartIndex, oldEndIndex, startIndex, endIndex)) {
