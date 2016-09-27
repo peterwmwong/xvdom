@@ -5,7 +5,7 @@ import {DatabaseList} from './data.js';
 const MUTATION_RATE = 0.5;
 const dbs = new DatabaseList(50);
 
-const entryFormatElapsed = (v)=> v.toFixed(2)
+const entryFormatElapsed = (v)=> v.toFixed(2);
 
 const counterClasses = (count)=>
     count >= 20 ? 'label label-important'
@@ -26,11 +26,11 @@ const map = (array, fn)=> {
     ++i;
 	}
 	return newArray;
-}
+};
 
 const renderQuery = ({elapsed, query}, j)=>
   <td key={j} className={queryClasses(elapsed)}>
-    {elapsed && entryFormatElapsed(elapsed)}
+    {entryFormatElapsed(elapsed)}
     <div className="popover left">
       <div className="popover-content">
         {query}
@@ -54,7 +54,8 @@ const renderDatabase = (db, i)=> {
       {map(db.getTopFiveQueries(), renderQuery)}
     </tr>
   );
-}
+};
+
 const renderTable = (data)=>
   <table className="table table-striped latest-data">
     <tbody>
@@ -78,7 +79,7 @@ const render = ()=>{
   endProfile('view');
 
   requestAnimationFrame(render);
-}
+};
 
 window.app.appendChild(
   dbmonApp = xvdom.render(
