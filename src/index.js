@@ -40,9 +40,8 @@ Pool.prototype.pop = function(key){
   return head;
 };
 
-const recycle = instance=>{instance.$s.r.push(instance);};
-const createTextNode = (value)=>document.createTextNode(value);
-const createEmptyTextNode = ()=>createTextNode('');
+const recycle        = instance => { instance.$s.r.push(instance); };
+const createTextNode = value    => document.createTextNode(value);
 
 const replaceNode = (oldNode, newNode)=>{
   const parentNode = oldNode.parentNode;
@@ -368,14 +367,14 @@ const updateDynamic = (isOnlyChild, oldValue, value, contextNode)=>{
 const createArray = (isOnlyChild, parentNode, value)=>{
   const node = document.createDocumentFragment();
   renderArrayToParent(node, value, value.length);
-  node.xvdomContext = isOnlyChild ? parentNode : node.appendChild(createEmptyTextNode());
+  node.xvdomContext = isOnlyChild ? parentNode : node.appendChild(createTextNode(''));
   return node;
 };
 
-const createDynamic = (isOnlyChild, parentNode, value)=>{
+function createDynamic(isOnlyChild, parentNode, value){
   switch(value && value.constructor){
-    case String:
     case Number:
+    case String:
     case 0:
       return createTextNode(value);
 
@@ -386,9 +385,9 @@ const createDynamic = (isOnlyChild, parentNode, value)=>{
       return createArray(isOnlyChild, parentNode, value);
 
     default:
-      return createEmptyTextNode();
+      return createTextNode('');
   }
-};
+}
 
 const componentRerender = (component, api)=> {
   const instance = internalRerender(api._instance, component(api));

@@ -116,9 +116,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var createTextNode = function createTextNode(value) {
 	  return document.createTextNode(value);
 	};
-	var createEmptyTextNode = function createEmptyTextNode() {
-	  return createTextNode('');
-	};
 
 	var replaceNode = function replaceNode(oldNode, newNode) {
 	  var parentNode = oldNode.parentNode;
@@ -415,14 +412,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	var createArray = function createArray(isOnlyChild, parentNode, value) {
 	  var node = document.createDocumentFragment();
 	  renderArrayToParent(node, value, value.length);
-	  node.xvdomContext = isOnlyChild ? parentNode : node.appendChild(createEmptyTextNode());
+	  node.xvdomContext = isOnlyChild ? parentNode : node.appendChild(createTextNode(''));
 	  return node;
 	};
 
-	var createDynamic = function createDynamic(isOnlyChild, parentNode, value) {
+	function createDynamic(isOnlyChild, parentNode, value) {
 	  switch (value && value.constructor) {
-	    case String:
 	    case Number:
+	    case String:
 	    case 0:
 	      return createTextNode(value);
 
@@ -433,9 +430,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	      return createArray(isOnlyChild, parentNode, value);
 
 	    default:
-	      return createEmptyTextNode();
+	      return createTextNode('');
 	  }
-	};
+	}
 
 	var componentRerender = function componentRerender(component, api) {
 	  var instance = internalRerender(api._instance, component(api));
