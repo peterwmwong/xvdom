@@ -41,6 +41,7 @@
     "html-parse-stringify": "^1.0.2",
     "mocha-loader": "^0.7.1",
     "mocha": "^2.3.4",
+    "modify-babel-preset": "^1.0.0",
     "perf-monitor": "^0.1.0",
     "uglify-js": "^2.6.2",
     "webpack-dev-server": "^1.14.1",

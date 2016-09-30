@@ -1,3 +1,8 @@
+# Optimize Build
+
+- Rollup
+  - ressurect build-rollup
+
 # Port enhancements from bytecode-wip
 
 - Only child specialization
