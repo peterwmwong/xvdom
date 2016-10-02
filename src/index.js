@@ -14,6 +14,15 @@ r - keyed map of unmounted instanced that can be recycled
 
 */
 
+// https://esbench.com/bench/57f1459d330ab09900a1a1dd
+function dynamicType(value){
+  if(value instanceof Object){
+    return value instanceof Array ? 'array' : 'object';
+  }
+
+  return (value == null || value === true || value === false) ? 'empty' : 'text';
+}
+
 // Creates an empty object with no built in properties (ie. `constructor`).
 function Hash(){}
 Hash.prototype = Object.create(null);
@@ -40,8 +49,9 @@ Pool.prototype.pop = function(key){
   return head;
 };
 
-const recycle        = instance => { instance.$s.r.push(instance); };
-const createTextNode = value    => document.createTextNode(value);
+const recycle             = instance => { instance.$s.r.push(instance); };
+const createTextNode      = value => document.createTextNode(value);
+const createEmptyTextNode = () => createTextNode('');
 
 const replaceNode = (oldNode, newNode)=>{
   const parentNode = oldNode.parentNode;
@@ -275,22 +285,13 @@ const rerenderArrayOnlyChild = (parentNode, array, oldArray)=>{
   }
 };
 
-const rerenderText = (isOnlyChild, value, contextNode)=>{
-  switch(value && value.constructor){
-    case String:
-    case Number:
-    case 0:
-      contextNode.nodeValue = value;
-      return contextNode;
-
-    case Object:
-    case Array:
-      return rerenderDynamic(isOnlyChild, value, contextNode);
-
-    default:
-      contextNode.nodeValue = '';
-      return contextNode;
+const rerenderText = (value, contextNode, isOnlyChild)=>{
+  if(value instanceof Object){
+    return rerenderDynamic(isOnlyChild, value, contextNode);
   }
+
+  contextNode.nodeValue = (value == null || value === true || value === false) ? '' : value;
+  return contextNode;
 };
 
 const rerenderDynamic = (isOnlyChild, value, contextNode)=>{
@@ -299,7 +300,7 @@ const rerenderDynamic = (isOnlyChild, value, contextNode)=>{
   return node;
 };
 
-const rerenderInstance = (isOnlyChild, value, prevValue, node)=>{
+const rerenderInstance = (value, node, isOnlyChild, prevValue)=>{
   let prevRenderedInstance;
   if(value && internalRerenderInstance(value, prevRenderedInstance = prevValue.$r || prevValue)){
     value.$r = prevRenderedInstance;
@@ -320,7 +321,9 @@ const rerenderComponent = (component, props, componentInstance, instance, compon
   }
 };
 
-const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode)=>{
+const rerenderArrayMaybe = (array, contextNode, isOnlyChild, oldArray)=>{
+  const markerNode = contextNode.xvdomContext;
+
   if(array instanceof Array){
     if(isOnlyChild){
       rerenderArrayOnlyChild(markerNode, array, oldArray);
@@ -328,6 +331,7 @@ const rerenderArrayMaybe = (isOnlyChild, array, oldArray, markerNode)=>{
     else{
       rerenderArray(markerNode, array, oldArray);
     }
+    return contextNode;
   }
   else{
     if(isOnlyChild){
@@ -351,43 +355,12 @@ const rerenderStatefulComponent = (component, newProps, api)=>{
   else componentRerender(component, api);
 };
 
-const updateDynamic = (isOnlyChild, oldValue, value, contextNode)=>{
-  switch(oldValue && oldValue.constructor){
-    case Array:
-      return rerenderArrayMaybe(isOnlyChild, value, oldValue, contextNode.xvdomContext) || contextNode;
-
-    case Object:
-      return rerenderInstance(isOnlyChild, value, oldValue, contextNode);
-
-    default:
-      return rerenderText(isOnlyChild, value, contextNode);
-  }
-};
-
-const createArray = (isOnlyChild, parentNode, value)=>{
+const createArray = (value, parentNode, isOnlyChild)=>{
   const node = document.createDocumentFragment();
   renderArrayToParent(node, value, value.length);
   node.xvdomContext = isOnlyChild ? parentNode : node.appendChild(createTextNode(''));
   return node;
 };
-
-function createDynamic(isOnlyChild, parentNode, value){
-  switch(value && value.constructor){
-    case Number:
-    case String:
-    case 0:
-      return createTextNode(value);
-
-    case Object:
-      return internalRenderNoRecycle(value);
-
-    case Array:
-      return createArray(isOnlyChild, parentNode, value);
-
-    default:
-      return createTextNode('');
-  }
-}
 
 const componentRerender = (component, api)=> {
   const instance = internalRerender(api._instance, component(api));
@@ -464,6 +437,28 @@ const internalRender = instance=>{
     internalRenderNoRecycle(instance);
     return instance;
   }
+};
+
+const CREATE_BY_TYPE = {
+  text:   createTextNode,
+  object: internalRenderNoRecycle,
+  array:  createArray,
+  empty:  createEmptyTextNode
+};
+
+function createDynamic(isOnlyChild, parentNode, value){
+  return CREATE_BY_TYPE[dynamicType(value)](value, parentNode, isOnlyChild);
+}
+
+const UPDATE_BY_TYPE = {
+  text:   rerenderText,
+  object: rerenderInstance,
+  array:  rerenderArrayMaybe,
+  empty:  rerenderText
+};
+
+const updateDynamic = (isOnlyChild, oldValue, value, contextNode)=>{
+  return UPDATE_BY_TYPE[dynamicType(oldValue)](value, contextNode, isOnlyChild, oldValue);
 };
 
 export const render = instance=>internalRender(instance).$n;

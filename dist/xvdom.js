@@ -80,6 +80,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	*/
 
+	// https://esbench.com/bench/57f1459d330ab09900a1a1dd
+	function dynamicType(value) {
+	  if (value instanceof Object) {
+	    return value instanceof Array ? 'array' : 'object';
+	  }
+
+	  return value == null || value === true || value === false ? 'empty' : 'text';
+	}
+
 	// Creates an empty object with no built in properties (ie. `constructor`).
 	function Hash() {}
 	Hash.prototype = Object.create(null);
@@ -115,6 +124,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	var createTextNode = function createTextNode(value) {
 	  return document.createTextNode(value);
+	};
+	var createEmptyTextNode = function createEmptyTextNode() {
+	  return createTextNode('');
 	};
 
 	var replaceNode = function replaceNode(oldNode, newNode) {
@@ -327,22 +339,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	};
 
-	var rerenderText = function rerenderText(isOnlyChild, value, contextNode) {
-	  switch (value && value.constructor) {
-	    case String:
-	    case Number:
-	    case 0:
-	      contextNode.nodeValue = value;
-	      return contextNode;
-
-	    case Object:
-	    case Array:
-	      return rerenderDynamic(isOnlyChild, value, contextNode);
-
-	    default:
-	      contextNode.nodeValue = '';
-	      return contextNode;
+	var rerenderText = function rerenderText(value, contextNode, isOnlyChild) {
+	  if (value instanceof Object) {
+	    return rerenderDynamic(isOnlyChild, value, contextNode);
 	  }
+
+	  contextNode.nodeValue = value == null || value === true || value === false ? '' : value;
+	  return contextNode;
 	};
 
 	var rerenderDynamic = function rerenderDynamic(isOnlyChild, value, contextNode) {
@@ -351,7 +354,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return node;
 	};
 
-	var rerenderInstance = function rerenderInstance(isOnlyChild, value, prevValue, node) {
+	var rerenderInstance = function rerenderInstance(value, node, isOnlyChild, prevValue) {
 	  var prevRenderedInstance = void 0;
 	  if (value && internalRerenderInstance(value, prevRenderedInstance = prevValue.$r || prevValue)) {
 	    value.$r = prevRenderedInstance;
@@ -369,13 +372,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	};
 
-	var rerenderArrayMaybe = function rerenderArrayMaybe(isOnlyChild, array, oldArray, markerNode) {
+	var rerenderArrayMaybe = function rerenderArrayMaybe(array, contextNode, isOnlyChild, oldArray) {
+	  var markerNode = contextNode.xvdomContext;
+
 	  if (array instanceof Array) {
 	    if (isOnlyChild) {
 	      rerenderArrayOnlyChild(markerNode, array, oldArray);
 	    } else {
 	      rerenderArray(markerNode, array, oldArray);
 	    }
+	    return contextNode;
 	  } else {
 	    if (isOnlyChild) {
 	      removeArrayNodesOnlyChild(oldArray, markerNode);
@@ -396,43 +402,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  if (_onProps) componentSend(component, api, _onProps, props);else componentRerender(component, api);
 	};
 
-	var updateDynamic = function updateDynamic(isOnlyChild, oldValue, value, contextNode) {
-	  switch (oldValue && oldValue.constructor) {
-	    case Array:
-	      return rerenderArrayMaybe(isOnlyChild, value, oldValue, contextNode.xvdomContext) || contextNode;
-
-	    case Object:
-	      return rerenderInstance(isOnlyChild, value, oldValue, contextNode);
-
-	    default:
-	      return rerenderText(isOnlyChild, value, contextNode);
-	  }
-	};
-
-	var createArray = function createArray(isOnlyChild, parentNode, value) {
+	var createArray = function createArray(value, parentNode, isOnlyChild) {
 	  var node = document.createDocumentFragment();
 	  renderArrayToParent(node, value, value.length);
 	  node.xvdomContext = isOnlyChild ? parentNode : node.appendChild(createTextNode(''));
 	  return node;
 	};
-
-	function createDynamic(isOnlyChild, parentNode, value) {
-	  switch (value && value.constructor) {
-	    case Number:
-	    case String:
-	    case 0:
-	      return createTextNode(value);
-
-	    case Object:
-	      return internalRenderNoRecycle(value);
-
-	    case Array:
-	      return createArray(isOnlyChild, parentNode, value);
-
-	    default:
-	      return createTextNode('');
-	  }
-	}
 
 	var componentRerender = function componentRerender(component, api) {
 	  var instance = internalRerender(api._instance, component(api));
@@ -501,6 +476,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	    internalRenderNoRecycle(instance);
 	    return instance;
 	  }
+	};
+
+	var CREATE_BY_TYPE = {
+	  text: createTextNode,
+	  object: internalRenderNoRecycle,
+	  array: createArray,
+	  empty: createEmptyTextNode
+	};
+
+	function createDynamic(isOnlyChild, parentNode, value) {
+	  return CREATE_BY_TYPE[dynamicType(value)](value, parentNode, isOnlyChild);
+	}
+
+	var UPDATE_BY_TYPE = {
+	  text: rerenderText,
+	  object: rerenderInstance,
+	  array: rerenderArrayMaybe,
+	  empty: rerenderText
+	};
+
+	var updateDynamic = function updateDynamic(isOnlyChild, oldValue, value, contextNode) {
+	  return UPDATE_BY_TYPE[dynamicType(oldValue)](value, contextNode, isOnlyChild, oldValue);
 	};
 
 	var render = exports.render = function render(instance) {

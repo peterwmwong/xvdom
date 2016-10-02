@@ -1,5 +1,5 @@
 import assert from 'assert';
-import xvdom, {_}  from '../src/index.js';
+import {_}  from '../src/index.js';
 
 describe('_.rerenderText - value, contextNode', ()=>{
   const initialValue = 'initial text';
@@ -11,7 +11,7 @@ describe('_.rerenderText - value, contextNode', ()=>{
 
   describe('When `newValue` is a string', ()=>{
     beforeEach(()=>{
-      returnValue = _.rerenderText(true, 'new text', textNode);
+      returnValue = _.rerenderText('new text', textNode);
     });
 
     it('updates text node value', ()=>{
@@ -25,7 +25,7 @@ describe('_.rerenderText - value, contextNode', ()=>{
 
   describe('When `newValue` is a number', ()=>{
     beforeEach(()=>{
-      returnValue = _.rerenderText(true, 0, textNode);
+      returnValue = _.rerenderText(0, textNode);
     });
 
     it('updates text node value', ()=>{
@@ -40,7 +40,7 @@ describe('_.rerenderText - value, contextNode', ()=>{
   [null, undefined].forEach(value=>{
     describe(`When newValue is ${value}`, ()=>{
       it('updates text node value to ""', ()=>{
-        const result = _.rerenderText(true, value, textNode);
+        const result = _.rerenderText(value, textNode);
         assert.strictEqual(textNode.nodeValue, '');
         assert.strictEqual(result, textNode);
       });
