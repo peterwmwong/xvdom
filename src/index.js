@@ -66,10 +66,7 @@ const unmountInstance = (inst, parentNode)=>{
   parentNode.removeChild(inst.$n);
 };
 
-const removeArrayNodes = (array, parentNode)=>{
-  let length = array.length;
-  let i = 0;
-
+const removeArrayNodes = (array, parentNode, i, length)=>{
   while(i<length){
     unmountInstance(array[i++], parentNode);
   }
@@ -91,9 +88,7 @@ const internalRerenderInstance = (inst, prevInst)=>
     true
   );
 
-const renderArrayToParentBefore = (parentNode, array, length, markerNode)=>{
-  let i = 0;
-
+const renderArrayToParentBefore = (parentNode, array, i, length, markerNode)=>{
   while(i < length){
     insertBefore(
       parentNode,
@@ -150,20 +145,10 @@ const rerenderArray_reconcileWithMap = (parentNode, array, oldArray, startIndex,
 
 const rerenderArray_afterReconcile = (parentNode, array, oldArray, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode)=>{
   if(oldStartIndex > oldEndIndex){
-    while(startIndex <= endIndex){
-      startItem = array[startIndex];
-      insertBefore(
-        parentNode,
-        (array[startIndex] = internalRender(startItem)).$n,
-        insertBeforeNode
-      );
-      ++startIndex;
-    }
+    renderArrayToParentBefore(parentNode, array, startIndex, endIndex+1, insertBeforeNode);
   }
   else if(startIndex > endIndex){
-    while(oldStartIndex <= oldEndIndex){
-      unmountInstance(oldArray[oldStartIndex++], parentNode);
-    }
+    removeArrayNodes(oldArray, parentNode, oldStartIndex, oldEndIndex+1);
   }
   else{
     rerenderArray_reconcileWithMap(parentNode, array, oldArray, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex);
@@ -188,14 +173,11 @@ const rerenderArray_reconcile = (parentNode, array, endIndex, oldArray, oldEndIn
       array[startIndex] = internalRerender(oldStartItem, startItem);
 
       oldStartIndex++; startIndex++;
-      if (oldStartIndex > oldEndIndex || startIndex > endIndex){
-        break outer;
-      }
-      else{
-        oldStartItem = oldArray[oldStartIndex];
-        startItem = array[startIndex];
-        successful = true;
-      }
+      if (oldStartIndex > oldEndIndex || startIndex > endIndex) break outer;
+
+      oldStartItem = oldArray[oldStartIndex];
+      startItem = array[startIndex];
+      successful = true;
     }
 
     oldEndItem = oldArray[oldEndIndex];
@@ -205,31 +187,36 @@ const rerenderArray_reconcile = (parentNode, array, endIndex, oldArray, oldEndIn
       insertBeforeNode = (array[endIndex] = internalRerender(oldEndItem, endItem)).$n;
 
       oldEndIndex--; endIndex--;
-      if (oldStartIndex > oldEndIndex || startIndex > endIndex){
-        break outer;
-      }
-      else{
-        oldEndItem = oldArray[oldEndIndex];
-        endItem = array[endIndex];
-        successful = true;
-      }
+      if (oldStartIndex > oldEndIndex || startIndex > endIndex) break outer;
+
+      oldEndItem = oldArray[oldEndIndex];
+      endItem = array[endIndex];
+      successful = true;
     }
 
     while (oldStartItem.key === endItem.key){
-      node = (array[endIndex] = internalRerender(oldStartItem, endItem)).$n;
-
-      if(oldEndItem.key !== endItem.key){
-        insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
-      }
-      oldStartIndex++; endIndex--;
-      if (oldStartIndex > oldEndIndex || startIndex > endIndex){
-        break outer;
+      // Items have swapped location
+      if(oldEndItem.key === startItem.key){
+        // Prefer rerendering rather than moving swapped items as ayout costs tend
+        // to be more costly.  See js-framework-benchmark's "swap rows" benchmark.
+        array[endIndex] = internalRerender(oldEndItem, endItem);
+        array[startIndex] = internalRerender(oldStartItem, startItem);
+        oldEndItem = oldArray[--oldEndIndex];
+        startItem = array[++startIndex];
       }
       else{
-        oldStartItem = oldArray[oldStartIndex];
-        endItem = array[endIndex];
-        successful = true;
+        node = (array[endIndex] = internalRerender(oldStartItem, endItem)).$n;
+        if(oldEndItem.key !== endItem.key){
+          insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
+        }
       }
+
+      oldStartIndex++; endIndex--;
+      if (oldStartIndex > oldEndIndex || startIndex > endIndex) break outer;
+
+      oldStartItem = oldArray[oldStartIndex];
+      endItem = array[endIndex];
+      successful = true;
     }
 
     while (oldEndItem.key === startItem.key){
@@ -240,14 +227,11 @@ const rerenderArray_reconcile = (parentNode, array, endIndex, oldArray, oldEndIn
       );
 
       oldEndIndex--; startIndex++;
-      if (oldStartIndex > oldEndIndex || startIndex > endIndex){
-        break outer;
-      }
-      else{
-        oldEndItem = oldArray[oldEndIndex];
-        startItem = array[startIndex];
-        successful = true;
-      }
+      if (oldStartIndex > oldEndIndex || startIndex > endIndex) break outer;
+
+      oldEndItem = oldArray[oldEndIndex];
+      startItem = array[startIndex];
+      successful = true;
     }
   }
 
@@ -261,10 +245,10 @@ const rerenderArray = (markerNode, array, oldArray)=>{
   const length = array.length;
   const oldLength = oldArray.length;
   if(!length){
-    removeArrayNodes(oldArray, parentNode);
+    removeArrayNodes(oldArray, parentNode, 0, oldLength);
   }
   else if(!oldLength){
-    renderArrayToParentBefore(parentNode, array, length, markerNode);
+    renderArrayToParentBefore(parentNode, array, 0, length, markerNode);
   }
   else{
     rerenderArray_reconcile(parentNode, array, length, oldArray, oldLength, markerNode);
@@ -341,7 +325,7 @@ const rerenderArrayMaybe = (array, contextNode, isOnlyChild, oldArray)=>{
       );
     }
     else{
-      removeArrayNodes(oldArray, markerNode.parentNode);
+      removeArrayNodes(oldArray, markerNode.parentNode, 0, oldArray.length);
       return rerenderDynamic(false, array, markerNode);
     }
   }

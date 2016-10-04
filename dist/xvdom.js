@@ -143,10 +143,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  parentNode.removeChild(inst.$n);
 	};
 
-	var removeArrayNodes = function removeArrayNodes(array, parentNode) {
-	  var length = array.length;
-	  var i = 0;
-
+	var removeArrayNodes = function removeArrayNodes(array, parentNode, i, length) {
 	  while (i < length) {
 	    unmountInstance(array[i++], parentNode);
 	  }
@@ -166,9 +163,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return prevInst.$s === inst.$s && (inst.$s.u(inst, prevInst), true);
 	};
 
-	var renderArrayToParentBefore = function renderArrayToParentBefore(parentNode, array, length, markerNode) {
-	  var i = 0;
-
+	var renderArrayToParentBefore = function renderArrayToParentBefore(parentNode, array, i, length, markerNode) {
 	  while (i < length) {
 	    insertBefore(parentNode, (array[i] = internalRender(array[i])).$n, markerNode);
 	    ++i;
@@ -220,15 +215,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var rerenderArray_afterReconcile = function rerenderArray_afterReconcile(parentNode, array, oldArray, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode) {
 	  if (oldStartIndex > oldEndIndex) {
-	    while (startIndex <= endIndex) {
-	      startItem = array[startIndex];
-	      insertBefore(parentNode, (array[startIndex] = internalRender(startItem)).$n, insertBeforeNode);
-	      ++startIndex;
-	    }
+	    renderArrayToParentBefore(parentNode, array, startIndex, endIndex + 1, insertBeforeNode);
 	  } else if (startIndex > endIndex) {
-	    while (oldStartIndex <= oldEndIndex) {
-	      unmountInstance(oldArray[oldStartIndex++], parentNode);
-	    }
+	    removeArrayNodes(oldArray, parentNode, oldStartIndex, oldEndIndex + 1);
 	  } else {
 	    rerenderArray_reconcileWithMap(parentNode, array, oldArray, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex);
 	  }
@@ -254,13 +243,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	      array[startIndex] = internalRerender(oldStartItem, startItem);
 
 	      oldStartIndex++;startIndex++;
-	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
-	        break outer;
-	      } else {
-	        oldStartItem = oldArray[oldStartIndex];
-	        startItem = array[startIndex];
-	        successful = true;
-	      }
+	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) break outer;
+
+	      oldStartItem = oldArray[oldStartIndex];
+	      startItem = array[startIndex];
+	      successful = true;
 	    }
 
 	    oldEndItem = oldArray[oldEndIndex];
@@ -270,42 +257,46 @@ return /******/ (function(modules) { // webpackBootstrap
 	      insertBeforeNode = (array[endIndex] = internalRerender(oldEndItem, endItem)).$n;
 
 	      oldEndIndex--;endIndex--;
-	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
-	        break outer;
-	      } else {
-	        oldEndItem = oldArray[oldEndIndex];
-	        endItem = array[endIndex];
-	        successful = true;
-	      }
+	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) break outer;
+
+	      oldEndItem = oldArray[oldEndIndex];
+	      endItem = array[endIndex];
+	      successful = true;
 	    }
 
 	    while (oldStartItem.key === endItem.key) {
-	      node = (array[endIndex] = internalRerender(oldStartItem, endItem)).$n;
-
-	      if (oldEndItem.key !== endItem.key) {
-	        insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
-	      }
-	      oldStartIndex++;endIndex--;
-	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
-	        break outer;
+	      // Items have swapped location
+	      if (oldEndItem.key === startItem.key) {
+	        // Prefer rerendering rather than moving swapped items as ayout costs tend
+	        // to be more costly.  See js-framework-benchmark's "swap rows" benchmark.
+	        array[endIndex] = internalRerender(oldEndItem, endItem);
+	        array[startIndex] = internalRerender(oldStartItem, startItem);
+	        oldEndItem = oldArray[--oldEndIndex];
+	        startItem = array[++startIndex];
 	      } else {
-	        oldStartItem = oldArray[oldStartIndex];
-	        endItem = array[endIndex];
-	        successful = true;
+	        node = (array[endIndex] = internalRerender(oldStartItem, endItem)).$n;
+	        if (oldEndItem.key !== endItem.key) {
+	          insertBeforeNode = insertBefore(parentNode, node, insertBeforeNode);
+	        }
 	      }
+
+	      oldStartIndex++;endIndex--;
+	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) break outer;
+
+	      oldStartItem = oldArray[oldStartIndex];
+	      endItem = array[endIndex];
+	      successful = true;
 	    }
 
 	    while (oldEndItem.key === startItem.key) {
 	      insertBefore(parentNode, (array[startIndex] = internalRerender(oldEndItem, startItem)).$n, oldStartItem.$n);
 
 	      oldEndIndex--;startIndex++;
-	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) {
-	        break outer;
-	      } else {
-	        oldEndItem = oldArray[oldEndIndex];
-	        startItem = array[startIndex];
-	        successful = true;
-	      }
+	      if (oldStartIndex > oldEndIndex || startIndex > endIndex) break outer;
+
+	      oldEndItem = oldArray[oldEndIndex];
+	      startItem = array[startIndex];
+	      successful = true;
 	    }
 	  }
 
@@ -319,9 +310,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  var length = array.length;
 	  var oldLength = oldArray.length;
 	  if (!length) {
-	    removeArrayNodes(oldArray, parentNode);
+	    removeArrayNodes(oldArray, parentNode, 0, oldLength);
 	  } else if (!oldLength) {
-	    renderArrayToParentBefore(parentNode, array, length, markerNode);
+	    renderArrayToParentBefore(parentNode, array, 0, length, markerNode);
 	  } else {
 	    rerenderArray_reconcile(parentNode, array, length, oldArray, oldLength, markerNode);
 	  }
@@ -387,7 +378,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	      removeArrayNodesOnlyChild(oldArray, markerNode);
 	      return markerNode.appendChild(createDynamic(true, markerNode, array));
 	    } else {
-	      removeArrayNodes(oldArray, markerNode.parentNode);
+	      removeArrayNodes(oldArray, markerNode.parentNode, 0, oldArray.length);
 	      return rerenderDynamic(false, array, markerNode);
 	    }
 	  }

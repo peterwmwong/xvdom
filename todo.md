@@ -1,7 +1,26 @@
-# Optimize Build
+# Perf: Array item swap
 
-- Rollup
-  - ressurect build-rollup
+# Perf: Dynamic Hinting
+
+- Option 1: attribute annotation
+  ```jsx
+  <div xvdom-child-text>
+    {myString}
+  </div>
+
+  <div xvdom-child-array>
+    {[1,2,3].map(el => <div key={el} />)}
+  </div>
+
+  <div xvdom-child-jsx>
+    {<a>yolo</a>}
+  </div>
+  ```
+- Option 2: asm.js-like type annotation
+  - number: {num | 0}
+  - string: {num + ""} {String(num)}
+  - array: {num + ""} {String(num)}
+  - jsx: ???
 
 # Port enhancements from bytecode-wip
 
