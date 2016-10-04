@@ -265,8 +265,8 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
         '</div>'
       );
       assert.equal(document.createElement.count, 0);
-      assert.equal(Node.prototype.insertBefore.count, 1);
-      assert.equal(Node.prototype.appendChild.count, 3);
+      assert.equal(Node.prototype.insertBefore.count, 0);
+      assert.equal(Node.prototype.appendChild.count, 0);
       assert.equal(Node.prototype.removeChild.count, 0);
       spyOn.resetSpyCounts();
     });
@@ -631,7 +631,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
         '</div>'
       );
       assert.equal(document.createElement.count, 2);
-      assert.equal(Node.prototype.insertBefore.count, 1);
+      assert.equal(Node.prototype.insertBefore.count, 0);
       assert.equal(Node.prototype.appendChild.count, 2);
       assert.equal(Node.prototype.removeChild.count, 0);
       spyOn.resetSpyCounts();
@@ -859,7 +859,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
         '</div>'
       );
       assert.equal(document.createElement.count , 0);
-      assert.equal(Node.prototype.insertBefore.count, 3);
+      assert.equal(Node.prototype.insertBefore.count, 0);
       assert.equal(Node.prototype.removeChild.count, 2);
       spyOn.resetSpyCounts();
 
@@ -877,7 +877,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
         '</div>'
       );
       assert.equal(document.createElement.count, 0);
-      assert.equal(Node.prototype.insertBefore.count, 1);
+      assert.equal(Node.prototype.insertBefore.count, 0);
       assert.equal(Node.prototype.removeChild.count, 2);
     });
 
@@ -977,7 +977,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
         '</div>'
       );
       assert.equal(document.createElement.count , 0);
-      assert.equal(Node.prototype.insertBefore.count, 4);
+      assert.equal(Node.prototype.insertBefore.count, 0);
       assert.equal(Node.prototype.removeChild.count, 2);
       spyOn.resetSpyCounts();
 
@@ -994,7 +994,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
         '</div>'
       );
       assert.equal(document.createElement.count, 0);
-      assert.equal(Node.prototype.insertBefore.count, 2);
+      assert.equal(Node.prototype.insertBefore.count, 0);
       assert.equal(Node.prototype.removeChild.count, 2);
     });
 
@@ -1448,7 +1448,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
             '<b></b>'+
           '</div>'
         );
-        assert.equal(document.createElement.count,  1);
+        assert.equal(document.createElement.count,  0);
       });
 
       it('Add and change last item', ()=>{
@@ -1469,7 +1469,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
             '<b></b>'+
           '</div>'
         );
-        assert.equal(document.createElement.count,  1);
+        assert.equal(document.createElement.count,  0);
       });
 
       it('Add and change middle item', ()=>{
@@ -1490,7 +1490,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
             '<b></b>'+
           '</div>'
         );
-        assert.equal(document.createElement.count,  1);
+        assert.equal(document.createElement.count,  0);
       });
 
       it('Adding', ()=>{

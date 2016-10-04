@@ -110,38 +110,18 @@ const renderArrayToParent = (parentNode, array, length)=>{
   }
 };
 
-const rerenderArray_reconcileWithMap = (parentNode, array, oldArray, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex)=>{
-  const oldListNodeKeyMap = new Map();
-  let insertBeforeNode = oldEndItem.$n;
-  let item, key, startItem;
-
-  while(oldStartIndex <= oldEndIndex){
-    item = oldArray[oldStartIndex++];
-    oldListNodeKeyMap.set(item.key, item);
+function rerenderArray_replace(parentNode, array, oldArray, startIndex, endIndex, oldStartIndex, oldEndIndex, insertBeforeNode){
+  while(startIndex <= endIndex && oldStartIndex <= oldEndIndex){
+    array[startIndex] = internalRerender(oldArray[oldStartIndex++], array[startIndex++]);
   }
 
-  while(startIndex <= endIndex){
-    startItem = array[startIndex];
-    key = startItem.key;
-    item = oldListNodeKeyMap.get(key);
-
-    if(item){
-      if(item === oldEndItem) insertBeforeNode = insertBeforeNode.nextSibling;
-      oldListNodeKeyMap.delete(key);
-      startItem = internalRerender(item, startItem);
-    }
-    else{
-      startItem = internalRender(startItem);
-    }
-    array[startIndex] = startItem;
-    insertBefore(parentNode, startItem.$n, insertBeforeNode);
-    ++startIndex;
+  if(oldStartIndex > oldEndIndex){
+    renderArrayToParentBefore(parentNode, array, startIndex, endIndex+1, insertBeforeNode);
   }
-
-  oldListNodeKeyMap.forEach(value=>{
-    unmountInstance(value, parentNode);
-  });
-};
+  else{
+    removeArrayNodes(oldArray, parentNode, oldStartIndex, oldEndIndex+1);
+  }
+}
 
 const rerenderArray_afterReconcile = (parentNode, array, oldArray, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode)=>{
   if(oldStartIndex > oldEndIndex){
@@ -151,7 +131,7 @@ const rerenderArray_afterReconcile = (parentNode, array, oldArray, startIndex, s
     removeArrayNodes(oldArray, parentNode, oldStartIndex, oldEndIndex+1);
   }
   else{
-    rerenderArray_reconcileWithMap(parentNode, array, oldArray, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex);
+    rerenderArray_replace(parentNode, array, oldArray, startIndex, endIndex, oldStartIndex, oldEndIndex, insertBeforeNode);
   }
 };
 

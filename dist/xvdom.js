@@ -179,39 +179,17 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	};
 
-	var rerenderArray_reconcileWithMap = function rerenderArray_reconcileWithMap(parentNode, array, oldArray, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex) {
-	  var oldListNodeKeyMap = new Map();
-	  var insertBeforeNode = oldEndItem.$n;
-	  var item = void 0,
-	      key = void 0,
-	      startItem = void 0;
-
-	  while (oldStartIndex <= oldEndIndex) {
-	    item = oldArray[oldStartIndex++];
-	    oldListNodeKeyMap.set(item.key, item);
+	function rerenderArray_replace(parentNode, array, oldArray, startIndex, endIndex, oldStartIndex, oldEndIndex, insertBeforeNode) {
+	  while (startIndex <= endIndex && oldStartIndex <= oldEndIndex) {
+	    array[startIndex] = internalRerender(oldArray[oldStartIndex++], array[startIndex++]);
 	  }
 
-	  while (startIndex <= endIndex) {
-	    startItem = array[startIndex];
-	    key = startItem.key;
-	    item = oldListNodeKeyMap.get(key);
-
-	    if (item) {
-	      if (item === oldEndItem) insertBeforeNode = insertBeforeNode.nextSibling;
-	      oldListNodeKeyMap.delete(key);
-	      startItem = internalRerender(item, startItem);
-	    } else {
-	      startItem = internalRender(startItem);
-	    }
-	    array[startIndex] = startItem;
-	    insertBefore(parentNode, startItem.$n, insertBeforeNode);
-	    ++startIndex;
+	  if (oldStartIndex > oldEndIndex) {
+	    renderArrayToParentBefore(parentNode, array, startIndex, endIndex + 1, insertBeforeNode);
+	  } else {
+	    removeArrayNodes(oldArray, parentNode, oldStartIndex, oldEndIndex + 1);
 	  }
-
-	  oldListNodeKeyMap.forEach(function (value) {
-	    unmountInstance(value, parentNode);
-	  });
-	};
+	}
 
 	var rerenderArray_afterReconcile = function rerenderArray_afterReconcile(parentNode, array, oldArray, startIndex, startItem, endIndex, endItem, oldStartIndex, oldStartItem, oldEndIndex, oldEndItem, insertBeforeNode) {
 	  if (oldStartIndex > oldEndIndex) {
@@ -219,7 +197,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  } else if (startIndex > endIndex) {
 	    removeArrayNodes(oldArray, parentNode, oldStartIndex, oldEndIndex + 1);
 	  } else {
-	    rerenderArray_reconcileWithMap(parentNode, array, oldArray, startIndex, endIndex, oldStartItem, oldStartIndex, oldEndItem, oldEndIndex);
+	    rerenderArray_replace(parentNode, array, oldArray, startIndex, endIndex, oldStartIndex, oldEndIndex, insertBeforeNode);
 	  }
 	};
 
