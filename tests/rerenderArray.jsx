@@ -364,7 +364,6 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
           renderChild(0, '_0')
         ])
       );
-      const childEl0 = target.querySelector('._0');
 
       assert.equal(getHTMLString(target),
         '<div>'+
@@ -380,7 +379,6 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
           renderChild(0, '_0')
         ])
       );
-      const childEl1 = target.querySelector('._1');
 
       assert.equal(getHTMLString(target),
         '<div>'+
@@ -389,9 +387,8 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
         '</div>'
       );
       assert.equal(document.createElement.count , 1);
-      assert.equal(Node.prototype.insertBefore.count, 1);
+      assert.equal(Node.prototype.insertBefore.count, 0);
       assert.equal(Node.prototype.removeChild.count, 0);
-      assert.equal(childEl0, target.querySelector('._0'));
       spyOn.resetSpyCounts();
 
       xvdom.rerender(target,
@@ -409,10 +406,8 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
         '</div>'
       );
       assert.equal(document.createElement.count, 1);
-      assert.equal(Node.prototype.insertBefore.count, 1);
+      assert.equal(Node.prototype.insertBefore.count, 0);
       assert.equal(Node.prototype.removeChild.count, 0);
-      assert.equal(childEl0, target.querySelector('._0'));
-      assert.equal(childEl1, target.querySelector('._1'));
       spyOn.resetSpyCounts();
     });
 
@@ -558,7 +553,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
         '</div>'
       );
       assert.equal(document.createElement.count, 2);
-      assert.equal(Node.prototype.insertBefore.count, 2);
+      assert.equal(Node.prototype.insertBefore.count, 0);
       assert.equal(Node.prototype.removeChild.count, 0);
       spyOn.resetSpyCounts();
 
@@ -592,7 +587,7 @@ describe('xvdom.rerenderArray - newValue, previousValueAndContext, valueIndex, x
         '</div>'
       );
       assert.equal(document.createElement.count, 2);
-      assert.equal(Node.prototype.insertBefore.count, 2);
+      assert.equal(Node.prototype.insertBefore.count, 0);
       assert.equal(Node.prototype.removeChild.count, 0);
       spyOn.resetSpyCounts();
     });
