@@ -80,7 +80,7 @@ function removeArrayNodesOnlyChild(array, parentNode){
   parentNode.textContent = '';
 }
 
-function internalRerenderInstance(inst, prevInst){
+function internalRerenderInstance(prevInst, inst){
   return prevInst.$s === inst.$s && (
     inst.$s.u(inst, prevInst),
     true
@@ -177,23 +177,12 @@ function rerenderText(value, contextNode, isOnlyChild){
 
 function rerenderInstance(value, node, isOnlyChild, prevValue){
   let prevRenderedInstance;
-  if(!value || !internalRerenderInstance(value, prevRenderedInstance = prevValue.$r || prevValue)){
+  if(!value || !internalRerenderInstance((prevRenderedInstance = prevValue.$r || prevValue), value)){
     return rerenderDynamic(isOnlyChild, value, node);
   }
 
   value.$r = prevRenderedInstance;
   return node;
-}
-
-// TODO: Figure out whether we're using all these arguments
-function rerenderComponent(component, props, componentInstance, instance, componentInstanceProp){
-  const newCompInstance = component(props || EMPTY_PROPS);
-  if(!internalRerenderInstance(newCompInstance, componentInstance)){
-    replaceNode(
-      componentInstance.$n,
-      (instance[componentInstanceProp] = internalRender(newCompInstance)).$n
-    );
-  }
 }
 
 function rerenderArrayMaybe(array, contextNode, isOnlyChild, oldArray){
@@ -220,11 +209,11 @@ function rerenderArrayMaybe(array, contextNode, isOnlyChild, oldArray){
   return rerenderDynamic(false, array, markerNode);
 }
 
-function rerenderStatefulComponent(component, newProps, api){
-  const {_onProps, props} = api;
+function rerenderStatefulComponent(component, actions, newProps, api){
+  const {props} = api;
   api.props = newProps;
 
-  if(_onProps) componentSend(component, api, _onProps, props);
+  if(actions.onProps) componentSend(component, api, actions.onProps, props);
   else componentRerender(component, api);
 }
 
@@ -252,47 +241,44 @@ function componentSend(component, api, actionFn, context){
   }
 }
 
-function createStatefulComponent(component, props, instance, rerenderFuncProp, componentInstanceProp, actions){
+function createStatefulComponent(component, props, instance, actions){
   const boundActions  = new Hash();
 
   const api = {
-    _onProps:    actions.onProps,
-    _parentInst: instance,
-
     props,
     bindSend: action => boundActions[action] || (
       boundActions[action] = context =>{ componentSend(component, api, actions[action], context); }
-    )
+    ),
+    _parentInst: instance
   };
 
   //TODO: process.ENV === 'development', console.error(`Stateful components require atleast an 'onInit' function to provide the initial state (see)`);
   api.state = actions.onInit(api);
-
-  instance[rerenderFuncProp]      = rerenderStatefulComponent;
-  instance[componentInstanceProp] = api;
-  return internalRenderNoRecycle(api._instance = component(api));
+  api.$n = internalRenderNoRecycle(api._instance = component(api));
+  return api;
 }
 
-function createNoStateComponent(component, props, instance, rerenderFuncProp, componentInstanceProp){
-  // TODO: Remove passing componentInstanceProp and rerenderFuncProp
-  //       Instead have an `updateComponent()` (match approach to dynamics)
-  instance[rerenderFuncProp] = rerenderComponent;
-  return internalRenderNoRecycle(
-    instance[componentInstanceProp] = component(props)
-  );
+function createNoStateComponent(component, props){
+  const instance = component(props);
+  internalRenderNoRecycle(instance);
+  return instance;
 }
 
-export function createComponent(component, actions, props, instance, rerenderFuncProp, componentInstanceProp){
-  const createFn = actions ? createStatefulComponent : createNoStateComponent;
-  return createFn(
+export function createComponent(component, actions, props, parentInstance){
+  return (actions ? createStatefulComponent : createNoStateComponent)(
     component,
     (props || EMPTY_PROPS),
-    instance,
-    rerenderFuncProp,
-    componentInstanceProp,
+    parentInstance,
     actions
   );
 };
+
+function updateComponent(component, actions, props, componentInstance){
+  if(!actions) return internalRerender(componentInstance, component(props));
+
+  rerenderStatefulComponent(component, actions, props, componentInstance);
+  return componentInstance;
+}
 
 function internalRenderNoRecycle(instance){
   const node  = instance.$s.c(instance);
@@ -336,10 +322,9 @@ function updateDynamic(isOnlyChild, oldValue, value, contextNode){
 };
 
 function internalRerender(prevInstance, instance){
-  if(internalRerenderInstance(instance, prevInstance)) return prevInstance;
+  if(internalRerenderInstance(prevInstance, instance)) return prevInstance;
 
-  instance = internalRender(instance);
-  replaceNode(prevInstance.$n, instance.$n);
+  replaceNode(prevInstance.$n, (instance = internalRender(instance)).$n);
   recycle(prevInstance);
   return instance;
 }
@@ -355,6 +340,7 @@ export default {
   render,
   rerender,
   unmount,
+  updateComponent,
   updateDynamic,
   Pool,
   DEADPOOL

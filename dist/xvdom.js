@@ -159,7 +159,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  parentNode.textContent = '';
 	}
 
-	function internalRerenderInstance(inst, prevInst) {
+	function internalRerenderInstance(prevInst, inst) {
 	  return prevInst.$s === inst.$s && (inst.$s.u(inst, prevInst), true);
 	}
 
@@ -242,20 +242,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function rerenderInstance(value, node, isOnlyChild, prevValue) {
 	  var prevRenderedInstance = void 0;
-	  if (!value || !internalRerenderInstance(value, prevRenderedInstance = prevValue.$r || prevValue)) {
+	  if (!value || !internalRerenderInstance(prevRenderedInstance = prevValue.$r || prevValue, value)) {
 	    return rerenderDynamic(isOnlyChild, value, node);
 	  }
 
 	  value.$r = prevRenderedInstance;
 	  return node;
-	}
-
-	// TODO: Figure out whether we're using all these arguments
-	function rerenderComponent(component, props, componentInstance, instance, componentInstanceProp) {
-	  var newCompInstance = component(props || EMPTY_PROPS);
-	  if (!internalRerenderInstance(newCompInstance, componentInstance)) {
-	    replaceNode(componentInstance.$n, (instance[componentInstanceProp] = internalRender(newCompInstance)).$n);
-	  }
 	}
 
 	function rerenderArrayMaybe(array, contextNode, isOnlyChild, oldArray) {
@@ -279,13 +271,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return rerenderDynamic(false, array, markerNode);
 	}
 
-	function rerenderStatefulComponent(component, newProps, api) {
-	  var _onProps = api._onProps;
+	function rerenderStatefulComponent(component, actions, newProps, api) {
 	  var props = api.props;
 
 	  api.props = newProps;
 
-	  if (_onProps) componentSend(component, api, _onProps, props);else componentRerender(component, api);
+	  if (actions.onProps) componentSend(component, api, actions.onProps, props);else componentRerender(component, api);
 	}
 
 	function createArray(value, parentNode, isOnlyChild) {
@@ -312,40 +303,41 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	}
 
-	function createStatefulComponent(component, props, instance, rerenderFuncProp, componentInstanceProp, actions) {
+	function createStatefulComponent(component, props, instance, actions) {
 	  var boundActions = new Hash();
 
 	  var api = {
-	    _onProps: actions.onProps,
-	    _parentInst: instance,
-
 	    props: props,
 	    bindSend: function bindSend(action) {
 	      return boundActions[action] || (boundActions[action] = function (context) {
 	        componentSend(component, api, actions[action], context);
 	      });
-	    }
+	    },
+	    _parentInst: instance
 	  };
 
 	  //TODO: process.ENV === 'development', console.error(`Stateful components require atleast an 'onInit' function to provide the initial state (see)`);
 	  api.state = actions.onInit(api);
-
-	  instance[rerenderFuncProp] = rerenderStatefulComponent;
-	  instance[componentInstanceProp] = api;
-	  return internalRenderNoRecycle(api._instance = component(api));
+	  api.$n = internalRenderNoRecycle(api._instance = component(api));
+	  return api;
 	}
 
-	function createNoStateComponent(component, props, instance, rerenderFuncProp, componentInstanceProp) {
-	  // TODO: Remove passing componentInstanceProp and rerenderFuncProp
-	  //       Instead have an `updateComponent()` (match approach to dynamics)
-	  instance[rerenderFuncProp] = rerenderComponent;
-	  return internalRenderNoRecycle(instance[componentInstanceProp] = component(props));
+	function createNoStateComponent(component, props) {
+	  var instance = component(props);
+	  internalRenderNoRecycle(instance);
+	  return instance;
 	}
 
-	function createComponent(component, actions, props, instance, rerenderFuncProp, componentInstanceProp) {
-	  var createFn = actions ? createStatefulComponent : createNoStateComponent;
-	  return createFn(component, props || EMPTY_PROPS, instance, rerenderFuncProp, componentInstanceProp, actions);
+	function createComponent(component, actions, props, parentInstance) {
+	  return (actions ? createStatefulComponent : createNoStateComponent)(component, props || EMPTY_PROPS, parentInstance, actions);
 	};
+
+	function updateComponent(component, actions, props, componentInstance) {
+	  if (!actions) return internalRerender(componentInstance, component(props));
+
+	  rerenderStatefulComponent(component, actions, props, componentInstance);
+	  return componentInstance;
+	}
 
 	function internalRenderNoRecycle(instance) {
 	  var node = instance.$s.c(instance);
@@ -389,10 +381,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	function internalRerender(prevInstance, instance) {
-	  if (internalRerenderInstance(instance, prevInstance)) return prevInstance;
+	  if (internalRerenderInstance(prevInstance, instance)) return prevInstance;
 
-	  instance = internalRender(instance);
-	  replaceNode(prevInstance.$n, instance.$n);
+	  replaceNode(prevInstance.$n, (instance = internalRender(instance)).$n);
 	  recycle(prevInstance);
 	  return instance;
 	}
@@ -416,6 +407,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  render: render,
 	  rerender: rerender,
 	  unmount: unmount,
+	  updateComponent: updateComponent,
 	  updateDynamic: updateDynamic,
 	  Pool: Pool,
 	  DEADPOOL: DEADPOOL
