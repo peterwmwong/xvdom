@@ -81,17 +81,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	*/
 
-	var isDynamicEmpty = function isDynamicEmpty(value) {
-	  return value == null || value === true || value === false;
+	var isDynamicEmpty = function isDynamicEmpty(v) {
+	  return v == null || v === true || v === false;
 	};
 
 	// https://esbench.com/bench/57f1459d330ab09900a1a1dd
-	function dynamicType(value) {
-	  if (value instanceof Object) {
-	    return value instanceof Array ? 'array' : 'object';
+	function dynamicType(v) {
+	  if (v instanceof Object) {
+	    return v instanceof Array ? 'array' : 'object';
 	  }
 
-	  return isDynamicEmpty(value) ? 'empty' : 'text';
+	  return isDynamicEmpty(v) ? 'empty' : 'text';
 	}
 
 	// Creates an empty object with no built in properties (ie. `constructor`).
