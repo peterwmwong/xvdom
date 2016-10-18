@@ -1,4 +1,5 @@
-var webpack = require('webpack');
+const webpack = require('webpack');
+const babelLoader = require('../../webpack.babel-loader.config');
 
 module.exports = {
   entry: {
@@ -11,11 +12,6 @@ module.exports = {
     filename: 'app-built.js'
   },
   module: {
-    loaders: [
-      {
-        test   : /\.jsx?$/,
-        loader : 'babel-loader'
-      }
-    ]
+    loaders: [ babelLoader ]
   }
 };

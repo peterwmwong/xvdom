@@ -8,16 +8,22 @@
     "build":
       "webpack --config webpack.config.js",
 
-    "build:benchmarks":
-      "webpack --config webpack.benchmarks.config.js; webpack --config webpack.benchmark-table.config.js",
-
     "build:prod":
-      "npm run build; uglifyjs --compress --mangle -- dist/xvdom.js > dist/xvdom.min.js;",
+      "yarn build; uglifyjs --compress --mangle -- dist/xvdom.js > dist/xvdom.min.js;",
 
-    "build:benchmarks-stateful-components":
+    "build:benchmarks":
+      "yarn build:benchmarks:dbmonster; yarn build:benchmarks:stateful-components; yarn build:benchmarks:table; yarn build:benchmarks:dynamics",
+
+    "build:benchmarks:dbmonster":
+      "cd benchmarks/dbmonster; webpack --config webpack.config.js; uglifyjs --compress --mangle -- app-built.js > app-built.min.js",
+
+    "build:benchmarks:stateful-components":
       "cd benchmarks/stateful-components; webpack --config webpack.config.js; uglifyjs --compress --mangle -- app-built.js > app-built.min.js",
 
-    "build:benchmarks-dynamics":
+    "build:benchmarks:table":
+      "cd benchmarks/table; webpack --config webpack.config.js; uglifyjs --compress --mangle -- app-built.js > app-built.min.js",
+
+    "build:benchmarks:dynamics":
       "cd benchmarks/dynamics; webpack --config webpack.config.js; uglifyjs --compress --mangle -- app-built.js > app-built.min.js",
 
     "test":

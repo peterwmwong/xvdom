@@ -62,12 +62,13 @@
 	var _xvdomCreateComponent = _index2.default.createComponent,
 	    _xvdomCreateDynamic = _index2.default.createDynamic,
 	    _xvdomEl = _index2.default.el,
+	    _xvdomUpdateComponent = _index2.default.updateComponent,
 	    _xvdomUpdateDynamic = _index2.default.updateDynamic;
 	var _xvdomSpec19 = {
 	  c: function c(inst) {
 	    var _n = _xvdomCreateComponent(Comp1, Comp1.state, {
 	      value: 100
-	    }, inst, 'a', 'b');
+	    }, inst).$n;
 
 	    return _n;
 	  },
@@ -76,9 +77,9 @@
 	};
 	var _xvdomSpec18 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Comp2, Comp2.state, {
+	    var _n = (inst.b = _xvdomCreateComponent(Comp2, Comp2.state, {
 	      value: inst.a
-	    }, inst, 'b', 'c');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -86,19 +87,18 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.b(Comp2, {
-	        value: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
+	      pInst.b = _xvdomUpdateComponent(Comp2, Comp2.state, {
+	        value: pInst.a = inst.a
+	      }, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
 	};
 	var _xvdomSpec17 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Comp3, Comp3.state, {
+	    var _n = (inst.b = _xvdomCreateComponent(Comp3, Comp3.state, {
 	      value: inst.a
-	    }, inst, 'b', 'c');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -106,19 +106,18 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.b(Comp3, {
-	        value: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
+	      pInst.b = _xvdomUpdateComponent(Comp3, Comp3.state, {
+	        value: pInst.a = inst.a
+	      }, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
 	};
 	var _xvdomSpec16 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Comp4, Comp4.state, {
+	    var _n = (inst.b = _xvdomCreateComponent(Comp4, Comp4.state, {
 	      value: inst.a
-	    }, inst, 'b', 'c');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -126,19 +125,18 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.b(Comp4, {
-	        value: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
+	      pInst.b = _xvdomUpdateComponent(Comp4, Comp4.state, {
+	        value: pInst.a = inst.a
+	      }, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
 	};
 	var _xvdomSpec15 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Comp5, Comp5.state, {
+	    var _n = (inst.b = _xvdomCreateComponent(Comp5, Comp5.state, {
 	      value: inst.a
-	    }, inst, 'b', 'c');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -146,19 +144,18 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.b(Comp5, {
-	        value: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
+	      pInst.b = _xvdomUpdateComponent(Comp5, Comp5.state, {
+	        value: pInst.a = inst.a
+	      }, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
 	};
 	var _xvdomSpec14 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Comp6, Comp6.state, {
+	    var _n = (inst.b = _xvdomCreateComponent(Comp6, Comp6.state, {
 	      value: inst.a
-	    }, inst, 'b', 'c');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -166,19 +163,18 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.b(Comp6, {
-	        value: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
+	      pInst.b = _xvdomUpdateComponent(Comp6, Comp6.state, {
+	        value: pInst.a = inst.a
+	      }, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
 	};
 	var _xvdomSpec13 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Comp7, Comp7.state, {
+	    var _n = (inst.b = _xvdomCreateComponent(Comp7, Comp7.state, {
 	      value: inst.a
-	    }, inst, 'b', 'c');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -186,19 +182,18 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.b(Comp7, {
-	        value: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
+	      pInst.b = _xvdomUpdateComponent(Comp7, Comp7.state, {
+	        value: pInst.a = inst.a
+	      }, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
 	};
 	var _xvdomSpec12 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Comp8, Comp8.state, {
+	    var _n = (inst.b = _xvdomCreateComponent(Comp8, Comp8.state, {
 	      value: inst.a
-	    }, inst, 'b', 'c');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -206,19 +201,18 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.b(Comp8, {
-	        value: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
+	      pInst.b = _xvdomUpdateComponent(Comp8, Comp8.state, {
+	        value: pInst.a = inst.a
+	      }, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
 	};
 	var _xvdomSpec11 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Comp9, Comp9.state, {
+	    var _n = (inst.b = _xvdomCreateComponent(Comp9, Comp9.state, {
 	      value: inst.a
-	    }, inst, 'b', 'c');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -226,19 +220,18 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.b(Comp9, {
-	        value: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
+	      pInst.b = _xvdomUpdateComponent(Comp9, Comp9.state, {
+	        value: pInst.a = inst.a
+	      }, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
 	};
 	var _xvdomSpec10 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Comp10, Comp10.state, {
+	    var _n = (inst.b = _xvdomCreateComponent(Comp10, Comp10.state, {
 	      value: inst.a
-	    }, inst, 'b', 'c');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -246,19 +239,18 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.b(Comp10, {
-	        value: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
+	      pInst.b = _xvdomUpdateComponent(Comp10, Comp10.state, {
+	        value: pInst.a = inst.a
+	      }, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
 	};
 	var _xvdomSpec9 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Comp11, Comp11.state, {
+	    var _n = (inst.b = _xvdomCreateComponent(Comp11, Comp11.state, {
 	      value: inst.a
-	    }, inst, 'b', 'c');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -266,19 +258,18 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.b(Comp11, {
-	        value: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
+	      pInst.b = _xvdomUpdateComponent(Comp11, Comp11.state, {
+	        value: pInst.a = inst.a
+	      }, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
 	};
 	var _xvdomSpec8 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Comp12, Comp12.state, {
+	    var _n = (inst.b = _xvdomCreateComponent(Comp12, Comp12.state, {
 	      value: inst.a
-	    }, inst, 'b', 'c');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -286,19 +277,18 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.b(Comp12, {
-	        value: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
+	      pInst.b = _xvdomUpdateComponent(Comp12, Comp12.state, {
+	        value: pInst.a = inst.a
+	      }, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
 	};
 	var _xvdomSpec7 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Comp13, Comp13.state, {
+	    var _n = (inst.b = _xvdomCreateComponent(Comp13, Comp13.state, {
 	      value: inst.a
-	    }, inst, 'b', 'c');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -306,19 +296,18 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.b(Comp13, {
-	        value: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
+	      pInst.b = _xvdomUpdateComponent(Comp13, Comp13.state, {
+	        value: pInst.a = inst.a
+	      }, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
 	};
 	var _xvdomSpec6 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Comp14, Comp14.state, {
+	    var _n = (inst.b = _xvdomCreateComponent(Comp14, Comp14.state, {
 	      value: inst.a
-	    }, inst, 'b', 'c');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -326,19 +315,18 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.b(Comp14, {
-	        value: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
+	      pInst.b = _xvdomUpdateComponent(Comp14, Comp14.state, {
+	        value: pInst.a = inst.a
+	      }, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
 	};
 	var _xvdomSpec5 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Comp15, Comp15.state, {
+	    var _n = (inst.b = _xvdomCreateComponent(Comp15, Comp15.state, {
 	      value: inst.a
-	    }, inst, 'b', 'c');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -346,19 +334,18 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.b(Comp15, {
-	        value: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
+	      pInst.b = _xvdomUpdateComponent(Comp15, Comp15.state, {
+	        value: pInst.a = inst.a
+	      }, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
 	};
 	var _xvdomSpec4 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Comp16, Comp16.state, {
+	    var _n = (inst.b = _xvdomCreateComponent(Comp16, Comp16.state, {
 	      value: inst.a
-	    }, inst, 'b', 'c');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -366,10 +353,9 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.b(Comp16, {
-	        value: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
+	      pInst.b = _xvdomUpdateComponent(Comp16, Comp16.state, {
+	        value: pInst.a = inst.a
+	      }, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
@@ -393,9 +379,9 @@
 	};
 	var _xvdomSpec2 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(LeafNode, LeafNode.state, {
+	    var _n = (inst.b = _xvdomCreateComponent(LeafNode, LeafNode.state, {
 	      value: inst.a
-	    }, inst, 'b', 'c');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -403,10 +389,9 @@
 	    var v;
 
 	    if (inst.a !== pInst.a) {
-	      pInst.b(LeafNode, {
-	        value: inst.a
-	      }, pInst.c, pInst, 'c');
-	      pInst.a = inst.a;
+	      pInst.b = _xvdomUpdateComponent(LeafNode, LeafNode.state, {
+	        value: pInst.a = inst.a
+	      }, pInst.b);
 	    }
 	  },
 	  r: _index2.default.DEADPOOL
@@ -715,17 +700,17 @@
 
 	*/
 
-	var isDynamicEmpty = function isDynamicEmpty(value) {
-	  return value == null || value === true || value === false;
+	var isDynamicEmpty = function isDynamicEmpty(v) {
+	  return v == null || v === true || v === false;
 	};
 
 	// https://esbench.com/bench/57f1459d330ab09900a1a1dd
-	function dynamicType(value) {
-	  if (value instanceof Object) {
-	    return value instanceof Array ? 'array' : 'object';
+	function dynamicType(v) {
+	  if (v instanceof Object) {
+	    return v instanceof Array ? 'array' : 'object';
 	  }
 
-	  return isDynamicEmpty(value) ? 'empty' : 'text';
+	  return isDynamicEmpty(v) ? 'empty' : 'text';
 	}
 
 	// Creates an empty object with no built in properties (ie. `constructor`).
@@ -793,7 +778,7 @@
 	  parentNode.textContent = '';
 	}
 
-	function internalRerenderInstance(inst, prevInst) {
+	function internalRerenderInstance(prevInst, inst) {
 	  return prevInst.$s === inst.$s && (inst.$s.u(inst, prevInst), true);
 	}
 
@@ -876,20 +861,12 @@
 
 	function rerenderInstance(value, node, isOnlyChild, prevValue) {
 	  var prevRenderedInstance = void 0;
-	  if (!value || !internalRerenderInstance(value, prevRenderedInstance = prevValue.$r || prevValue)) {
+	  if (!value || !internalRerenderInstance(prevRenderedInstance = prevValue.$r || prevValue, value)) {
 	    return rerenderDynamic(isOnlyChild, value, node);
 	  }
 
 	  value.$r = prevRenderedInstance;
 	  return node;
-	}
-
-	// TODO: Figure out whether we're using all these arguments
-	function rerenderComponent(component, props, componentInstance, instance, componentInstanceProp) {
-	  var newCompInstance = component(props || EMPTY_PROPS);
-	  if (!internalRerenderInstance(newCompInstance, componentInstance)) {
-	    replaceNode(componentInstance.$n, (instance[componentInstanceProp] = internalRender(newCompInstance)).$n);
-	  }
 	}
 
 	function rerenderArrayMaybe(array, contextNode, isOnlyChild, oldArray) {
@@ -913,13 +890,12 @@
 	  return rerenderDynamic(false, array, markerNode);
 	}
 
-	function rerenderStatefulComponent(component, newProps, api) {
-	  var _onProps = api._onProps;
+	function rerenderStatefulComponent(component, actions, newProps, api) {
 	  var props = api.props;
 
 	  api.props = newProps;
 
-	  if (_onProps) componentSend(component, api, _onProps, props);else componentRerender(component, api);
+	  if (actions.onProps) componentSend(component, api, actions.onProps, props);else componentRerender(component, api);
 	}
 
 	function createArray(value, parentNode, isOnlyChild) {
@@ -946,40 +922,41 @@
 	  }
 	}
 
-	function createStatefulComponent(component, props, instance, rerenderFuncProp, componentInstanceProp, actions) {
+	function createStatefulComponent(component, props, instance, actions) {
 	  var boundActions = new Hash();
 
 	  var api = {
-	    _onProps: actions.onProps,
-	    _parentInst: instance,
-
 	    props: props,
 	    bindSend: function bindSend(action) {
 	      return boundActions[action] || (boundActions[action] = function (context) {
 	        componentSend(component, api, actions[action], context);
 	      });
-	    }
+	    },
+	    _parentInst: instance
 	  };
 
 	  //TODO: process.ENV === 'development', console.error(`Stateful components require atleast an 'onInit' function to provide the initial state (see)`);
 	  api.state = actions.onInit(api);
-
-	  instance[rerenderFuncProp] = rerenderStatefulComponent;
-	  instance[componentInstanceProp] = api;
-	  return internalRenderNoRecycle(api._instance = component(api));
+	  api.$n = internalRenderNoRecycle(api._instance = component(api));
+	  return api;
 	}
 
-	function createNoStateComponent(component, props, instance, rerenderFuncProp, componentInstanceProp) {
-	  // TODO: Remove passing componentInstanceProp and rerenderFuncProp
-	  //       Instead have an `updateComponent()` (match approach to dynamics)
-	  instance[rerenderFuncProp] = rerenderComponent;
-	  return internalRenderNoRecycle(instance[componentInstanceProp] = component(props));
+	function createNoStateComponent(component, props) {
+	  var instance = component(props);
+	  internalRenderNoRecycle(instance);
+	  return instance;
 	}
 
-	function createComponent(component, actions, props, instance, rerenderFuncProp, componentInstanceProp) {
-	  var createFn = actions ? createStatefulComponent : createNoStateComponent;
-	  return createFn(component, props || EMPTY_PROPS, instance, rerenderFuncProp, componentInstanceProp, actions);
+	function createComponent(component, actions, props, parentInstance) {
+	  return (actions ? createStatefulComponent : createNoStateComponent)(component, props || EMPTY_PROPS, parentInstance, actions);
 	};
+
+	function updateComponent(component, actions, props, componentInstance) {
+	  if (!actions) return internalRerender(componentInstance, component(props));
+
+	  rerenderStatefulComponent(component, actions, props, componentInstance);
+	  return componentInstance;
+	}
 
 	function internalRenderNoRecycle(instance) {
 	  var node = instance.$s.c(instance);
@@ -1023,10 +1000,9 @@
 	};
 
 	function internalRerender(prevInstance, instance) {
-	  if (internalRerenderInstance(instance, prevInstance)) return prevInstance;
+	  if (internalRerenderInstance(prevInstance, instance)) return prevInstance;
 
-	  instance = internalRender(instance);
-	  replaceNode(prevInstance.$n, instance.$n);
+	  replaceNode(prevInstance.$n, (instance = internalRender(instance)).$n);
 	  recycle(prevInstance);
 	  return instance;
 	}
@@ -1050,6 +1026,7 @@
 	  render: render,
 	  rerender: rerender,
 	  unmount: unmount,
+	  updateComponent: updateComponent,
 	  updateDynamic: updateDynamic,
 	  Pool: Pool,
 	  DEADPOOL: DEADPOOL

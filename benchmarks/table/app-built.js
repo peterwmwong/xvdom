@@ -62,10 +62,11 @@
 	var _xvdomCreateComponent = _xvdomMin2.default.createComponent,
 	    _xvdomCreateDynamic = _xvdomMin2.default.createDynamic,
 	    _xvdomEl = _xvdomMin2.default.el,
+	    _xvdomUpdateComponent = _xvdomMin2.default.updateComponent,
 	    _xvdomUpdateDynamic = _xvdomMin2.default.updateDynamic;
 	var _xvdomSpec5 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(App, App.state, null, inst, 'a', 'b');
+	    var _n = _xvdomCreateComponent(App, App.state, null, inst).$n;
 
 	    return _n;
 	  },
@@ -108,12 +109,12 @@
 	};
 	var _xvdomSpec2 = {
 	  c: function c(inst) {
-	    var _n = _xvdomCreateComponent(Cell, Cell.state, {
+	    var _n = (inst.e = _xvdomCreateComponent(Cell, Cell.state, {
 	      initialValue: inst.a,
 	      row: inst.b,
 	      cell: inst.c,
 	      cellUpdaters: inst.d
-	    }, inst, 'e', 'f');
+	    }, inst)).$n;
 
 	    return _n;
 	  },
@@ -121,16 +122,12 @@
 	    var v;
 
 	    if (inst.c !== pInst.c || inst.b !== pInst.b || inst.a !== pInst.a || inst.d !== pInst.d) {
-	      pInst.e(Cell, {
-	        initialValue: inst.a,
-	        row: inst.b,
-	        cell: inst.c,
-	        cellUpdaters: inst.d
-	      }, pInst.f, pInst, 'f');
-	      pInst.a = inst.a;
-	      pInst.b = inst.b;
-	      pInst.c = inst.c;
-	      pInst.d = inst.d;
+	      pInst.e = _xvdomUpdateComponent(Cell, Cell.state, {
+	        initialValue: pInst.a = inst.a,
+	        row: pInst.b = inst.b,
+	        cell: pInst.c = inst.c,
+	        cellUpdaters: pInst.d = inst.d
+	      }, pInst.e);
 	    }
 	  },
 	  r: _xvdomMin2.default.DEADPOOL
@@ -285,7 +282,7 @@
 	        T(n[e++]);
 	      }t.textContent = "";
 	    }function a(n, t) {
-	      return t.$s === n.$s && (n.$s.u(n, t), !0);
+	      return n.$s === t.$s && (t.$s.u(t, n), !0);
 	    }function f(n, t, e, r) {
 	      null == r ? d(n, t, e) : p(n, t, e, r);
 	    }function p(n, t, e, r) {
@@ -300,46 +297,45 @@
 	      var i = 0,
 	          a = 0;do {
 	        t[a] = E(r[i], t[a]), ++a, ++i;
-	      } while (o > i && e > a);e > a ? f(n, t, a, u) : c(r, n, i);
+	      } while (i < o && a < e);a < e ? f(n, t, a, u) : c(r, n, i);
 	    }function l(n, t, e) {
 	      var r = n.parentNode,
 	          o = t.length,
 	          u = e.length;o ? u ? s(r, t, o, e, u, n) : f(r, t, 0, n) : c(e, r, 0);
-	    }function v(n, t, e) {
+	    }function m(n, t, e) {
 	      var r = t.length,
 	          o = e.length;r ? o ? s(n, t, r, e, o, null) : d(n, t, 0) : i(e, n);
-	    }function m(n, t, e) {
+	    }function v(n, t, e) {
 	      var r = w(n, e.parentNode, t);return M(e, r), r;
 	    }function x(n, t, e) {
-	      return n instanceof Object ? m(e, n, t) : (t.nodeValue = I(n) ? "" : n, t);
+	      return n instanceof Object ? v(e, n, t) : (t.nodeValue = I(n) ? "" : n, t);
 	    }function h(n, t, e, r) {
-	      var o = void 0;return n && a(n, o = r.$r || r) ? (n.$r = o, t) : m(e, n, t);
-	    }function $(n, t, e, r, o) {
-	      var u = n(t || k);a(u, e) || M(e.$n, (r[o] = P(u)).$n);
+	      var o = void 0;return n && a(o = r.$r || r, n) ? (n.$r = o, t) : v(e, n, t);
 	    }function y(n, t, e, r) {
-	      var o = t.xvdomContext;return n instanceof Array ? (e ? v(o, n, r) : l(o, n, r), t) : e ? (i(r, o), o.appendChild(w(!0, o, n))) : (c(r, o.parentNode, 0), m(!1, n, o));
-	    }function b(n, t, e) {
-	      var r = e._onProps,
-	          o = e.props;e.props = t, r ? g(n, e, r, o) : _(n, e);
+	      var o = t.xvdomContext;return n instanceof Array ? (e ? m(o, n, r) : l(o, n, r), t) : e ? (i(r, o), o.appendChild(w(!0, o, n))) : (c(r, o.parentNode, 0), v(!1, n, o));
+	    }function $(n, t, e, r) {
+	      var o = r.props;r.props = e, t.onProps ? g(n, r, t.onProps, o) : b(n, r);
 	    }function C(n, t, e) {
 	      var r = document.createDocumentFragment();return d(r, n, 0), r.xvdomContext = e ? t : r.appendChild(B("")), r;
-	    }function _(n, t) {
+	    }function b(n, t) {
 	      var e = E(t._instance, n(t));t._instance = e, e.$n.xvdom = t._parentInst;
 	    }function g(n, t, e, r) {
 	      if (e) {
-	        var o = e(t, r);o !== t.state && (t.state = o, _(n, t));
+	        var o = e(t, r);o !== t.state && (t.state = o, b(n, t));
 	      }
-	    }function j(n, t, e, o, u, c) {
-	      var i = new r(),
-	          a = { _onProps: c.onProps, _parentInst: e, props: t, bindSend: function bindSend(t) {
-	          return i[t] || (i[t] = function (e) {
-	            g(n, a, c[t], e);
+	    }function j(n, t, e, o) {
+	      var u = new r(),
+	          c = { props: t, bindSend: function bindSend(t) {
+	          return u[t] || (u[t] = function (e) {
+	            g(n, c, o[t], e);
 	          });
-	        } };return a.state = c.onInit(a), e[o] = b, e[u] = a, N(a._instance = n(a));
-	    }function D(n, t, e, r, o) {
-	      return e[r] = $, N(e[o] = n(t));
-	    }function O(n, t, e, r, o, u) {
-	      var c = t ? j : D;return c(n, e || k, r, o, u, t);
+	        }, _parentInst: e };return c.state = o.onInit(c), c.$n = N(c._instance = n(c)), c;
+	    }function D(n, t) {
+	      var e = n(t);return N(e), e;
+	    }function _(n, t, e, r) {
+	      return (t ? j : D)(n, e || k, r, t);
+	    }function O(n, t, e, r) {
+	      return t ? ($(n, t, e, r), r) : E(r, n(e));
 	    }function N(n) {
 	      var t = n.$s.c(n);return n.$n = t, t.xvdom = n, t;
 	    }function P(n) {
@@ -350,8 +346,8 @@
 	    }function A(n, t, r, o) {
 	      return V[e(t)](r, o, n, t);
 	    }function E(n, t) {
-	      return a(t, n) ? n : (t = P(t), M(n.$n, t.$n), T(n), t);
-	    }t.__esModule = !0, t.createComponent = O;var I = function I(n) {
+	      return a(n, t) ? n : (M(n.$n, (t = P(t)).$n), T(n), t);
+	    }t.__esModule = !0, t.createComponent = _;var I = function I(n) {
 	      return null == n || n === !0 || n === !1;
 	    };r.prototype = Object.create(null);var k = new r(),
 	        L = t.DEADPOOL = { push: function push() {}, pop: function pop() {} };o.prototype.push = function (n) {
@@ -381,9 +377,9 @@
 	    },
 	        G = t.unmount = function (n) {
 	      u(n.xvdom, n.parentNode);
-	    };t["default"] = { createComponent: O, createDynamic: w, el: function el(n) {
+	    };t.default = { createComponent: _, createDynamic: w, el: function el(n) {
 	        return document.createElement(n);
-	      }, render: q, rerender: z, unmount: G, updateDynamic: A, Pool: o, DEADPOOL: L };t._ = { rerenderText: x, rerenderDynamic: m };
+	      }, render: q, rerender: z, unmount: G, updateComponent: O, updateDynamic: A, Pool: o, DEADPOOL: L };t._ = { rerenderText: x, rerenderDynamic: v };
 	  }]);
 	});
 

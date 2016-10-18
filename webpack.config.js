@@ -1,4 +1,5 @@
-var webpack = require('webpack');
+const webpack = require('webpack');
+const babelLoader = require('./webpack.babel-loader.config');
 
 module.exports = {
   entry: {
@@ -11,22 +12,6 @@ module.exports = {
     libraryTarget: 'umd'
   },
   module: {
-    loaders: [
-      {
-        test   : /\.jsx?$/,
-        exclude: /node_modules/,
-        loader : 'babel-loader',
-        query: {
-          plugins: [
-            'syntax-jsx',
-            'xvdom',
-            'transform-object-rest-spread',
-            'transform-member-expression-literals',
-            'transform-node-env-inline'
-          ],
-          presets: ['../es2015-custom-preset']
-        }
-      }
-    ]
+    loaders: [ babelLoader ]
   }
 };
