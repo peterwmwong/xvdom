@@ -10,7 +10,8 @@
     "IS_DEV"     : true,
     "IS_MOCKING" : true,
     "it"         : true,
-    "module"     : true
+    "module"     : true,
+    "process"    : true
   },
   "parserOptions": {
     "ecmaVersion": 6,

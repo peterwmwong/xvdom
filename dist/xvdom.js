@@ -107,7 +107,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	// TODO: Benchmark whether this is slower than Function/Prototype
 	function Pool() {
 	  this.map = new Hash();
-	};
+	}
 
 	Pool.prototype.push = function (instance) {
 	  var key = instance.key;
@@ -329,14 +329,33 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function createComponent(component, actions, props, parentInstance) {
-	  return (actions ? createStatefulComponent : createNoStateComponent)(component, props || EMPTY_PROPS, parentInstance, actions);
+	  if (false) performance.mark('createComponent.start(' + component.name + ')');
+
+	  var result = (actions ? createStatefulComponent : createNoStateComponent)(component, props || EMPTY_PROPS, parentInstance, actions);
+
+	  if (false) {
+	    performance.mark('createComponent.end(' + component.name + ')');
+	    performance.measure('<' + component.name + '/>', 'createComponent.start(' + component.name + ')', 'createComponent.end(' + component.name + ')');
+	  }
+	  return result;
 	};
 
 	function updateComponent(component, actions, props, componentInstance) {
-	  if (!actions) return internalRerender(componentInstance, component(props));
+	  if (false) performance.mark('updateComponent.start(' + component.name + ')');
 
-	  rerenderStatefulComponent(component, actions, props, componentInstance);
-	  return componentInstance;
+	  var result = void 0;
+	  if (actions) {
+	    rerenderStatefulComponent(component, actions, props, componentInstance);
+	    result = componentInstance;
+	  } else {
+	    result = internalRerender(componentInstance, component(props));
+	  }
+
+	  if (false) {
+	    performance.mark('updateComponent.end(' + component.name + ')');
+	    performance.measure('<' + component.name + '/>', 'updateComponent.start(' + component.name + ')', 'updateComponent.end(' + component.name + ')');
+	  }
+	  return result;
 	}
 
 	function internalRenderNoRecycle(instance) {
@@ -378,7 +397,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function updateDynamic(isOnlyChild, oldValue, value, contextNode) {
 	  return UPDATE_BY_TYPE[dynamicType(oldValue)](value, contextNode, isOnlyChild, oldValue);
-	};
+	}
 
 	function internalRerender(prevInstance, instance) {
 	  if (internalRerenderInstance(prevInstance, instance)) return prevInstance;
