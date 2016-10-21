@@ -18,19 +18,17 @@ const isDynamicEmpty = v => v == null || v === true || v === false;
 
 // https://esbench.com/bench/57f1459d330ab09900a1a1dd
 function dynamicType(v){
-  if(v instanceof Object){
-    return v instanceof Array ? 'array' : 'object';
-  }
+  if(v instanceof Object) return (v instanceof Array ? 'array' : 'object');
 
   return isDynamicEmpty(v) ? 'empty' : 'text';
 }
 
+const EMPTY_PROPS     = {};
+export const DEADPOOL = {push(){}, pop(){}};
+
 // Creates an empty object with no built in properties (ie. `constructor`).
 function Hash(){}
 Hash.prototype = Object.create(null);
-
-const EMPTY_PROPS     = new Hash();
-export const DEADPOOL = {push(){}, pop(){}};
 
 // TODO: Benchmark whether this is slower than Function/Prototype
 function Pool(){
@@ -111,52 +109,29 @@ function renderArrayToParent(parentNode, array, i){
   }
 }
 
-function rerenderArrayReconcileWithMinLayout(parentNode, array, length, oldArray, oldLength, markerNode){
-  let oldStartIndex = 0;
-  let startIndex    = 0;
+function rerenderArrayReconcileWithMinLayout(parentNode, array, oldArray, markerNode){
+  let i=0;
+  for(; i < array.length && i < oldArray.length; i++){
+    array[i] = internalRerender(oldArray[i], array[i]);
+  }
 
-  do{
-    array[startIndex] = internalRerender(oldArray[oldStartIndex], array[startIndex]);
-    ++startIndex;
-    ++oldStartIndex;
-  }while(oldStartIndex < oldLength && startIndex < length);
-
-  if(startIndex < length){
-    renderArrayToParentBefore(parentNode, array, startIndex, markerNode);
+  if(i < array.length){
+    renderArrayToParentBefore(parentNode, array, i, markerNode);
   }
   else{
-    removeArrayNodes(oldArray, parentNode, oldStartIndex);
-  }
-}
-
-function rerenderArray(markerNode, array, oldArray){
-  const parentNode = markerNode.parentNode;
-  const length = array.length;
-  const oldLength = oldArray.length;
-
-  if(!length){
-    removeArrayNodes(oldArray, parentNode, 0);
-  }
-  else if(!oldLength){
-    renderArrayToParentBefore(parentNode, array, 0, markerNode);
-  }
-  else{
-    rerenderArrayReconcileWithMinLayout(parentNode, array, length, oldArray, oldLength, markerNode);
+    removeArrayNodes(oldArray, parentNode, i);
   }
 }
 
 function rerenderArrayOnlyChild(parentNode, array, oldArray){
-  const length = array.length;
-  const oldLength = oldArray.length;
-
-  if(!length){
+  if(!array.length){
     removeArrayNodesOnlyChild(oldArray, parentNode);
   }
-  else if(!oldLength){
+  else if(!oldArray.length){
     renderArrayToParent(parentNode, array, 0);
   }
   else{
-    rerenderArrayReconcileWithMinLayout(parentNode, array, length, oldArray, oldLength, null);
+    rerenderArrayReconcileWithMinLayout(parentNode, array, oldArray, null);
   }
 }
 
@@ -181,11 +156,12 @@ function rerenderInstance(value, node, isOnlyChild, prevValue){
     return rerenderDynamic(isOnlyChild, value, node);
   }
 
+  // TODO: What is $r? Is this trying to track the original rendered instnace?
   value.$r = prevRenderedInstance;
   return node;
 }
 
-function rerenderArrayMaybe(array, contextNode, isOnlyChild, oldArray){
+function rerenderArray(array, contextNode, isOnlyChild, oldArray){
   const markerNode = contextNode.xvdomContext;
 
   if(array instanceof Array){
@@ -193,7 +169,7 @@ function rerenderArrayMaybe(array, contextNode, isOnlyChild, oldArray){
       rerenderArrayOnlyChild(markerNode, array, oldArray);
     }
     else{
-      rerenderArray(markerNode, array, oldArray);
+      rerenderArrayReconcileWithMinLayout(markerNode.parentNode, array, oldArray, markerNode);
     }
     return contextNode;
   }
@@ -209,14 +185,6 @@ function rerenderArrayMaybe(array, contextNode, isOnlyChild, oldArray){
   return rerenderDynamic(false, array, markerNode);
 }
 
-function rerenderStatefulComponent(component, actions, newProps, api){
-  const {props} = api;
-  api.props = newProps;
-
-  if(actions.onProps) componentSend(component, api, actions.onProps, props);
-  else componentRerender(component, api);
-}
-
 function createArray(value, parentNode, isOnlyChild){
   const node = document.createDocumentFragment();
   renderArrayToParent(node, value, 0);
@@ -224,41 +192,54 @@ function createArray(value, parentNode, isOnlyChild){
   return node;
 }
 
-function componentRerender(component, api){
-  const instance = internalRerender(api._instance, component(api));
-  api._instance = instance;
-  instance.$n.xvdom = api._parentInst;
+function StatefulComponent(render, props, instance, actions){
+  this._boundActions = new Hash();
+  this._parentInst   = instance;
+  this.actions       = actions;
+  this.props         = props;
+  this.render        = render;
+  this.bindSend      = this.bindSend.bind(this);
+  this.state         = actions.onInit(this);
+  this.$n            = internalRenderNoRecycle(this._instance = render(this));
 }
 
-function componentSend(component, api, actionFn, context){
+StatefulComponent.prototype.updateProps = function(newProps){
+  const {props} = this;
+  this.props = newProps;
+
+  if(this.actions.onProps) this.send('onProps', props);
+  else this.rerender();
+
+  return this;
+};
+
+StatefulComponent.prototype.bindSend = function(action){
+  return this._boundActions[action] || (
+    this._boundActions[action] = this.send.bind(this, action)
+  );
+};
+
+StatefulComponent.prototype.send = function(actionName, context){
+  let newState;
+  const actionFn = this.actions[actionName];
   // TODO: process.ENV === 'development', console.error(`Action not found #{action}`);
-  if(!actionFn) return;
+  if(!actionFn || (newState = actionFn(this, context)) == this.state) return;
 
-  const newState = actionFn(api, context);
-  if(newState !== api.state){
-    api.state = newState;
-    componentRerender(component, api);
-  }
-}
+  this.state = newState;
+  this.rerender();
+};
+
+StatefulComponent.prototype.rerender = function(){
+  const instance = internalRerender(this._instance, this.render(this));
+  this._instance = instance;
+  instance.$n.xvdom = this._parentInst;
+};
 
 function createStatefulComponent(component, props, instance, actions){
-  const boundActions  = new Hash();
-
-  const api = {
-    props,
-    bindSend: action => boundActions[action] || (
-      boundActions[action] = context =>{ componentSend(component, api, actions[action], context); }
-    ),
-    _parentInst: instance
-  };
-
-  //TODO: process.ENV === 'development', console.error(`Stateful components require atleast an 'onInit' function to provide the initial state (see)`);
-  api.state = actions.onInit(api);
-  api.$n = internalRenderNoRecycle(api._instance = component(api));
-  return api;
+  return new StatefulComponent(component, props, instance, actions);
 }
 
-function createNoStateComponent(component, props){
+function createStatelessComponent(component, props){
   const instance = component(props);
   internalRenderNoRecycle(instance);
   return instance;
@@ -267,7 +248,7 @@ function createNoStateComponent(component, props){
 export function createComponent(component, actions, props, parentInstance){
   if(process.env.NODE_ENV === 'development') performance.mark(`createComponent.start(${component.name})`);
 
-  const result = (actions ? createStatefulComponent : createNoStateComponent)(
+  const result = (actions ? createStatefulComponent : createStatelessComponent)(
     component,
     (props || EMPTY_PROPS),
     parentInstance,
@@ -284,14 +265,11 @@ export function createComponent(component, actions, props, parentInstance){
 function updateComponent(component, actions, props, componentInstance){
   if(process.env.NODE_ENV === 'development') performance.mark(`updateComponent.start(${component.name})`);
 
-  let result;
-  if(actions){
-    rerenderStatefulComponent(component, actions, props, componentInstance);
-    result = componentInstance;
-  }
-  else {
-    result = internalRerender(componentInstance, component(props));
-  }
+  const result = (
+    actions
+      ? componentInstance.updateProps(props)
+      : internalRerender(componentInstance, component(props))
+  );
 
   if(process.env.NODE_ENV === 'development'){
     performance.mark(`updateComponent.end(${component.name})`);
@@ -333,7 +311,7 @@ function createDynamic(isOnlyChild, parentNode, value){
 const UPDATE_BY_TYPE = {
   text:   rerenderText,
   object: rerenderInstance,
-  array:  rerenderArrayMaybe,
+  array:  rerenderArray,
   empty:  rerenderText
 };
 
