@@ -11,22 +11,6 @@ describe('rerenderDynamic - isOnlyChild, value, contextNode', ()=>{
     parentNode.appendChild(textNode);
   });
 
-  describe('When node has been removed', ()=>{
-    beforeEach(()=>{
-      parentNode.removeChild(textNode);
-    });
-
-    it('does nothing and does not throw error', ()=>{
-      try{
-        _.rerenderDynamic(true, 'new text', textNode);
-        assert.equal(parentNode.children.length, 0);
-      }
-      catch(e){
-        assert.ok(false);
-      }
-    });
-  });
-
   describe('When `newValue` is a string', ()=>{
     beforeEach(()=>{
       returnValue = _.rerenderDynamic(true, 'new text', textNode);

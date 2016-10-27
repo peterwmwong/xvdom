@@ -51,7 +51,6 @@ Pool.prototype.pop = function(key){
 
 const recycle             = instance => { instance.$s.r.push(instance); };
 const createTextNode      = value => document.createTextNode(value);
-const createEmptyTextNode = () => createTextNode('');
 
 const replaceNode = (oldNode, newNode)=>{
   const parentNode = oldNode.parentNode;
@@ -86,7 +85,7 @@ function internalRerenderInstance(prevInst, inst){
 }
 
 function renderArrayToParentBefore(parentNode, array, i, markerNode){
-  if(markerNode == null) renderArrayToParent(parentNode, array, i);
+  if(markerNode === null) renderArrayToParent(parentNode, array, i);
   else renderArrayToParentBeforeNode(parentNode, array, i, markerNode);
 }
 
@@ -109,6 +108,13 @@ function renderArrayToParent(parentNode, array, i){
   }
 }
 
+function rerenderDynamic(isOnlyChild, value, contextNode){
+  const frag = document.createDocumentFragment();
+  const node = createDynamic(isOnlyChild, frag, value);
+  replaceNode(contextNode, frag);
+  return node;
+}
+
 function rerenderArrayReconcileWithMinLayout(parentNode, array, oldArray, markerNode){
   let i=0;
   for(; i < array.length && i < oldArray.length; i++){
@@ -124,21 +130,34 @@ function rerenderArrayReconcileWithMinLayout(parentNode, array, oldArray, marker
 }
 
 function rerenderArrayOnlyChild(parentNode, array, oldArray){
-  if(!array.length){
-    removeArrayNodesOnlyChild(oldArray, parentNode);
-  }
-  else if(!oldArray.length){
+  if(!oldArray.length){
     renderArrayToParent(parentNode, array, 0);
   }
-  else{
+  else if(!array.length){
+    removeArrayNodesOnlyChild(oldArray, parentNode);
+  }
+  else {
     rerenderArrayReconcileWithMinLayout(parentNode, array, oldArray, null);
   }
 }
 
-function rerenderDynamic(isOnlyChild, value, contextNode){
-  const node = createDynamic(isOnlyChild, contextNode.parentNode, value);
-  replaceNode(contextNode, node);
-  return node;
+function rerenderArray(array, parentOrMarkerNode, isOnlyChild, oldArray){
+  if(array instanceof Array){
+    return (
+      (isOnlyChild
+        ? rerenderArrayOnlyChild(parentOrMarkerNode, array, oldArray)
+        : rerenderArrayReconcileWithMinLayout(parentOrMarkerNode.parentNode, array, oldArray, parentOrMarkerNode)),
+      parentOrMarkerNode
+    );
+  }
+
+  if(isOnlyChild){
+    removeArrayNodesOnlyChild(oldArray, parentOrMarkerNode);
+    return createDynamic(true, parentOrMarkerNode, array);
+  }
+
+  removeArrayNodes(oldArray, parentOrMarkerNode.parentNode, 0);
+  return rerenderDynamic(false, array, parentOrMarkerNode);
 }
 
 function rerenderText(value, contextNode, isOnlyChild){
@@ -158,37 +177,6 @@ function rerenderInstance(value, node, isOnlyChild, prevValue){
 
   // TODO: What is $r? Is this trying to track the original rendered instnace?
   value.$r = prevRenderedInstance;
-  return node;
-}
-
-function rerenderArray(array, contextNode, isOnlyChild, oldArray){
-  const markerNode = contextNode.xvdomContext;
-
-  if(array instanceof Array){
-    if(isOnlyChild){
-      rerenderArrayOnlyChild(markerNode, array, oldArray);
-    }
-    else{
-      rerenderArrayReconcileWithMinLayout(markerNode.parentNode, array, oldArray, markerNode);
-    }
-    return contextNode;
-  }
-
-  if(isOnlyChild){
-    removeArrayNodesOnlyChild(oldArray, markerNode);
-    return markerNode.appendChild(
-      createDynamic(true, markerNode, array)
-    );
-  }
-
-  removeArrayNodes(oldArray, markerNode.parentNode, 0);
-  return rerenderDynamic(false, array, markerNode);
-}
-
-function createArray(value, parentNode, isOnlyChild){
-  const node = document.createDocumentFragment();
-  renderArrayToParent(node, value, 0);
-  node.xvdomContext = isOnlyChild ? parentNode : node.appendChild(createTextNode(''));
   return node;
 }
 
@@ -298,14 +286,17 @@ function internalRender(instance){
 }
 
 const CREATE_BY_TYPE = {
-  text:   createTextNode,
-  object: internalRenderNoRecycle,
-  array:  createArray,
-  empty:  createEmptyTextNode
+  text:  (node, value) => node.appendChild(createTextNode(value)),
+  empty:  node         => node.appendChild(createTextNode('')),
+  object:(node, value) => node.appendChild(internalRenderNoRecycle(value)),
+  array: (node, value, isOnlyChild) => (
+    renderArrayToParent(node, value, 0),
+    isOnlyChild ? node : node.appendChild(createTextNode(''))
+  )
 };
 
 function createDynamic(isOnlyChild, parentNode, value){
-  return CREATE_BY_TYPE[dynamicType(value)](value, parentNode, isOnlyChild);
+  return CREATE_BY_TYPE[dynamicType(value)](parentNode, value, isOnlyChild);
 }
 
 const UPDATE_BY_TYPE = {

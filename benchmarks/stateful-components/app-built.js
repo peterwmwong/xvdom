@@ -364,8 +364,7 @@
 	  c: function c(inst) {
 	    var _n = _xvdomEl('div');
 
-	    _n.appendChild(inst.b = _xvdomCreateDynamic(true, _n, inst.a));
-
+	    inst.b = _xvdomCreateDynamic(true, _n, inst.a);
 	    return _n;
 	  },
 	  u: function u(inst, pInst) {
@@ -400,8 +399,7 @@
 	  c: function c(inst) {
 	    var _n = _xvdomEl('div');
 
-	    _n.appendChild(inst.b = _xvdomCreateDynamic(true, _n, inst.a));
-
+	    inst.b = _xvdomCreateDynamic(true, _n, inst.a);
 	    return _n;
 	  },
 	  u: function u(inst, pInst) {
@@ -747,9 +745,6 @@
 	var createTextNode = function createTextNode(value) {
 	  return document.createTextNode(value);
 	};
-	var createEmptyTextNode = function createEmptyTextNode() {
-	  return createTextNode('');
-	};
 
 	var replaceNode = function replaceNode(oldNode, newNode) {
 	  var parentNode = oldNode.parentNode;
@@ -781,7 +776,7 @@
 	}
 
 	function renderArrayToParentBefore(parentNode, array, i, markerNode) {
-	  if (markerNode == null) renderArrayToParent(parentNode, array, i);else renderArrayToParentBeforeNode(parentNode, array, i, markerNode);
+	  if (markerNode === null) renderArrayToParent(parentNode, array, i);else renderArrayToParentBeforeNode(parentNode, array, i, markerNode);
 	}
 
 	function renderArrayToParentBeforeNode(parentNode, array, i, beforeNode) {
@@ -798,6 +793,13 @@
 	  }
 	}
 
+	function rerenderDynamic(isOnlyChild, value, contextNode) {
+	  var frag = document.createDocumentFragment();
+	  var node = createDynamic(isOnlyChild, frag, value);
+	  replaceNode(contextNode, frag);
+	  return node;
+	}
+
 	function rerenderArrayReconcileWithMinLayout(parentNode, array, oldArray, markerNode) {
 	  var i = 0;
 	  for (; i < array.length && i < oldArray.length; i++) {
@@ -812,19 +814,27 @@
 	}
 
 	function rerenderArrayOnlyChild(parentNode, array, oldArray) {
-	  if (!array.length) {
-	    removeArrayNodesOnlyChild(oldArray, parentNode);
-	  } else if (!oldArray.length) {
+	  if (!oldArray.length) {
 	    renderArrayToParent(parentNode, array, 0);
+	  } else if (!array.length) {
+	    removeArrayNodesOnlyChild(oldArray, parentNode);
 	  } else {
 	    rerenderArrayReconcileWithMinLayout(parentNode, array, oldArray, null);
 	  }
 	}
 
-	function rerenderDynamic(isOnlyChild, value, contextNode) {
-	  var node = createDynamic(isOnlyChild, contextNode.parentNode, value);
-	  replaceNode(contextNode, node);
-	  return node;
+	function rerenderArray(array, parentOrMarkerNode, isOnlyChild, oldArray) {
+	  if (array instanceof Array) {
+	    return isOnlyChild ? rerenderArrayOnlyChild(parentOrMarkerNode, array, oldArray) : rerenderArrayReconcileWithMinLayout(parentOrMarkerNode.parentNode, array, oldArray, parentOrMarkerNode), parentOrMarkerNode;
+	  }
+
+	  if (isOnlyChild) {
+	    removeArrayNodesOnlyChild(oldArray, parentOrMarkerNode);
+	    return createDynamic(true, parentOrMarkerNode, array);
+	  }
+
+	  removeArrayNodes(oldArray, parentOrMarkerNode.parentNode, 0);
+	  return rerenderDynamic(false, array, parentOrMarkerNode);
 	}
 
 	function rerenderText(value, contextNode, isOnlyChild) {
@@ -844,34 +854,6 @@
 
 	  // TODO: What is $r? Is this trying to track the original rendered instnace?
 	  value.$r = prevRenderedInstance;
-	  return node;
-	}
-
-	function rerenderArray(array, contextNode, isOnlyChild, oldArray) {
-	  var markerNode = contextNode.xvdomContext;
-
-	  if (array instanceof Array) {
-	    if (isOnlyChild) {
-	      rerenderArrayOnlyChild(markerNode, array, oldArray);
-	    } else {
-	      rerenderArrayReconcileWithMinLayout(markerNode.parentNode, array, oldArray, markerNode);
-	    }
-	    return contextNode;
-	  }
-
-	  if (isOnlyChild) {
-	    removeArrayNodesOnlyChild(oldArray, markerNode);
-	    return markerNode.appendChild(createDynamic(true, markerNode, array));
-	  }
-
-	  removeArrayNodes(oldArray, markerNode.parentNode, 0);
-	  return rerenderDynamic(false, array, markerNode);
-	}
-
-	function createArray(value, parentNode, isOnlyChild) {
-	  var node = document.createDocumentFragment();
-	  renderArrayToParent(node, value, 0);
-	  node.xvdomContext = isOnlyChild ? parentNode : node.appendChild(createTextNode(''));
 	  return node;
 	}
 
@@ -970,14 +952,22 @@
 	}
 
 	var CREATE_BY_TYPE = {
-	  text: createTextNode,
-	  object: internalRenderNoRecycle,
-	  array: createArray,
-	  empty: createEmptyTextNode
+	  text: function text(node, value) {
+	    return node.appendChild(createTextNode(value));
+	  },
+	  empty: function empty(node) {
+	    return node.appendChild(createTextNode(''));
+	  },
+	  object: function object(node, value) {
+	    return node.appendChild(internalRenderNoRecycle(value));
+	  },
+	  array: function array(node, value, isOnlyChild) {
+	    return renderArrayToParent(node, value, 0), isOnlyChild ? node : node.appendChild(createTextNode(''));
+	  }
 	};
 
 	function createDynamic(isOnlyChild, parentNode, value) {
-	  return CREATE_BY_TYPE[dynamicType(value)](value, parentNode, isOnlyChild);
+	  return CREATE_BY_TYPE[dynamicType(value)](parentNode, value, isOnlyChild);
 	}
 
 	var UPDATE_BY_TYPE = {

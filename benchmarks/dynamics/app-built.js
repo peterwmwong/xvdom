@@ -392,7 +392,7 @@
 
 	    _n2.appendChild(_n3);
 
-	    _n2.appendChild(inst.b = _xvdomCreateDynamic(false, _n2, inst.a));
+	    inst.b = _xvdomCreateDynamic(false, _n2, inst.a);
 
 	    _n.appendChild(_n2);
 
@@ -403,7 +403,7 @@
 
 	    _n2.appendChild(_n4);
 
-	    _n2.appendChild(inst.d = _xvdomCreateDynamic(false, _n2, inst.c));
+	    inst.d = _xvdomCreateDynamic(false, _n2, inst.c);
 
 	    _n.appendChild(_n2);
 
@@ -414,7 +414,7 @@
 
 	    _n2.appendChild(_n5);
 
-	    _n2.appendChild(inst.f = _xvdomCreateDynamic(false, _n2, inst.e));
+	    inst.f = _xvdomCreateDynamic(false, _n2, inst.e);
 
 	    _n.appendChild(_n2);
 
@@ -425,7 +425,7 @@
 
 	    _n2.appendChild(_n6);
 
-	    _n2.appendChild(inst.h = _xvdomCreateDynamic(false, _n2, inst.g));
+	    inst.h = _xvdomCreateDynamic(false, _n2, inst.g);
 
 	    _n.appendChild(_n2);
 
@@ -436,7 +436,7 @@
 
 	    _n2.appendChild(_n7);
 
-	    _n2.appendChild(inst.j = _xvdomCreateDynamic(false, _n2, inst.i));
+	    inst.j = _xvdomCreateDynamic(false, _n2, inst.i);
 
 	    _n.appendChild(_n2);
 
@@ -473,32 +473,27 @@
 	        _n2;
 
 	    _n2 = _xvdomEl('span');
-
-	    _n2.appendChild(inst.b = _xvdomCreateDynamic(true, _n2, inst.a));
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomEl('span');
-
-	    _n2.appendChild(inst.d = _xvdomCreateDynamic(true, _n2, inst.c));
+	    inst.b = _xvdomCreateDynamic(true, _n2, inst.a);
 
 	    _n.appendChild(_n2);
 
 	    _n2 = _xvdomEl('span');
-
-	    _n2.appendChild(inst.f = _xvdomCreateDynamic(true, _n2, inst.e));
-
-	    _n.appendChild(_n2);
-
-	    _n2 = _xvdomEl('span');
-
-	    _n2.appendChild(inst.h = _xvdomCreateDynamic(true, _n2, inst.g));
+	    inst.d = _xvdomCreateDynamic(true, _n2, inst.c);
 
 	    _n.appendChild(_n2);
 
 	    _n2 = _xvdomEl('span');
+	    inst.f = _xvdomCreateDynamic(true, _n2, inst.e);
 
-	    _n2.appendChild(inst.j = _xvdomCreateDynamic(true, _n2, inst.i));
+	    _n.appendChild(_n2);
+
+	    _n2 = _xvdomEl('span');
+	    inst.h = _xvdomCreateDynamic(true, _n2, inst.g);
+
+	    _n.appendChild(_n2);
+
+	    _n2 = _xvdomEl('span');
+	    inst.j = _xvdomCreateDynamic(true, _n2, inst.i);
 
 	    _n.appendChild(_n2);
 
@@ -775,9 +770,6 @@
 	var createTextNode = function createTextNode(value) {
 	  return document.createTextNode(value);
 	};
-	var createEmptyTextNode = function createEmptyTextNode() {
-	  return createTextNode('');
-	};
 
 	var replaceNode = function replaceNode(oldNode, newNode) {
 	  var parentNode = oldNode.parentNode;
@@ -809,7 +801,7 @@
 	}
 
 	function renderArrayToParentBefore(parentNode, array, i, markerNode) {
-	  if (markerNode == null) renderArrayToParent(parentNode, array, i);else renderArrayToParentBeforeNode(parentNode, array, i, markerNode);
+	  if (markerNode === null) renderArrayToParent(parentNode, array, i);else renderArrayToParentBeforeNode(parentNode, array, i, markerNode);
 	}
 
 	function renderArrayToParentBeforeNode(parentNode, array, i, beforeNode) {
@@ -826,6 +818,13 @@
 	  }
 	}
 
+	function rerenderDynamic(isOnlyChild, value, contextNode) {
+	  var frag = document.createDocumentFragment();
+	  var node = createDynamic(isOnlyChild, frag, value);
+	  replaceNode(contextNode, frag);
+	  return node;
+	}
+
 	function rerenderArrayReconcileWithMinLayout(parentNode, array, oldArray, markerNode) {
 	  var i = 0;
 	  for (; i < array.length && i < oldArray.length; i++) {
@@ -840,19 +839,27 @@
 	}
 
 	function rerenderArrayOnlyChild(parentNode, array, oldArray) {
-	  if (!array.length) {
-	    removeArrayNodesOnlyChild(oldArray, parentNode);
-	  } else if (!oldArray.length) {
+	  if (!oldArray.length) {
 	    renderArrayToParent(parentNode, array, 0);
+	  } else if (!array.length) {
+	    removeArrayNodesOnlyChild(oldArray, parentNode);
 	  } else {
 	    rerenderArrayReconcileWithMinLayout(parentNode, array, oldArray, null);
 	  }
 	}
 
-	function rerenderDynamic(isOnlyChild, value, contextNode) {
-	  var node = createDynamic(isOnlyChild, contextNode.parentNode, value);
-	  replaceNode(contextNode, node);
-	  return node;
+	function rerenderArray(array, parentOrMarkerNode, isOnlyChild, oldArray) {
+	  if (array instanceof Array) {
+	    return isOnlyChild ? rerenderArrayOnlyChild(parentOrMarkerNode, array, oldArray) : rerenderArrayReconcileWithMinLayout(parentOrMarkerNode.parentNode, array, oldArray, parentOrMarkerNode), parentOrMarkerNode;
+	  }
+
+	  if (isOnlyChild) {
+	    removeArrayNodesOnlyChild(oldArray, parentOrMarkerNode);
+	    return createDynamic(true, parentOrMarkerNode, array);
+	  }
+
+	  removeArrayNodes(oldArray, parentOrMarkerNode.parentNode, 0);
+	  return rerenderDynamic(false, array, parentOrMarkerNode);
 	}
 
 	function rerenderText(value, contextNode, isOnlyChild) {
@@ -872,34 +879,6 @@
 
 	  // TODO: What is $r? Is this trying to track the original rendered instnace?
 	  value.$r = prevRenderedInstance;
-	  return node;
-	}
-
-	function rerenderArray(array, contextNode, isOnlyChild, oldArray) {
-	  var markerNode = contextNode.xvdomContext;
-
-	  if (array instanceof Array) {
-	    if (isOnlyChild) {
-	      rerenderArrayOnlyChild(markerNode, array, oldArray);
-	    } else {
-	      rerenderArrayReconcileWithMinLayout(markerNode.parentNode, array, oldArray, markerNode);
-	    }
-	    return contextNode;
-	  }
-
-	  if (isOnlyChild) {
-	    removeArrayNodesOnlyChild(oldArray, markerNode);
-	    return markerNode.appendChild(createDynamic(true, markerNode, array));
-	  }
-
-	  removeArrayNodes(oldArray, markerNode.parentNode, 0);
-	  return rerenderDynamic(false, array, markerNode);
-	}
-
-	function createArray(value, parentNode, isOnlyChild) {
-	  var node = document.createDocumentFragment();
-	  renderArrayToParent(node, value, 0);
-	  node.xvdomContext = isOnlyChild ? parentNode : node.appendChild(createTextNode(''));
 	  return node;
 	}
 
@@ -998,14 +977,22 @@
 	}
 
 	var CREATE_BY_TYPE = {
-	  text: createTextNode,
-	  object: internalRenderNoRecycle,
-	  array: createArray,
-	  empty: createEmptyTextNode
+	  text: function text(node, value) {
+	    return node.appendChild(createTextNode(value));
+	  },
+	  empty: function empty(node) {
+	    return node.appendChild(createTextNode(''));
+	  },
+	  object: function object(node, value) {
+	    return node.appendChild(internalRenderNoRecycle(value));
+	  },
+	  array: function array(node, value, isOnlyChild) {
+	    return renderArrayToParent(node, value, 0), isOnlyChild ? node : node.appendChild(createTextNode(''));
+	  }
 	};
 
 	function createDynamic(isOnlyChild, parentNode, value) {
-	  return CREATE_BY_TYPE[dynamicType(value)](value, parentNode, isOnlyChild);
+	  return CREATE_BY_TYPE[dynamicType(value)](parentNode, value, isOnlyChild);
 	}
 
 	var UPDATE_BY_TYPE = {
