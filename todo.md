@@ -1,4 +1,22 @@
-# Perf: Array item swap
+# Perf: Seperate values from instance (optimize monomorphic ICs)
+
+see [todo-perf-instance-values-prop.md]
+
+
+# Perf: Remove or limit recycling
+
+Recycling was originally introduced to get a better (A L O T better... like "cheating the benchmark"
+better) score in the [http://vdom-benchmark.github.io/vdom-benchmark/](vdom-benchmark).  Since then,
+major flaws have been found with vdom-benchmark and noone seems to be using this benchmark as
+credible measure of vdom performance.
+
+As such it maybe time to revisit the real world benefits of keyed recyling and weighed
+against the benefits of removing the feature from xvdom:
+
+- Remove hot path Megamorphic IC (see [todo-perf-instance-values-prop.md])
+- Reduce work done in hot path for rendering/rendering anything (component's, dynamic instances,
+  array instances)
+
 
 # Perf: Dynamic Hinting
 
@@ -22,19 +40,7 @@
   - array: {num + ""} {String(num)}
   - jsx: ???
 
+
 # Port enhancements from bytecode-wip
 
 - Only child specialization
-- IC vs Object Allocation
-  - compare instance structure
-    1. `{spec, v1, v2, v3}`
-    2. `{spec, values:{ v1, v2, v3}}`
-      - Pros
-        - framework has monomorphic callsites when accessing the spec (instance.$s)
-          - currently 6 call sites
-      - Cons
-        - One more object alloc
-- Pass spec into xvdom functions.  Update babel-plugin-xvdom to do so.
-- Dynamic updating: tracking dynContextNodeId, dynContextNodes
-- Textable helpers
-- Shared type dynamic checking
