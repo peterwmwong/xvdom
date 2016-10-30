@@ -84,14 +84,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	var isDynamicEmpty = function isDynamicEmpty(v) {
 	  return v == null || v === true || v === false;
 	};
-
-	// https://esbench.com/bench/57f1459d330ab09900a1a1dd
-	function dynamicType(v) {
-	  if (v instanceof Object) return v instanceof Array ? 'array' : 'object';
-
-	  return isDynamicEmpty(v) ? 'empty' : 'text';
-	}
-
 	var EMPTY_PROPS = {};
 	var DEADPOOL = exports.DEADPOOL = {
 	  push: function push() {},
@@ -217,27 +209,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 
 	  removeArrayNodes(oldArray, parentOrMarkerNode.parentNode, 0);
-	  return rerenderDynamic(false, array, parentOrMarkerNode);
 	}
 
 	function rerenderText(value, contextNode, isOnlyChild) {
-	  if (value instanceof Object) {
-	    return rerenderDynamic(isOnlyChild, value, contextNode);
-	  }
+	  if (!(value instanceof Object)) {
 
-	  contextNode.nodeValue = isDynamicEmpty(value) ? '' : value;
-	  return contextNode;
+	    contextNode.nodeValue = isDynamicEmpty(value) ? '' : value;
+	    return contextNode;
+	  }
 	}
 
 	function rerenderInstance(value, node, isOnlyChild, prevValue) {
 	  var prevRenderedInstance = void 0;
-	  if (!value || !internalRerenderInstance(prevRenderedInstance = prevValue.$r || prevValue, value)) {
-	    return rerenderDynamic(isOnlyChild, value, node);
+	  if (value && internalRerenderInstance(prevRenderedInstance = prevValue.$r || prevValue, value)) {
+	    // TODO: What is $r? Is this trying to track the original rendered instnace?
+	    value.$r = prevRenderedInstance;
+	    return node;
 	  }
-
-	  // TODO: What is $r? Is this trying to track the original rendered instnace?
-	  value.$r = prevRenderedInstance;
-	  return node;
 	}
 
 	function StatefulComponent(render, props, instance, actions) {
@@ -334,34 +322,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return instance;
 	}
 
-	var CREATE_BY_TYPE = {
-	  text: function text(node, value) {
-	    return node.appendChild(createTextNode(value));
-	  },
-	  empty: function empty(node) {
-	    return node.appendChild(createTextNode(''));
-	  },
-	  object: function object(node, value) {
-	    return node.appendChild(internalRenderNoRecycle(value));
-	  },
-	  array: function array(node, value, isOnlyChild) {
-	    return renderArrayToParent(node, value, 0), isOnlyChild ? node : node.appendChild(createTextNode(''));
-	  }
-	};
-
 	function createDynamic(isOnlyChild, parentNode, value) {
-	  return CREATE_BY_TYPE[dynamicType(value)](parentNode, value, isOnlyChild);
+	  return value instanceof Array ? (renderArrayToParent(parentNode, value, 0), isOnlyChild ? parentNode : parentNode.appendChild(createTextNode(''))) : parentNode.appendChild(value instanceof Object ? internalRenderNoRecycle(value) : createTextNode(isDynamicEmpty(value) ? '' : value));
 	}
 
-	var UPDATE_BY_TYPE = {
-	  text: rerenderText,
-	  object: rerenderInstance,
-	  array: rerenderArray,
-	  empty: rerenderText
-	};
-
 	function updateDynamic(isOnlyChild, oldValue, value, contextNode) {
-	  return UPDATE_BY_TYPE[dynamicType(oldValue)](value, contextNode, isOnlyChild, oldValue);
+	  return (oldValue instanceof Object ? oldValue instanceof Array ? rerenderArray(value, contextNode, isOnlyChild, oldValue) : rerenderInstance(value, contextNode, isOnlyChild, oldValue) : rerenderText(value, contextNode, isOnlyChild)) || rerenderDynamic(isOnlyChild, value, contextNode);
 	}
 
 	function internalRerender(prevInstance, instance) {
